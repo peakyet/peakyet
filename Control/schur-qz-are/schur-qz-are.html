@@ -679,14 +679,25 @@ window.MathJax = {
   <div class="eq">\[
     \begin{bmatrix} A & 0 & B\\ -Q & E^\top & -S\\ S^\top & 0 & R\end{bmatrix}
     \;-\;\lambda\;
-    \begin{bmatrix} E & 0 & B\\ 0 & A^\top & 0\\ 0 & -B^\top & 0\end{bmatrix}.
+    \begin{bmatrix} E & 0 & 0\\ 0 & A^\top & 0\\ 0 & -B^\top & 0\end{bmatrix}.
   \]</div>
 
-  <h3>How the pencil is constructed from the DARE</h3>
-  <p>It is built by the same recipe as §5, with the discrete shift in place of \(d/dt\). The <em>discrete</em> optimality (Pontryagin) conditions for \(E x_{k+1}=Ax_k+Bu_k\) with the cross cost are</p>
-  <div class="eq">\[ E x_{k+1}=Ax_k+Bu_k,\qquad E^\top p_k = Qx_k+Su_k+A^\top p_{k+1},\qquad 0=S^\top x_k+B^\top p_{k+1}+Ru_k . \]</div>
-  <p>Now pack \((x,p,u)\) and look for a mode that advances geometrically. Put every <em>next-step</em> quantity — \(E x_{k+1}\), \(A^\top p_{k+1}\), and the shifted control couplings \(B u\), \(B^\top p\) — on the \(\lambda\)-weighted matrix \(J\), and every <em>current-step</em> term (\(Ax_k,\ -Qx_k,\ S^\top x,\ Ru\)) in \(H\). The stationarity row is algebraic (no shift), so its block in \(J\) is zero. Keeping the control explicit means we never form \(R^{-1}\) (nor \(E^{-1}\)), and \(J\)'s zero block contributes some infinite generalized eigenvalues — again a pencil for QZ rather than a matrix inversion.</p>
-  <p>Reading the blocks: \(H\) carries the current-step terms — state \((A,B)\), adjoint \((-Q,E^\top,-S)\), stationarity \((S^\top,R)\) — while \(J\) carries the shifted terms \(E\), \(A^\top\), and the control-shift couplings \(B,\,-B^\top\). The stable deflating subspace (generalized eigenvalues inside the unit circle) then gives the solution via the same partition as before: leading columns \(Z_1=[Z_{11};Z_{21}]\) and \(P=Z_{21}Z_{11}^{-1}\) (with the \(E\)-weights for the descriptor case).</p>
+  <h3>Deducing the pencil in equations</h3>
+  <p>Start from the discrete cost and adjoin the constraint with the costate \(p\):</p>
+  <div class="eq">\[ \mathcal J=\sum_{k\ge0}\Big[\tfrac12 x_k^\top Qx_k+x_k^\top Su_k+\tfrac12 u_k^\top Ru_k+p_{k+1}^\top\big(Ax_k+Bu_k-Ex_{k+1}\big)\Big]. \]</div>
+  <p>Set the first variation to zero, separately in \(u_k\), \(p_{k+1}\) and \(x_k\):</p>
+  <div class="eq">\[ \delta u_k:\quad 0=S^\top x_k+Ru_k+B^\top p_{k+1},\qquad\quad \delta p_{k+1}:\quad Ex_{k+1}=Ax_k+Bu_k, \]</div>
+  <div class="eq">\[ \delta x_k:\quad E^\top p_k=Qx_k+Su_k+A^\top p_{k+1}. \]</div>
+  <p>Look for a geometric mode \(x_{k+1}=\lambda x_k,\ p_{k+1}=\lambda p_k\). Substituting removes every time index:</p>
+  <div class="eq">\[ (A-\lambda E)x_k+Bu_k=0, \]</div>
+  <div class="eq">\[ -Qx_k-Su_k+\big(E^\top-\lambda A^\top\big)p_k=0,\qquad S^\top x_k+Ru_k+\lambda B^\top p_k=0 . \]</div>
+  <p>Stack these into one homogeneous system \((H-\lambda J)\,[x_k;p_k;u_k]=0\):</p>
+  <div class="eqbox"><div class="eq">\[
+    \Bigg(\underbrace{\begin{bmatrix}A&0&B\\-Q&E^\top&-S\\S^\top&0&R\end{bmatrix}}_{H}
+    -\lambda\,\underbrace{\begin{bmatrix}E&0&0\\0&A^\top&0\\0&-B^\top&0\end{bmatrix}}_{J}\Bigg)
+    \begin{bmatrix}x_k\\p_k\\u_k\end{bmatrix}=0 .
+  \]</div></div>
+  <p>That is the extended symplectic pencil. \(H\) collects the current-step terms \((Ax_k,\ -Qx_k,\ S^\top x_k,\ Ru_k)\); \(J\) collects the \(\lambda\)-weighted shift terms \((Ex_{k+1}\mapsto E,\ A^\top p_{k+1}\mapsto A^\top,\ B^\top p_{k+1}\mapsto -B^\top)\). A nonzero mode exists exactly when \(\det(H-\lambda J)=0\), so the generalized eigenvalues are the closed-loop modes; the stable set (\(|\lambda|<1\)) comes in reciprocal pairs, and its deflating subspace gives \(P=Z_{21}Z_{11}^{-1}\) as in §6.</p>
 
   <p>Its generalized eigenvalues now come in <em>reciprocal</em> pairs about the unit circle: if \(\lambda\) is one, then \(1/\lambda\) (and \(\overline\lambda\)) is another. The stabilizing solution corresponds to the deflating subspace of the eigenvalues <span class="box green">inside</span> the unit disk. Deflating to a \(2n\times 2n\) symplectic pencil and running ordered QZ gives \(P\) exactly as before.</p>
 
