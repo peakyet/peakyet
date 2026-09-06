@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Study Notes — Math, Control Theory, AI, Code &amp; More</title>
+<meta name="description" content="A knowledge base of notes spanning mathematics, numerical linear algebra, control theory, optimization, robotics, AI, and programming.">
+<style>
+  :root{
+    --bg:#f6f5f8;
+    --bg-2:#efedf5;
+    --card:#ffffff;
+    --ink:#26223a;
+    --ink-2:#151228;
+    --soft:#5f5a72;
+    --muted:#8b86a0;
+    --accent:#5a3fd0;
+    --accent-2:#8a4fd0;
+    --accent-soft:#ede9fb;
+    --teal:#0f6f6c;
+    --teal-soft:#e3f1f0;
+    --amber:#9a5b00;
+    --amber-soft:#f7f4ec;
+    --rose:#a13a68;
+    --rose-soft:#f9e9f0;
+    --line:#ddd8e6;
+    --radius:16px;
+    --shadow:0 2px 10px rgba(46,38,84,.07);
+    --shadow-lg:0 14px 36px rgba(46,38,84,.14);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    line-height:1.66;
+    font-size:17px;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--accent)}
+  a:hover{color:var(--accent-2)}
+
+  /* ---------- top nav ---------- */
+  .topbar{
+    position:sticky;top:0;z-index:100;
+    background:rgba(246,245,248,.82);
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar .inner{
+    max-width:1160px;margin:0 auto;padding:12px 26px;
+    display:flex;align-items:center;gap:22px;
+  }
+  .brand{
+    font-weight:800;letter-spacing:-.01em;color:var(--ink-2);
+    text-decoration:none;display:flex;align-items:center;gap:9px;font-size:1.05rem;
+  }
+  .brand .mark{
+    width:26px;height:26px;border-radius:8px;flex:none;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    color:#fff;font-size:.9rem;font-weight:800;
+    display:inline-flex;align-items:center;justify-content:center;
+    box-shadow:0 3px 8px rgba(90,63,208,.3);
+  }
+  .brand:hover{color:var(--ink-2)}
+  .topnav{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap}
+  .topnav a{
+    color:var(--soft);text-decoration:none;font-weight:600;font-size:.94rem;
+    padding:6px 12px;border-radius:999px;transition:background .14s ease,color .14s ease;
+  }
+  .topnav a:hover{background:var(--accent-soft);color:var(--accent)}
+  .topnav a.cta{background:var(--ink-2);color:#fff}
+  .topnav a.cta:hover{background:var(--accent)}
+
+  /* ---------- hero ---------- */
+  header.hero{
+    position:relative;overflow:hidden;
+    color:#fff;padding:0;
+  }
+  header.hero::before{
+    content:"";position:absolute;inset:0;
+    background:
+      radial-gradient(640px 420px at 12% -10%, rgba(255,255,255,.16), transparent 60%),
+      radial-gradient(520px 420px at 92% 6%, rgba(255,255,255,.12), transparent 60%),
+      linear-gradient(135deg,#2a1b5e,#5a3fd0 52%,#123d52);
+  }
+  header.hero::after{
+    content:"";position:absolute;inset:0;opacity:.5;
+    background-image:
+      linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);
+    background-size:46px 46px;
+    mask-image:linear-gradient(to bottom,#000 0%,transparent 78%);
+    -webkit-mask-image:linear-gradient(to bottom,#000 0%,transparent 78%);
+  }
+  header.hero .wrap{
+    position:relative;z-index:2;
+    max-width:1160px;margin:0 auto;padding:84px 26px 66px;
+  }
+  header.hero .kicker{
+    font-size:.82rem;letter-spacing:.16em;text-transform:uppercase;
+    opacity:.9;margin-bottom:18px;font-weight:700;display:inline-flex;align-items:center;gap:10px;
+  }
+  header.hero .kicker .dot{width:7px;height:7px;border-radius:50%;background:#7ee0c8;box-shadow:0 0 0 4px rgba(126,224,200,.25)}
+  header.hero h1{
+    margin:0 0 16px;font-size:clamp(2.1rem,5vw,3.1rem);line-height:1.12;
+    letter-spacing:-.02em;max-width:860px;font-weight:850;
+  }
+  header.hero p.sub{
+    margin:0;max-width:660px;font-size:1.13rem;opacity:.95;
+  }
+  header.hero .actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+  header.hero .btn{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:12px 22px;border-radius:999px;font-weight:700;font-size:.98rem;
+    text-decoration:none;transition:transform .14s ease,box-shadow .14s ease,background .14s ease;
+  }
+  header.hero .btn.primary{background:#fff;color:var(--accent);box-shadow:0 10px 26px rgba(0,0,0,.22)}
+  header.hero .btn.primary:hover{transform:translateY(-2px);box-shadow:0 16px 32px rgba(0,0,0,.28)}
+  header.hero .btn.ghost{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.35);color:#fff}
+  header.hero .btn.ghost:hover{background:rgba(255,255,255,.2);transform:translateY(-2px)}
+  header.hero .stats{
+    display:flex;gap:40px;flex-wrap:wrap;margin-top:38px;padding-top:26px;
+    border-top:1px solid rgba(255,255,255,.18);max-width:760px;
+  }
+  header.hero .stat .num{font-size:1.7rem;font-weight:850;letter-spacing:-.02em}
+  header.hero .stat .lbl{font-size:.82rem;opacity:.85;letter-spacing:.02em}
+  .floating{position:absolute;z-index:1;color:rgba(255,255,255,.14);font-family:Georgia,serif;font-style:italic;user-select:none;pointer-events:none}
+  .floating.f1{top:26px;right:8%;font-size:3.4rem;transform:rotate(8deg)}
+  .floating.f2{bottom:20px;right:22%;font-size:2.4rem;transform:rotate(-12deg)}
+
+  /* ---------- main ---------- */
+  main{max-width:1160px;margin:0 auto;padding:52px 26px 84px}
+  section{margin:0 0 62px}
+  section > h2{
+    font-size:1.5rem;margin:0 0 6px;color:#33286b;
+    display:flex;align-items:center;gap:12px;letter-spacing:-.01em;
+  }
+  section h2 .n{
+    font-size:.86rem;color:var(--accent);font-weight:800;
+    background:var(--accent-soft);border-radius:9px;padding:2px 10px;flex:none;
+  }
+  section .lead{color:var(--soft);margin:6px 0 24px;max-width:860px}
+
+  /* ---------- toolbar / filter ---------- */
+  .toolbar{
+    display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:14px 16px;margin-bottom:26px;
+  }
+  .toolbar .search{position:relative;flex:1;min-width:220px}
+  .toolbar .search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted)}
+  .toolbar input{
+    width:100%;border:1px solid var(--line);border-radius:999px;
+    padding:11px 16px 11px 40px;font-size:.96rem;font-family:inherit;color:var(--ink);
+    background:var(--bg);outline:none;transition:border-color .14s ease,box-shadow .14s ease;
+  }
+  .toolbar input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{
+    font-size:.85rem;font-weight:700;letter-spacing:.01em;
+    border:1px solid var(--line);background:#fff;color:var(--soft);
+    border-radius:999px;padding:8px 15px;cursor:pointer;font-family:inherit;
+    transition:background .14s ease,color .14s ease,border-color .14s ease;
+  }
+  .chip:hover{border-color:var(--accent);color:var(--accent)}
+  .chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .count{font-size:.85rem;color:var(--muted);font-weight:600;white-space:nowrap}
+
+  /* ---------- grid / cards ---------- */
+  .grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+    gap:20px;
+  }
+  .card{
+    position:relative;display:flex;flex-direction:column;
+    background:var(--card);border:1px solid var(--line);
+    border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:24px 22px;text-decoration:none;color:inherit;overflow:hidden;
+    transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease;
+  }
+  .card::before{
+    content:"";position:absolute;left:0;top:0;height:4px;width:100%;
+    background:linear-gradient(90deg,var(--accent),var(--accent-2));
+    opacity:0;transition:opacity .15s ease;
+  }
+  .card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:var(--accent)}
+  .card:hover::before{opacity:1}
+  .card .toprow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px}
+  .card .tag{
+    align-self:flex-start;font-size:.72rem;font-weight:800;letter-spacing:.1em;
+    text-transform:uppercase;border-radius:999px;padding:3px 11px;
+  }
+  .tag.purple{background:var(--accent-soft);color:var(--accent)}
+  .tag.teal{background:var(--teal-soft);color:var(--teal)}
+  .tag.amber{background:var(--amber-soft);color:var(--amber)}
+  .tag.rose{background:var(--rose-soft);color:var(--rose)}
+  .card .read{font-size:.78rem;color:var(--muted);font-weight:600;white-space:nowrap}
+  .card h3{margin:0 0 9px;font-size:1.18rem;line-height:1.34;color:#33286b;letter-spacing:-.01em}
+  .card p{margin:0 0 14px;color:var(--soft);font-size:.95rem;flex:1}
+  .card .tags{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 16px}
+  .card .tag-pill{
+    font-size:.7rem;font-weight:600;letter-spacing:.01em;color:var(--muted);
+    background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:2px 9px;
+  }
+  .card .go{font-size:.9rem;font-weight:800;color:var(--accent);display:inline-flex;align-items:center;gap:5px}
+  .card .go::after{content:"→";transition:margin-left .15s ease}
+  .card:hover .go::after{margin-left:5px}
+  .card .foot{display:flex;align-items:center;gap:8px;margin-top:16px;padding-top:14px;border-top:1px dashed var(--line);font-size:.82rem;color:var(--muted)}
+  .card .foot .field{display:inline-flex;align-items:center;gap:6px;font-weight:600}
+  .card .foot .field i{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none}
+  .empty{display:none;text-align:center;color:var(--soft);padding:36px 10px;border:1px dashed var(--line);border-radius:var(--radius)}
+  .grid.no-results ~ .empty{display:block}
+
+  /* ---------- fields ---------- */
+  .fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+  .field{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:20px 20px;
+  }
+  .field .ico{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:12px}
+  .field h4{margin:0 0 4px;font-size:1.06rem;color:#33286b}
+  .field p{margin:0 0 12px;font-size:.88rem;color:var(--soft)}
+  .field .meta{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+  .field .num{font-size:1.1rem;font-weight:800;color:#33286b}
+  .field .num span{font-size:.78rem;font-weight:600;color:var(--muted)}
+  .field .status{font-size:.72rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--teal)}
+
+  /* ---------- about ---------- */
+  .about{
+    background:linear-gradient(135deg,#f2eefc,#eef4f6);
+    border:1px solid var(--line);border-radius:var(--radius);
+    padding:30px 30px;box-shadow:var(--shadow);
+  }
+  .about h3{margin:0 0 10px;font-size:1.2rem;color:#33286b}
+  .about p{margin:0 0 12px;color:var(--soft);max-width:800px}
+  .about ul{margin:0 0 0 20px;padding:0;color:var(--soft)}
+  .about li{margin:5px 0}
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--line);background:var(--bg-2);padding:38px 20px 44px}
+  footer .inner{max-width:1160px;margin:0 auto;display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start;justify-content:space-between}
+  footer .cols{display:flex;gap:52px;flex-wrap:wrap}
+  footer .col h5{margin:0 0 10px;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);font-weight:800}
+  footer .col a{display:block;color:var(--soft);text-decoration:none;font-size:.9rem;padding:3px 0}
+  footer .col a:hover{color:var(--accent)}
+  footer .base{max-width:1160px;margin:28px auto 0;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:.86rem;display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between}
+
+  @media (max-width:640px){
+    .topbar .inner{padding:11px 16px;gap:10px}
+    .topnav{gap:2px}
+    .topnav a{padding:6px 9px;font-size:.88rem}
+    header.hero .wrap{padding:64px 20px 50px}
+    main{padding:40px 18px 70px}
+    .stats{gap:22px}
+  }
+</style>
+</head>
+<body>
+
+<nav class="topbar" aria-label="Primary">
+  <div class="inner">
+    <a class="brand" href="#top"><span class="mark">Σ</span> Study Notes</a>
+    <div class="topnav">
+      <a href="#notes">Notes</a>
+      <a href="#fields">Fields</a>
+      <a href="#about">About</a>
+      <a class="cta" href="https://github.com/" rel="noopener">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <span class="floating f1">∫ f(x) dx</span>
+  <span class="floating f2">λ = α/β</span>
+  <div class="wrap">
+    <div class="kicker"><span class="dot"></span> Study Notes</div>
+    <h1>A knowledge base across many fields</h1>
+    <p class="sub">Notes on mathematics, control theory, optimization, robotics, AI, programming, and whatever else finds its way in — written to be understood, not just recorded.</p>
+    <div class="actions">
+      <a class="btn primary" href="#notes">Browse the notes</a>
+      <a class="btn ghost" href="#fields">See the fields</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num" id="stat-notes">0</div><div class="lbl">Notes</div></div>
+      <div class="stat"><div class="num" id="stat-fields">0</div><div class="lbl">Fields</div></div>
+      <div class="stat"><div class="num">∞</div><div class="lbl">Open questions</div></div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section id="notes">
+    <h2><span class="n">01</span> Notes</h2>
+    <p class="lead">Every note in the knowledge base. Use the search box or the field chips to narrow things down — each note carries several tags, so you can search by field, subtopic, method, or tool. New notes slot straight into this list.</p>
+
+    <div class="toolbar">
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3"></path></svg>
+        <input id="search" type="search" placeholder="Search notes — field, topic, method, tool…" aria-label="Search notes">
+      </div>
+      <div class="chips" id="chips">
+        <button class="chip active" data-filter="all">All</button>
+        <button class="chip" data-filter="algebra">Algebra</button>
+        <button class="chip" data-filter="control">Control</button>
+        <button class="chip" data-filter="optimization">Optimization</button>
+        <button class="chip" data-filter="robotics">Robotics</button>
+        <button class="chip" data-filter="math">Mathematics</button>
+        <button class="chip" data-filter="ai">AI &amp; ML</button>
+        <button class="chip" data-filter="tools">Tools</button>
+      </div>
+      <span class="count" id="count"></span>
+    </div>
+
+    <div class="grid" id="grid">
+
+      <a class="card" href="Algebra/qz-algorithm/qz-generalized-schur.html" data-category="algebra" data-field="Numerical Linear Algebra" data-tags="linear-algebra generalized-eigen schur qz eigenvalue numerics">
+        <div class="toprow">
+          <span class="tag amber">Generalized Eigenproblems</span>
+          <span class="read"></span>
+        </div>
+        <h3>QZ Algorithm and the Generalized Schur Decomposition</h3>
+        <p>Why the pencil \(Ax=\lambda Bx\) shows up everywhere, why eigenvalues are ratios \((\alpha,\beta)\) rather than points, the reduction to Hessenberg&ndash;triangular form, the QZ iteration, and how to read the answer off the generalized Schur form.</p>
+        <div class="tags">
+          <span class="tag-pill">linear-algebra</span>
+          <span class="tag-pill">generalized-eigen</span>
+          <span class="tag-pill">schur</span>
+          <span class="tag-pill">qz</span>
+          <span class="tag-pill">eigenvalue</span>
+          <span class="tag-pill">numerics</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Numerical Linear Algebra</span></span>
+      </a>
+
+      <a class="card" href="Control/h2-control/h2-control.html" data-category="control" data-field="Control Theory" data-tags="control h2 lqr optimal-control kalman state-space frequency lyapunov">
+        <div class="toprow">
+          <span class="tag teal">H₂ Control</span>
+          <span class="read"></span>
+        </div>
+        <h3>H₂ Control: Minimizing the Average Energy of a Closed Loop</h3>
+        <p>A feedback controller must be stable and must make the disturbance-to-output map small &mdash; small in the H₂ norm. This note follows the thread from a single integral to the Kalman filter.</p>
+        <div class="tags">
+          <span class="tag-pill">control</span>
+          <span class="tag-pill">h2</span>
+          <span class="tag-pill">lqr</span>
+          <span class="tag-pill">optimal-control</span>
+          <span class="tag-pill">kalman</span>
+          <span class="tag-pill">state-space</span>
+          <span class="tag-pill">frequency</span>
+          <span class="tag-pill">lyapunov</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Control Theory</span></span>
+      </a>
+
+      <a class="card" href="Control/pid-tuning/pid-tuning.html" data-category="control" data-field="Control Theory" data-tags="control pid tuning feedback closed-loop design">
+        <div class="toprow">
+          <span class="tag teal">PID Control</span>
+          <span class="read"></span>
+        </div>
+        <h3>PID Control: Design, Tuning, and Modern Practice</h3>
+        <p>How a PID controller works, how the gains interact, and how to move beyond textbook tuning to modern practice.</p>
+        <div class="tags">
+          <span class="tag-pill">control</span>
+          <span class="tag-pill">pid</span>
+          <span class="tag-pill">tuning</span>
+          <span class="tag-pill">feedback</span>
+          <span class="tag-pill">closed-loop</span>
+          <span class="tag-pill">design</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Control Theory</span></span>
+      </a>
+
+      <a class="card" href="Control/constructive-nonlinear-control/constructive-nonlinear-control.html" data-category="control" data-field="Control Theory" data-tags="control nonlinear lyapunov backstepping stabilizing feedback">
+        <div class="toprow">
+          <span class="tag teal">Nonlinear Control</span>
+          <span class="read"></span>
+        </div>
+        <h3>Constructive Nonlinear Control</h3>
+        <p>A guided tour of Sepulchre, Janković &amp; Kokotović for engineers who know linear control and want the mechanisms, not the folklore.</p>
+        <div class="tags">
+          <span class="tag-pill">control</span>
+          <span class="tag-pill">nonlinear</span>
+          <span class="tag-pill">lyapunov</span>
+          <span class="tag-pill">backstepping</span>
+          <span class="tag-pill">stabilizing</span>
+          <span class="tag-pill">feedback</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Control Theory</span></span>
+      </a>
+
+      <a class="card" href="Control/system-identification/system-identification.html" data-category="control" data-field="Control Theory" data-tags="control identification least-squares subspace state-space estimation">
+        <div class="toprow">
+          <span class="tag teal">System ID</span>
+          <span class="read"></span>
+        </div>
+        <h3>Model Identification in Control Theory</h3>
+        <p>Building a trustworthy dynamical model from measured input&ndash;output data &mdash; least squares, prediction-error, recursive, and subspace methods.</p>
+        <div class="tags">
+          <span class="tag-pill">control</span>
+          <span class="tag-pill">identification</span>
+          <span class="tag-pill">least-squares</span>
+          <span class="tag-pill">subspace</span>
+          <span class="tag-pill">state-space</span>
+          <span class="tag-pill">estimation</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Control Theory</span></span>
+      </a>
+
+      <a class="card" href="Control/kalman-decomposition/kalman-decomposition.html" data-category="control" data-field="Control Theory" data-tags="control state-space transfer-function observability controllability minimal-realization">
+        <div class="toprow">
+          <span class="tag teal">State-Space</span>
+          <span class="read"></span>
+        </div>
+        <h3>The Kalman Decomposition</h3>
+        <p>A system has an external language (the transfer function) and an internal one (a state-space model) &mdash; the Kalman decomposition shows what the transfer function cannot see.</p>
+        <div class="tags">
+          <span class="tag-pill">control</span>
+          <span class="tag-pill">state-space</span>
+          <span class="tag-pill">transfer-function</span>
+          <span class="tag-pill">observability</span>
+          <span class="tag-pill">controllability</span>
+          <span class="tag-pill">minimal-realization</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Control Theory</span></span>
+      </a>
+
+      <a class="card" href="Control/pontryagin-maximum-principle/pontryagin-maximum-principle.html" data-category="control" data-field="Control Theory" data-tags="control optimal-control hamiltonian pontryagin constraints bang-bang">
+        <div class="toprow">
+          <span class="tag teal">Optimal Control</span>
+          <span class="read"></span>
+        </div>
+        <h3>The Pontryagin Maximum Principle</h3>
+        <p>How to steer a system optimally when actuators have limits &mdash; a braking example, the brachistochrone, everything verified exactly.</p>
+        <div class="tags">
+          <span class="tag-pill">control</span>
+          <span class="tag-pill">optimal-control</span>
+          <span class="tag-pill">hamiltonian</span>
+          <span class="tag-pill">pontryagin</span>
+          <span class="tag-pill">constraints</span>
+          <span class="tag-pill">bang-bang</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Control Theory</span></span>
+      </a>
+
+      <a class="card" href="Control/reinforcement-learning-and-feedback-control/reinforcement-learning-and-feedback-control.html" data-category="control ai" data-field="Control Theory" data-tags="control reinforcement-learning rl optimal-control policy model-free adaptive">
+        <div class="toprow">
+          <span class="tag teal">RL</span>
+          <span class="read"></span>
+        </div>
+        <h3>Reinforcement Learning and Feedback Control</h3>
+        <p>How an agent can learn the optimal controller online, along the plant&rsquo;s own trajectories, without knowing its dynamics.</p>
+        <div class="tags">
+          <span class="tag-pill">control</span>
+          <span class="tag-pill">reinforcement-learning</span>
+          <span class="tag-pill">rl</span>
+          <span class="tag-pill">optimal-control</span>
+          <span class="tag-pill">policy</span>
+          <span class="tag-pill">model-free</span>
+          <span class="tag-pill">adaptive</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Control Theory</span></span>
+      </a>
+
+      <a class="card" href="Control/acados-nmpc/acados-nmpc.html" data-category="control optimization" data-field="Control Theory" data-tags="control mpc model-predictive-control nmpc qp sqp real-time embedded">
+        <div class="toprow">
+          <span class="tag teal">MPC</span>
+          <span class="read"></span>
+        </div>
+        <h3>Inside acados: a real-time NMPC solver</h3>
+        <p>How the open-source NMPC solver acados squeezes a nonlinear optimal-control problem into a millisecond budget &mdash; discretization, Gauss&ndash;Newton SQP, structure-exploiting QP, real-time iteration.</p>
+        <div class="tags">
+          <span class="tag-pill">control</span>
+          <span class="tag-pill">mpc</span>
+          <span class="tag-pill">model-predictive-control</span>
+          <span class="tag-pill">nmpc</span>
+          <span class="tag-pill">qp</span>
+          <span class="tag-pill">sqp</span>
+          <span class="tag-pill">real-time</span>
+          <span class="tag-pill">embedded</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Control Theory</span></span>
+      </a>
+
+      <a class="card" href="Control/schur-qz-are/schur-qz-are.html" data-category="control algebra" data-field="Control Theory" data-tags="control riccati lqr schur qz linear-algebra optimal-control">
+        <div class="toprow">
+          <span class="tag teal">Riccati Equations</span>
+          <span class="read"></span>
+        </div>
+        <h3>Schur &amp; QZ Methods for the Algebraic Riccati Equation</h3>
+        <p>Classical Schur-based and QZ-based methods for the algebraic Riccati equation &mdash; the stable-invariant-subspace view of the underlying generalized eigenproblem.</p>
+        <div class="tags">
+          <span class="tag-pill">control</span>
+          <span class="tag-pill">riccati</span>
+          <span class="tag-pill">lqr</span>
+          <span class="tag-pill">schur</span>
+          <span class="tag-pill">qz</span>
+          <span class="tag-pill">linear-algebra</span>
+          <span class="tag-pill">optimal-control</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Control Theory</span></span>
+      </a>
+
+      <a class="card" href="Control/sda-are/sda-are.html" data-category="control algebra" data-field="Control Theory" data-tags="control riccati lqr doubling structure-preserving numerics stabilizing">
+        <div class="toprow">
+          <span class="tag teal">Riccati Equations</span>
+          <span class="read"></span>
+        </div>
+        <h3>SDA: The Structure-Preserving Doubling Algorithm</h3>
+        <p>The structure-preserving doubling algorithm (SDA) for discrete- and continuous-time algebraic Riccati equations, and why it converges to the stabilizing solution.</p>
+        <div class="tags">
+          <span class="tag-pill">control</span>
+          <span class="tag-pill">riccati</span>
+          <span class="tag-pill">lqr</span>
+          <span class="tag-pill">doubling</span>
+          <span class="tag-pill">structure-preserving</span>
+          <span class="tag-pill">numerics</span>
+          <span class="tag-pill">stabilizing</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Control Theory</span></span>
+      </a>
+
+      <a class="card" href="Optimization/interior-point-method/interior-point-method.html" data-category="optimization control" data-field="Optimization" data-tags="optimization interior-point barrier qp nlp ipopt hpipm">
+        <div class="toprow">
+          <span class="tag amber">Interior-Point</span>
+          <span class="read"></span>
+        </div>
+        <h3>Interior-Point Methods: HPIPM &amp; IPOPT</h3>
+        <p>The algorithm that quietly powers HPIPM (QP for MPC) and IPOPT (large-scale NLPs): why it works, the mathematics, and how each solver adapts the core idea.</p>
+        <div class="tags">
+          <span class="tag-pill">optimization</span>
+          <span class="tag-pill">interior-point</span>
+          <span class="tag-pill">barrier</span>
+          <span class="tag-pill">qp</span>
+          <span class="tag-pill">nlp</span>
+          <span class="tag-pill">ipopt</span>
+          <span class="tag-pill">hpipm</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Optimization</span></span>
+      </a>
+
+      <a class="card" href="Optimization/snopt/snopt.html" data-category="optimization" data-field="Optimization" data-tags="optimization sqp nlp sparse constrained large-scale">
+        <div class="toprow">
+          <span class="tag amber">SQP</span>
+          <span class="read"></span>
+        </div>
+        <h3>SNOPT: Sparse Sequential Quadratic Programming</h3>
+        <p>A tour of the engine inside one of the most battle-tested solvers for large-scale constrained nonlinear optimization &mdash; and when to reach for it.</p>
+        <div class="tags">
+          <span class="tag-pill">optimization</span>
+          <span class="tag-pill">sqp</span>
+          <span class="tag-pill">nlp</span>
+          <span class="tag-pill">sparse</span>
+          <span class="tag-pill">constrained</span>
+          <span class="tag-pill">large-scale</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Optimization</span></span>
+      </a>
+
+      <a class="card" href="Optimization/zero-order-optimization/zero-order-optimization.html" data-category="optimization" data-field="Optimization" data-tags="optimization derivative-free black-box gradient-free stochastic">
+        <div class="toprow">
+          <span class="tag amber">Derivative-Free</span>
+          <span class="read"></span>
+        </div>
+        <h3>Zeroth-Order Optimization</h3>
+        <p>Descending without gradients &mdash; how to minimize a function you can only query, never differentiate.</p>
+        <div class="tags">
+          <span class="tag-pill">optimization</span>
+          <span class="tag-pill">derivative-free</span>
+          <span class="tag-pill">black-box</span>
+          <span class="tag-pill">gradient-free</span>
+          <span class="tag-pill">stochastic</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Optimization</span></span>
+      </a>
+
+      <a class="card" href="Optimization/lmi/lmi.html" data-category="optimization control" data-field="Optimization" data-tags="optimization lmi semidefinite-programming convex control matrix-inequality">
+        <div class="toprow">
+          <span class="tag amber">LMI</span>
+          <span class="read"></span>
+        </div>
+        <h3>Linear Matrix Inequalities, From Zero</h3>
+        <p>What an LMI is, why control engineers fell in love with them, and the semidefinite-programming machinery that solves them.</p>
+        <div class="tags">
+          <span class="tag-pill">optimization</span>
+          <span class="tag-pill">lmi</span>
+          <span class="tag-pill">semidefinite-programming</span>
+          <span class="tag-pill">convex</span>
+          <span class="tag-pill">control</span>
+          <span class="tag-pill">matrix-inequality</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Optimization</span></span>
+      </a>
+
+      <a class="card" href="Optimization/igo-information-geometry-optimization/igo-information-geometry-optimization.html" data-category="optimization" data-field="Optimization" data-tags="optimization black-box evolutionary cma-es information-geometry manifold derivative-free">
+        <div class="toprow">
+          <span class="tag amber">Black-Box</span>
+          <span class="read"></span>
+        </div>
+        <h3>Information Geometry Optimization</h3>
+        <p>Gradient-free black-box optimization by pushing a distribution around a manifold &mdash; and how CMA-ES, NES and PBIL are one algorithm in disguise.</p>
+        <div class="tags">
+          <span class="tag-pill">optimization</span>
+          <span class="tag-pill">black-box</span>
+          <span class="tag-pill">evolutionary</span>
+          <span class="tag-pill">cma-es</span>
+          <span class="tag-pill">information-geometry</span>
+          <span class="tag-pill">manifold</span>
+          <span class="tag-pill">derivative-free</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Optimization</span></span>
+      </a>
+
+      <a class="card" href="Robotics/robotic-manipulation/robotic-manipulation.html" data-category="robotics" data-field="Robotics" data-tags="robotics manipulation screw twist forward-kinematics jacobian exponential-map">
+        <div class="toprow">
+          <span class="tag rose">Robotics</span>
+          <span class="read"></span>
+        </div>
+        <h3>A Mathematical Introduction to Robotic Manipulation</h3>
+        <p>After Murray, Li &amp; Sastry: a robot is a curve in a group of matrices &mdash; kinematics, Jacobians, dynamics and control all follow from the exponential map.</p>
+        <div class="tags">
+          <span class="tag-pill">robotics</span>
+          <span class="tag-pill">manipulation</span>
+          <span class="tag-pill">screw</span>
+          <span class="tag-pill">twist</span>
+          <span class="tag-pill">forward-kinematics</span>
+          <span class="tag-pill">jacobian</span>
+          <span class="tag-pill">exponential-map</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Robotics</span></span>
+      </a>
+
+      <a class="card" href="Robotics/ros2/ros2.html" data-category="robotics" data-field="Robotics" data-tags="robotics ros2 middleware pub-sub real-time dds">
+        <div class="toprow">
+          <span class="tag rose">ROS 2</span>
+          <span class="read"></span>
+        </div>
+        <h3>ROS 2: Distributed Real-Time Robotics</h3>
+        <p>Distributed real-time robotics taught to an engineer &mdash; nodes, topics, the execution model, and quality of service.</p>
+        <div class="tags">
+          <span class="tag-pill">robotics</span>
+          <span class="tag-pill">ros2</span>
+          <span class="tag-pill">middleware</span>
+          <span class="tag-pill">pub-sub</span>
+          <span class="tag-pill">real-time</span>
+          <span class="tag-pill">dds</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Robotics</span></span>
+      </a>
+
+      <a class="card" href="Robotics/altro/altro.html" data-category="robotics optimization" data-field="Robotics" data-tags="robotics trajectory-optimization ilqr augmented-lagrangian optimal-control motion-planning">
+        <div class="toprow">
+          <span class="tag rose">Trajectory Opt.</span>
+          <span class="read"></span>
+        </div>
+        <h3>ALTRO: The Augmented Lagrangian Trajectory Optimizer</h3>
+        <p>iLQR wrapped in an augmented-Lagrangian loop, with an active-set solution-polishing phase &mdash; built from first principles for constrained optimal control.</p>
+        <div class="tags">
+          <span class="tag-pill">robotics</span>
+          <span class="tag-pill">trajectory-optimization</span>
+          <span class="tag-pill">ilqr</span>
+          <span class="tag-pill">augmented-lagrangian</span>
+          <span class="tag-pill">optimal-control</span>
+          <span class="tag-pill">motion-planning</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Robotics</span></span>
+      </a>
+
+      <a class="card" href="Robotics/mpot-sinkhorn-step/mpot-sinkhorn-step.html" data-category="robotics math" data-field="Robotics" data-tags="robotics motion-planning optimal-transport sinkhorn wasserstein trajectory">
+        <div class="toprow">
+          <span class="tag rose">Motion Planning</span>
+          <span class="read"></span>
+        </div>
+        <h3>Motion Planning via Optimal Transport</h3>
+        <p>Around every waypoint of a batch of trajectories, probe the cost along a direction &mdash; the Sinkhorn step that plans robot motions without cost-function gradients.</p>
+        <div class="tags">
+          <span class="tag-pill">robotics</span>
+          <span class="tag-pill">motion-planning</span>
+          <span class="tag-pill">optimal-transport</span>
+          <span class="tag-pill">sinkhorn</span>
+          <span class="tag-pill">wasserstein</span>
+          <span class="tag-pill">trajectory</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Robotics</span></span>
+      </a>
+
+      <a class="card" href="Mathematics/ordinary-differential-equation/ordinary-differential-equation.html" data-category="math" data-field="Mathematics" data-tags="math ode differential-equation dynamics integration analysis">
+        <div class="toprow">
+          <span class="tag purple">ODE</span>
+          <span class="read"></span>
+        </div>
+        <h3>Ordinary Differential Equations</h3>
+        <p>From a law of change to a predicted future &mdash; the mathematics every engineer uses daily, whether or not they name it.</p>
+        <div class="tags">
+          <span class="tag-pill">math</span>
+          <span class="tag-pill">ode</span>
+          <span class="tag-pill">differential-equation</span>
+          <span class="tag-pill">dynamics</span>
+          <span class="tag-pill">integration</span>
+          <span class="tag-pill">analysis</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Mathematics</span></span>
+      </a>
+
+      <a class="card" href="Mathematics/visual-differential-geometry/visual-differential-geometry.html" data-category="math" data-field="Mathematics" data-tags="math differential-geometry forms manifold vector-field visual">
+        <div class="toprow">
+          <span class="tag purple">Diff. Geometry</span>
+          <span class="read"></span>
+        </div>
+        <h3>Visual Differential Geometry and Forms</h3>
+        <p>The core ideas of Tristan Needham&rsquo;s book, rebuilt as one visual lesson for engineers.</p>
+        <div class="tags">
+          <span class="tag-pill">math</span>
+          <span class="tag-pill">differential-geometry</span>
+          <span class="tag-pill">forms</span>
+          <span class="tag-pill">manifold</span>
+          <span class="tag-pill">vector-field</span>
+          <span class="tag-pill">visual</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Mathematics</span></span>
+      </a>
+
+      <a class="card" href="Mathematics/micro-lie-theory/micro-lie-theory.html" data-category="math robotics" data-field="Mathematics" data-tags="math lie-group lie-algebra manifold tangent-space exponential-map estimation">
+        <div class="toprow">
+          <span class="tag purple">Lie Theory</span>
+          <span class="read"></span>
+        </div>
+        <h3>A Micro Lie Theory for State Estimation</h3>
+        <p>A walk-through of Lie groups, tangent spaces, and the exp/log maps that power state estimation in robotics.</p>
+        <div class="tags">
+          <span class="tag-pill">math</span>
+          <span class="tag-pill">lie-group</span>
+          <span class="tag-pill">lie-algebra</span>
+          <span class="tag-pill">manifold</span>
+          <span class="tag-pill">tangent-space</span>
+          <span class="tag-pill">exponential-map</span>
+          <span class="tag-pill">estimation</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Mathematics</span></span>
+      </a>
+
+      <a class="card" href="Mathematics/optimal-transport/optimal-transport.html" data-category="math" data-field="Mathematics" data-tags="math optimal-transport wasserstein distribution metric coupling">
+        <div class="toprow">
+          <span class="tag purple">Optimal Transport</span>
+          <span class="read"></span>
+        </div>
+        <h3>Optimal Transport</h3>
+        <p>How to reshape one distribution into another while doing the least total work &mdash; and why that price is a distance.</p>
+        <div class="tags">
+          <span class="tag-pill">math</span>
+          <span class="tag-pill">optimal-transport</span>
+          <span class="tag-pill">wasserstein</span>
+          <span class="tag-pill">distribution</span>
+          <span class="tag-pill">metric</span>
+          <span class="tag-pill">coupling</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Mathematics</span></span>
+      </a>
+
+      <a class="card" href="AI-ML/stable-diffusion/stable-diffusion.html" data-category="ai" data-field="AI &amp; Machine Learning" data-tags="ai diffusion generative stable-diffusion latent u-net text-to-image">
+        <div class="toprow">
+          <span class="tag purple">Diffusion</span>
+          <span class="read"></span>
+        </div>
+        <h3>Stable Diffusion, from First Principles</h3>
+        <p>How a neural network learns to turn pure noise into images &mdash; and why doing it in a compressed latent space runs on your GPU.</p>
+        <div class="tags">
+          <span class="tag-pill">ai</span>
+          <span class="tag-pill">diffusion</span>
+          <span class="tag-pill">generative</span>
+          <span class="tag-pill">stable-diffusion</span>
+          <span class="tag-pill">latent</span>
+          <span class="tag-pill">u-net</span>
+          <span class="tag-pill">text-to-image</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>AI &amp; Machine Learning</span></span>
+      </a>
+
+      <a class="card" href="Tools/codex-cli/codex-cli.html" data-category="tools ai" data-field="Programming &amp; Tools" data-tags="tools codex ai coding-agent cli agentic">
+        <div class="toprow">
+          <span class="tag teal">Tooling</span>
+          <span class="read"></span>
+        </div>
+        <h3>Codex CLI: How to Use It</h3>
+        <p>OpenAI&rsquo;s terminal coding agent &mdash; the loop that reads your repo, edits files, runs your tools, and verifies its own work.</p>
+        <div class="tags">
+          <span class="tag-pill">tools</span>
+          <span class="tag-pill">codex</span>
+          <span class="tag-pill">ai</span>
+          <span class="tag-pill">coding-agent</span>
+          <span class="tag-pill">cli</span>
+          <span class="tag-pill">agentic</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Programming &amp; Tools</span></span>
+      </a>
+
+      <a class="card" href="Tools/mathematica-essentials/mathematica-essentials.html" data-category="tools" data-field="Programming &amp; Tools" data-tags="tools mathematica symbolic computation cas plotting">
+        <div class="toprow">
+          <span class="tag teal">Tooling</span>
+          <span class="read"></span>
+        </div>
+        <h3>Mathematica for Engineers</h3>
+        <p>Calculate, solve, plot &mdash; how Mathematica turns a scientific computation into a single, readable line.</p>
+        <div class="tags">
+          <span class="tag-pill">tools</span>
+          <span class="tag-pill">mathematica</span>
+          <span class="tag-pill">symbolic</span>
+          <span class="tag-pill">computation</span>
+          <span class="tag-pill">cas</span>
+          <span class="tag-pill">plotting</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Programming &amp; Tools</span></span>
+      </a>
+
+    </div>
+    <div class="empty">No notes match that search or field yet — try clearing it.</div>
+  </section>
+
+  <section id="fields">
+    <h2><span class="n">02</span> Fields</h2>
+    <p class="lead">The territory this knowledge base covers. Each field's count is computed from the notes on this page, so it stays accurate as new notes land.</p>
+    <div class="fields">
+      <div class="field" data-cat="algebra">
+        <div class="ico" style="background:var(--amber-soft);color:var(--amber)">⬡</div>
+        <h4>Algebra</h4>
+        <p>Numerical linear algebra and the matrix methods that sit underneath everything.</p>
+        <div class="meta"><span class="num"><span id="cnt-algebra">0</span> notes</span><span class="status">● Live</span></div>
+      </div>
+      <div class="field" data-cat="control">
+        <div class="ico" style="background:var(--teal-soft);color:var(--teal)">⎔</div>
+        <h4>Control Theory</h4>
+        <p>Dynamics, feedback, identification, model-predictive and optimal control.</p>
+        <div class="meta"><span class="num"><span id="cnt-control">0</span> notes</span><span class="status">● Live</span></div>
+      </div>
+      <div class="field" data-cat="optimization">
+        <div class="ico" style="background:var(--accent-soft);color:var(--accent)">◆</div>
+        <h4>Optimization</h4>
+        <p>Interior-point, SQP, LMI and derivative-free methods for real problems.</p>
+        <div class="meta"><span class="num"><span id="cnt-optimization">0</span> notes</span><span class="status">● Live</span></div>
+      </div>
+      <div class="field" data-cat="robotics">
+        <div class="ico" style="background:var(--rose-soft);color:var(--rose)">⌁</div>
+        <h4>Robotics</h4>
+        <p>Manipulation, motion planning, trajectory optimization and middleware.</p>
+        <div class="meta"><span class="num"><span id="cnt-robotics">0</span> notes</span><span class="status">● Live</span></div>
+      </div>
+      <div class="field" data-cat="math">
+        <div class="ico" style="background:#e8eef7;color:#3f5f9a">∫</div>
+        <h4>Mathematics</h4>
+        <p>ODEs, differential geometry, Lie theory and the analysis that underpins it.</p>
+        <div class="meta"><span class="num"><span id="cnt-math">0</span> notes</span><span class="status">● Live</span></div>
+      </div>
+      <div class="field" data-cat="ai">
+        <div class="ico" style="background:var(--accent-soft);color:var(--accent)">✦</div>
+        <h4>AI &amp; ML</h4>
+        <p>From the math under the hood to the models that run on your GPU.</p>
+        <div class="meta"><span class="num"><span id="cnt-ai">0</span> notes</span><span class="status">● Live</span></div>
+      </div>
+      <div class="field" data-cat="tools">
+        <div class="ico" style="background:var(--teal-soft);color:var(--teal)">⌘</div>
+        <h4>Programming &amp; Tools</h4>
+        <p>CLIs, languages and software craft that turn ideas into running code.</p>
+        <div class="meta"><span class="num"><span id="cnt-tools">0</span> notes</span><span class="status">● Live</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="about">
+    <h2><span class="n">03</span> About</h2>
+    <div class="about">
+      <h3>What is this?</h3>
+      <p>A personal, evolving knowledge base. The idea is to write down things the way I'd want them explained — with the motivation first, the reasoning laid out, and the details where they're actually needed.</p>
+      <ul>
+        <li><strong>Breadth first.</strong> Notes span mathematics, control, optimization, robotics, AI, and code.</li>
+        <li><strong>Intuition before formalism.</strong> Build the mental model, then nail the equations.</li>
+        <li><strong>Always growing.</strong> This is a living document, not a finished product.</li>
+      </ul>
+      <p>If something reads as unclear, it's probably a note that needs another pass — the gaps are as much part of the map as the notes themselves.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="inner">
+    <div>
+      <div style="font-weight:800;color:var(--ink-2);margin-bottom:6px">Study Notes</div>
+      <div style="color:var(--soft);font-size:.9rem;max-width:280px">A knowledge base across many fields.</div>
+    </div>
+    <div class="cols">
+      <div class="col">
+        <h5>Explore</h5>
+        <a href="#notes">Notes</a>
+        <a href="#fields">Fields</a>
+        <a href="#about">About</a>
+      </div>
+      <div class="col">
+        <h5>Source</h5>
+        <a href="https://github.com/" rel="noopener">View on GitHub</a>
+        <a href="LICENSE">License</a>
+      </div>
+    </div>
+  </div>
+  <div class="base">
+    <span>© <span id="year"></span> Study Notes.</span>
+    <span>Made with a stack of notes and a keyboard.</span>
+  </div>
+</footer>
+
+<script>
+  // ---------- reading-time estimate ----------
+  document.querySelectorAll('.card').forEach(function(card){
+    var p = card.querySelector('p');
+    if(!p) return;
+    var words = p.textContent.trim().split(/\s+/).length;
+    var mins = Math.max(1, Math.round(words / 230));
+    var el = card.querySelector('.read');
+    if(el) el.textContent = mins + ' min read';
+  });
+
+  // ---------- hero + field counts ----------
+  var cards = [].slice.call(document.querySelectorAll('.card'));
+  document.getElementById('stat-notes').textContent = String(cards.length);
+  var fields = new Set(), perCat = {};
+  cards.forEach(function(c){
+    if(c.dataset.field) fields.add(c.dataset.field);
+    (c.dataset.category || '').split(/\s+/).forEach(function(cat){
+      if(cat) perCat[cat] = (perCat[cat] || 0) + 1;
+    });
+  });
+  document.getElementById('stat-fields').textContent = String(fields.size);
+  Object.keys(perCat).forEach(function(cat){
+    var el = document.getElementById('cnt-' + cat);
+    if(el) el.textContent = String(perCat[cat]);
+  });
+
+  // ---------- search + filter ----------
+  var grid = document.getElementById('grid');
+  var search = document.getElementById('search');
+  var count = document.getElementById('count');
+  var active = 'all';
+
+  function apply(){
+    var q = search.value.trim().toLowerCase();
+    var tokens = q.split(/\s+/).filter(Boolean);
+    var visible = 0;
+    grid.querySelectorAll('.card').forEach(function(card){
+      var catOk = active === 'all' || (card.dataset.category || '').split(/\s+/).indexOf(active) !== -1;
+      var hay = (card.dataset.tags + ' ' + card.textContent).toLowerCase();
+      var textOk = tokens.every(function(t){ return hay.indexOf(t) !== -1; });
+      var show = catOk && textOk;
+      card.style.display = show ? '' : 'none';
+      if(show) visible++;
+    });
+    count.textContent = visible + ' note' + (visible === 1 ? '' : 's');
+    grid.setAttribute('class','grid' + (visible === 0 ? ' no-results' : ''));
+  }
+
+  search.addEventListener('input', apply);
+  document.getElementById('chips').addEventListener('click', function(e){
+    var btn = e.target.closest('.chip');
+    if(!btn) return;
+    document.querySelectorAll('.chip').forEach(function(c){ c.classList.remove('active'); });
+    btn.classList.add('active');
+    active = btn.dataset.filter;
+    apply();
+  });
+
+  // ---------- misc ----------
+  document.getElementById('year').textContent = new Date().getFullYear();
+  apply();
+</script>
+
+<script>
+  window.MathJax = {
+    tex: {inlineMath: [['\\(','\\)'],['$','$']], displayMath: [['\\[','\\]'],['$$','$$']]},
+    svg: {fontCache: 'global'}
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+
+</body>
+</html>
