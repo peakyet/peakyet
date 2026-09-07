@@ -173,6 +173,7 @@
   .grid{
     display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
     gap:20px;
+    align-content:start;
   }
   .card{
     position:relative;display:flex;flex-direction:column;
@@ -213,6 +214,19 @@
   .card .foot .field i{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none}
   .empty{display:none;text-align:center;color:var(--soft);padding:36px 10px;border:1px dashed var(--line);border-radius:var(--radius)}
   .grid.no-results ~ .empty{display:block}
+  .pager{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    margin-top:26px;flex-wrap:wrap;
+  }
+  .pager button{
+    min-width:42px;height:42px;padding:0 15px;border:1px solid var(--line);
+    background:#fff;color:var(--soft);border-radius:12px;cursor:pointer;
+    font-weight:700;font-family:inherit;font-size:.92rem;
+    transition:background .14s ease,color .14s ease,border-color .14s ease;
+  }
+  .pager button:hover:not(:disabled):not(.active){border-color:var(--accent);color:var(--accent)}
+  .pager button.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .pager button:disabled{opacity:.4;cursor:default}
 
   /* ---------- fields ---------- */
   .fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
@@ -843,6 +857,7 @@
 
     </div>
     <div class="empty">No notes match that search or field yet — try clearing it.</div>
+    <nav class="pager" id="pager" aria-label="Notes pages"></nav>
   </section>
 
   <section id="fields">
@@ -967,31 +982,99 @@
   var grid = document.getElementById('grid');
   var search = document.getElementById('search');
   var count = document.getElementById('count');
+  var pager = document.getElementById('pager');
   var active = 'all';
+  var page = 1;
+  var PAGE_ROWS = 2;
+  var gridMin = 0;
+
+  function gridColumns(){
+    var cols = getComputedStyle(grid).gridTemplateColumns;
+    if(!cols) return 1;
+    return cols.split(/\s+/).filter(Boolean).length || 1;
+  }
+  function pageSize(){
+    return PAGE_ROWS * gridColumns();
+  }
+
+  function renderPager(totalPages){
+    pager.innerHTML = '';
+    if(totalPages <= 1){ pager.style.display = 'none'; return; }
+    pager.style.display = '';
+    function btn(label, target, opts){
+      opts = opts || {};
+      var b = document.createElement('button');
+      b.textContent = label;
+      if(opts.type === 'prev') b.setAttribute('aria-label','Previous page');
+      if(opts.type === 'next') b.setAttribute('aria-label','Next page');
+      if(opts.active) b.classList.add('active');
+      if(opts.disabled) b.disabled = true;
+      else b.addEventListener('click', function(){ page = target; apply(); });
+      pager.appendChild(b);
+    }
+    btn('‹', page - 1, {type:'prev', disabled: page === 1});
+    for(var p = 1; p <= totalPages; p++){
+      btn(String(p), p, {active: p === page});
+    }
+    btn('›', page + 1, {type:'next', disabled: page === totalPages});
+  }
 
   function apply(){
     var q = search.value.trim().toLowerCase();
     var tokens = q.split(/\s+/).filter(Boolean);
-    var visible = 0;
+    var matched = [];
     grid.querySelectorAll('.card').forEach(function(card){
       var catOk = active === 'all' || (card.dataset.category || '').split(/\s+/).indexOf(active) !== -1;
       var hay = (card.dataset.tags + ' ' + card.textContent).toLowerCase();
       var textOk = tokens.every(function(t){ return hay.indexOf(t) !== -1; });
       var show = catOk && textOk;
-      card.style.display = show ? '' : 'none';
-      if(show) visible++;
+      card.dataset.match = show ? '1' : '0';
+      card.dataset.page = '';
+      if(show) matched.push(card);
     });
-    count.textContent = visible + ' note' + (visible === 1 ? '' : 's');
-    grid.setAttribute('class','grid' + (visible === 0 ? ' no-results' : ''));
+
+    var totalPages = Math.max(1, Math.ceil(matched.length / pageSize()));
+    if(page > totalPages) page = totalPages;
+    if(page < 1) page = 1;
+
+    var size = pageSize();
+    var start = (page - 1) * size;
+    for(var i = start; i < Math.min(start + size, matched.length); i++){
+      matched[i].dataset.page = '1';
+    }
+
+    grid.querySelectorAll('.card').forEach(function(card){
+      card.style.display = (card.dataset.match === '1' && card.dataset.page === '1') ? '' : 'none';
+    });
+
+    // While paginating, keep the grid the same height on every page so
+    // switching pages doesn't shift the content below. Measure a full page
+    // and reserve that space, so partial pages (e.g. the last one) don't
+    // collapse the layout and pull the page up/down.
+    if(totalPages > 1){
+      var onPage = matched.length - ((page - 1) * size);
+      if(onPage >= size){
+        gridMin = Math.max(gridMin, grid.offsetHeight);
+      }
+      grid.style.minHeight = gridMin > 0 ? gridMin + 'px' : '';
+    } else {
+      grid.style.minHeight = '';
+    }
+
+    count.textContent = matched.length + ' note' + (matched.length === 1 ? '' : 's') + ' · page ' + page + ' of ' + totalPages;
+    grid.setAttribute('class','grid' + (matched.length === 0 ? ' no-results' : ''));
+    renderPager(totalPages);
   }
 
   search.addEventListener('input', apply);
+  window.addEventListener('resize', function(){ gridMin = 0; apply(); });
   document.getElementById('chips').addEventListener('click', function(e){
     var btn = e.target.closest('.chip');
     if(!btn) return;
     document.querySelectorAll('.chip').forEach(function(c){ c.classList.remove('active'); });
     btn.classList.add('active');
     active = btn.dataset.filter;
+    page = 1;
     apply();
   });
 
