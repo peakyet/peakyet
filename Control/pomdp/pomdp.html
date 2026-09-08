@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POMDPs: Reasoning and Planning Under Partial Observability</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{font-size:17px;scroll-behavior:smooth}
+  body{
+    font-family:"Source Serif Pro",Georgia,"Times New Roman",serif;
+    color:#1a1a1a;background:#fdfcf8;line-height:1.7;
+    max-width:940px;margin:0 auto;padding:2rem 1.5rem 5rem;
+  }
+  img{max-width:100%;display:block}
+  h1{font-weight:700;font-size:2.1rem;line-height:1.2;margin:2.5rem 0 .4rem;
+     color:#111;border-bottom:2px solid #c98b2b;padding-bottom:.3rem;letter-spacing:0}
+  h2{font-weight:600;font-size:1.45rem;color:#222;margin:2.2rem 0 .6rem}
+  h3{font-size:1.12rem;color:#333;margin:1.4rem 0 .4rem}
+  p{margin:.75rem 0}
+  a{color:#8a5100;text-decoration:none;border-bottom:1px solid #c98b2b}
+  a:hover{color:#643b00}
+  strong{color:#111} em{color:#444}
+  ul,ol{margin:.6rem 0 .6rem 1.4rem} li{margin:.3rem 0}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.88em}
+  pre{overflow:auto;background:#252b2f;color:#f7f4ec;border-radius:6px;padding:1rem;
+      margin:1rem 0;line-height:1.55;font-size:.86rem}
+  .eq{display:block;text-align:center;margin:1.1rem 0;padding:.8rem .6rem;
+      background:#f7f4ec;border-left:3px solid #c98b2b;border-radius:4px;
+      overflow-x:auto;line-height:1.9}
+  .callout{background:#f7f4ec;border-left:4px solid #c98b2b;border-radius:0 6px 6px 0;
+           padding:.78rem 1rem;margin:1rem 0;font-size:.97rem}
+  .callout.takeaway{border-left-color:#3a7d44;background:#edf5ec}
+  .callout.takeaway strong{color:#1d5e2a}
+  .callout.intuition{border-left-color:#3978aa;background:#eef4fb}
+  .callout.intuition strong{color:#1f4f7a}
+  .callout.warning{border-left-color:#b24b34;background:#fff2ed}
+  .figure{margin:1.4rem 0;padding:1rem;background:#fff;border:1px solid #e8e4d8;
+          border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .figure svg{width:100%;height:auto;display:block}
+  .figure-caption{font-size:.88rem;color:#555;text-align:center;margin-top:.65rem;line-height:1.5}
+  .figure-caption b{color:#333}
+  .figure-side-by-side{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+  .panel{border:1px solid #ddd7c8;background:#fffdf8;border-radius:6px;padding:.9rem}
+  .panel h3{margin:.1rem 0 .45rem;font-size:1rem}
+  .model-strip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:.45rem;align-items:center}
+  .model-node{min-height:76px;display:flex;flex-direction:column;justify-content:center;text-align:center;
+              border:1px solid #d8d0bd;border-radius:6px;background:#fffaf0;padding:.5rem .25rem}
+  .model-node b{font-size:1.18rem;color:#704800}
+  .model-node span{font-size:.75rem;color:#5d5a54;line-height:1.2}
+  .arrow{font-family:system-ui,sans-serif;text-align:center;color:#8a6b31;font-size:1.3rem}
+  .belief-flow{display:grid;grid-template-columns:1fr 42px 1fr 42px 1fr;gap:.35rem;align-items:stretch}
+  .flow-box{display:flex;flex-direction:column;justify-content:center;min-height:112px;padding:.7rem;
+            text-align:center;border-radius:6px;border:1px solid #ccd7de;background:#f8fbfc}
+  .flow-box b{font-size:.98rem;color:#244d63}.flow-box span{font-size:.82rem;line-height:1.35;color:#4d5960}
+  .flow-arrow{display:flex;align-items:center;justify-content:center;color:#3978aa;font-size:1.4rem}
+  table{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.92rem}
+  th,td{border:1px solid #ddd;padding:.45rem .7rem;text-align:left;vertical-align:top}
+  th{background:#f0ebe0;color:#333}tr:nth-child(even) td{background:#fafaf5}
+  hr{border:none;border-top:1px solid #e0dcd0;margin:2.5rem 0}
+  .demo{background:#fff;border:1px solid #d9d2c3;border-radius:8px;padding:1rem;margin:1.2rem 0}
+  .demo-grid{display:grid;grid-template-columns:minmax(220px,.8fr) 1.4fr;gap:1.1rem;align-items:start}
+  .slider-label{display:flex;justify-content:space-between;gap:1rem;font-family:system-ui,sans-serif;
+                font-size:.87rem;color:#434343;margin-bottom:.35rem}
+  input[type="range"]{width:100%;accent-color:#3978aa}
+  .belief-bar{height:28px;display:flex;border:1px solid #bdb7aa;border-radius:4px;overflow:hidden;margin:.7rem 0}
+  .belief-left{background:#c9654f;color:#fff;text-align:center;white-space:nowrap;overflow:hidden}
+  .belief-right{background:#4f7db6;color:#fff;text-align:center;white-space:nowrap;overflow:hidden}
+  .belief-left,.belief-right{font:600 .73rem/27px system-ui,sans-serif;transition:width .15s ease}
+  .metric-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.55rem}
+  .metric{border:1px solid #ded8ca;border-radius:5px;padding:.55rem;background:#fffcf5;min-height:86px}
+  .metric b{display:block;font-family:system-ui,sans-serif;font-size:.75rem;color:#676158;text-transform:uppercase}
+  .metric span{display:block;font:700 1.18rem/1.3 system-ui,sans-serif;margin-top:.2rem;color:#222}
+  .metric small{display:block;color:#666;line-height:1.25;margin-top:.15rem}
+  .decision{margin-top:.7rem;padding:.6rem .75rem;border-radius:5px;background:#edf5ec;border-left:4px solid #3a7d44}
+  .legend{display:flex;justify-content:center;gap:1.1rem;flex-wrap:wrap;font: .8rem system-ui,sans-serif;color:#444}
+  .swatch{display:inline-block;width:24px;height:3px;vertical-align:middle;margin-right:.35rem}
+  .solver-map{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin:1rem 0}
+  .solver{border-top:4px solid #3978aa;background:#f7fafc;padding:.85rem;border-radius:4px;border-left:1px solid #d7e0e5;
+          border-right:1px solid #d7e0e5;border-bottom:1px solid #d7e0e5}
+  .solver:nth-child(2){border-top-color:#3a7d44;background:#f7fbf5}
+  .solver:nth-child(3){border-top-color:#b46b22;background:#fff9f1}
+  .solver h3{margin:0 0 .35rem;font-size:1rem}.solver p{font-size:.88rem;line-height:1.45;margin:.35rem 0}
+  .solver .fit{font-family:system-ui,sans-serif;font-size:.73rem;text-transform:uppercase;color:#666}
+  .alpha-wrap{position:relative;aspect-ratio:16/7;max-width:780px;margin:0 auto}
+  .alpha-wrap svg{position:absolute;inset:0;width:100%;height:100%}
+  .alpha-label{position:absolute;font:600 .78rem system-ui,sans-serif;background:rgba(255,255,255,.91);
+               padding:.12rem .28rem;border-radius:3px}
+  .sources{font-size:.9rem}.sources li{margin:.55rem 0}
+  .toc{position:sticky;bottom:0;z-index:50;display:flex;gap:.45rem;flex-wrap:wrap;align-items:center;
+       justify-content:center;background:rgba(253,252,248,.96);backdrop-filter:blur(6px);
+       border:1px solid #e8e4d8;border-radius:10px 10px 0 0;padding:.55rem .75rem;
+       margin:1.4rem calc(50% - 50vw) 0}
+  .toc a{color:#6b5a29;text-decoration:none;font-size:.78rem;padding:.2rem .55rem;
+         border-radius:999px;border:1px solid transparent;white-space:nowrap}
+  .toc a:hover{background:#f7f4ec;border-color:#c98b2b;color:#8a5100}
+  .toc a.active{background:#c98b2b;color:#fff;border-color:#c98b2b}
+  .hero{font-size:1.1rem;color:#333;margin-bottom:1.5rem;padding:.85rem 1rem;background:#f7f4ec;border-radius:6px}
+  .hero strong{color:#111}
+  @media(max-width:760px){
+    body{font-size:16px;padding:1.2rem .9rem 4rem}h1{font-size:1.7rem}h2{font-size:1.25rem}
+    .figure-side-by-side,.demo-grid,.solver-map{grid-template-columns:1fr}
+    .model-strip{grid-template-columns:1fr 30px 1fr}.model-strip .hide-mobile{display:none}
+    .belief-flow{grid-template-columns:1fr}.flow-arrow{transform:rotate(90deg);min-height:26px}
+    .metric-grid{grid-template-columns:1fr}.alpha-wrap{aspect-ratio:4/3}
+  }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[
+    {left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}]});"></script>
+</head>
+<body>
+
+<h1>POMDPs: how to decide when you cannot see the state</h1>
+<p class="hero"><strong>A partially observable Markov decision process turns uncertainty itself into the state of the planning problem.</strong> Instead of asking &ldquo;where am I?&rdquo;, the controller maintains a probability distribution over where it might be, predicts how actions move that distribution, corrects it with observations, and chooses actions for both their immediate effect and the information they create.</p>
+
+<h2 id="motivation">1. The problem POMDPs solve</h2>
+<p>Why add machinery beyond an ordinary Markov decision process (MDP)? Because real controllers rarely observe the physical state directly. A robot sees noisy pixels, a diagnostic system sees imperfect test results, and a network controller sees delayed telemetry. Acting as though the latest observation <em>is</em> the state throws away history; remembering the complete history makes planning grow without bound.</p>
+
+<div class="figure">
+  <div class="model-strip">
+    <div class="model-node"><b>&#9673;</b><span>hidden world state<br>\(s_t\)</span></div>
+    <div class="arrow">&rarr;</div>
+    <div class="model-node"><b>&#9881;</b><span>chosen action<br>\(a_t\)</span></div>
+    <div class="arrow hide-mobile">&rarr;</div>
+    <div class="model-node hide-mobile"><b>&#8640;</b><span>stochastic transition<br>\(T(s'\mid s,a)\)</span></div>
+    <div class="arrow hide-mobile">&rarr;</div>
+    <div class="model-node hide-mobile"><b>&#8767;</b><span>noisy observation<br>\(o_{t+1}\)</span></div>
+  </div>
+  <div class="figure-caption"><b>Figure 1.</b> The physical state drives outcomes but is hidden. The controller sees only observations generated from that state.</div>
+</div>
+
+<p>The compression trick is the <strong>belief state</strong> \(b_t\), where \(b_t(s)=\Pr(s_t=s\mid h_t)\) and \(h_t\) is everything observed and done so far. Under the POMDP assumptions, this probability distribution contains every part of history that matters for predicting the future. The process is therefore Markov in belief space even when it is not Markov in raw observations.</p>
+
+<div class="callout intuition"><strong>Mental picture:</strong> an MDP controller occupies one physical state. A POMDP controller occupies one point in a probability simplex; moving through that simplex is inference plus control.</div>
+<div class="callout takeaway"><strong>Takeaway:</strong> belief is a bounded, decision-relevant replacement for an ever-growing action-observation history.</div>
+
+<hr>
+
+<h2 id="model">2. The model, with only the parts that do work</h2>
+<p>Why name the components? Because solving a POMDP means repeatedly composing three mechanisms: physical dynamics, sensing, and utility. A finite discounted POMDP is commonly written</p>
+
+<div class="eq">\[ (\mathcal S,\mathcal A,\mathcal O,T,Z,R,\gamma,b_0). \]</div>
+
+<table>
+  <tr><th>symbol</th><th>engineering meaning</th><th>question it answers</th></tr>
+  <tr><td>\(s\in\mathcal S\)</td><td>hidden physical state</td><td>What is actually true?</td></tr>
+  <tr><td>\(a\in\mathcal A\)</td><td>action</td><td>What can the controller do?</td></tr>
+  <tr><td>\(o\in\mathcal O\)</td><td>observation</td><td>What signal did the controller receive?</td></tr>
+  <tr><td>\(T(s'\mid s,a)\)</td><td>transition probability</td><td>How does action \(a\) move the world?</td></tr>
+  <tr><td>\(Z(o\mid s',a)\)</td><td>observation likelihood</td><td>How likely is signal \(o\) from new state \(s'\)?</td></tr>
+  <tr><td>\(R(s,a)\)</td><td>immediate reward</td><td>How desirable is this state-action pair?</td></tr>
+  <tr><td>\(\gamma\in[0,1)\)</td><td>discount factor</td><td>How much does future reward count?</td></tr>
+  <tr><td>\(b_0\)</td><td>initial belief</td><td>What is known before acting?</td></tr>
+</table>
+
+<p>The timing convention above is: choose \(a_t\), transition from \(s_t\) to \(s_{t+1}\), then receive \(o_{t+1}\). Some texts attach observations to the old state; either convention works if the equations and implementation agree.</p>
+
+<div class="callout warning"><strong>Modeling warning:</strong> a solver cannot rescue a bad state definition. The hidden state must contain enough information that the next state and observation depend on the past only through the current state and action.</div>
+<div class="callout takeaway"><strong>Takeaway:</strong> the transition model describes the world, the observation model describes the sensor, and reward states the objective.</div>
+
+<hr>
+
+<h2 id="filter">3. Belief update: predict, then correct</h2>
+<p>Why derive the filter? Every planning step assumes the controller can convert its current belief, selected action, and new observation into the next belief. This update has the same structure as a Bayesian filter.</p>
+
+<div class="figure">
+  <div class="belief-flow">
+    <div class="flow-box"><b>Current belief</b><span>\(b_t(s)\)<br>probability before acting</span></div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-box"><b>Predict through dynamics</b><span>\(\bar b_{t+1}(s')=\sum_s T(s'\mid s,a_t)b_t(s)\)</span></div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-box"><b>Correct with evidence</b><span>multiply by \(Z(o_{t+1}\mid s',a_t)\), then normalize</span></div>
+  </div>
+  <div class="figure-caption"><b>Figure 2.</b> Control changes what states are possible; sensing reweights those possibilities.</div>
+</div>
+
+<p>First predict the next-state distribution, because the action changes the physical world before the new sensor reading arrives:</p>
+<div class="eq">\[ \bar b_{t+1}(s')=\sum_{s\in\mathcal S}T(s'\mid s,a_t)b_t(s). \]</div>
+
+<p>Then apply Bayes' rule, because states that better explain the observation should receive more posterior mass:</p>
+<div class="eq">\[ b_{t+1}(s')=\tau(b_t,a_t,o_{t+1})(s')
+=\frac{Z(o_{t+1}\mid s',a_t)\,\bar b_{t+1}(s')}
+{\sum_{x\in\mathcal S}Z(o_{t+1}\mid x,a_t)\,\bar b_{t+1}(x)}. \]</div>
+
+<p>The denominator is not cosmetic: it is both the normalizing constant and the predictive probability of receiving that observation,</p>
+<div class="eq">\[ \Pr(o\mid b,a)=\sum_{s'}Z(o\mid s',a)\sum_sT(s'\mid s,a)b(s). \]</div>
+
+<pre><code>function updateBelief(b, action, observation):
+    predicted[s2] = sum_s T[s2 | s, action] * b[s]
+    weighted[s2]  = Z[observation | s2, action] * predicted[s2]
+    return weighted / sum(weighted)</code></pre>
+
+<div class="callout intuition"><strong>Why belief is sufficient:</strong> once \(b_t\) is known, integrating over it produces the same distribution over every future trajectory as integrating over the full history. The planner loses no predictive information by discarding that history.</div>
+<div class="callout takeaway"><strong>Takeaway:</strong> a POMDP step is a controlled state prediction followed by a Bayesian measurement correction.</div>
+
+<hr>
+
+<h2 id="bellman">4. Planning in belief space</h2>
+<p>Why convert the problem to belief space? It lets ordinary dynamic-programming logic apply. The immediate reward at belief \(b\) is simply the state reward averaged under that belief:</p>
+<div class="eq">\[ r(b,a)=\sum_s b(s)R(s,a). \]</div>
+
+<p>The optimal value obeys a Bellman equation, but the successor is random because the future observation is random:</p>
+<div class="eq">\[ V^*(b)=\max_{a\in\mathcal A}\left[r(b,a)+\gamma\sum_{o\in\mathcal O}
+\Pr(o\mid b,a)V^*(\tau(b,a,o))\right]. \]</div>
+
+<p>Each candidate action therefore earns two kinds of value. It changes the world and earns immediate reward; it also changes which observations will arrive, which changes future beliefs and future decisions. The latter is the <strong>value of information</strong>. It is why a POMDP may deliberately inspect, probe, listen, or move to a better viewpoint even when that action has a short-term cost.</p>
+
+<div class="figure figure-side-by-side">
+  <div class="panel">
+    <h3>State-changing action</h3>
+    <p>Its main purpose is to improve the physical state: move, repair, grasp, transmit, open.</p>
+    <div class="eq">\(T(\cdot\mid s,a)\) changes strongly</div>
+  </div>
+  <div class="panel">
+    <h3>Information-gathering action</h3>
+    <p>Its main purpose is to separate hypotheses: inspect, scan, test, listen, query.</p>
+    <div class="eq">\(Z(\cdot\mid s',a)\) becomes informative</div>
+  </div>
+</div>
+
+<div class="callout takeaway"><strong>Takeaway:</strong> optimal POMDP actions are chosen for their effect on both the world and the controller's future knowledge.</div>
+
+<hr>
+
+<h2 id="tiger">5. Worked example: listen before opening</h2>
+<p>Why use the Tiger problem? It is the smallest example in which information has obvious economic value. A tiger is behind the left or right door. Opening the safe door earns \(+10\); opening the tiger door earns \(-100\). Listening costs \(-1\) and reports the tiger's side correctly with probability \(0.85\). Let \(p=\Pr(\text{tiger is left})\), and use \(\gamma=0.95\).</p>
+
+<div class="demo">
+  <div class="demo-grid">
+    <div>
+      <div class="slider-label"><span>belief that tiger is left</span><b id="pLabel">p = 0.50</b></div>
+      <input id="beliefSlider" type="range" min="0" max="100" value="50" step="1" aria-label="Probability that the tiger is behind the left door">
+      <div class="belief-bar" aria-hidden="true">
+        <div id="leftBar" class="belief-left" style="width:50%">left 50%</div>
+        <div id="rightBar" class="belief-right" style="width:50%">right 50%</div>
+      </div>
+      <p style="font-size:.86rem;color:#5b574f">Move the belief and watch the action values. &ldquo;Listen&rdquo; includes one observation followed by the best door-opening action.</p>
+    </div>
+    <div>
+      <div class="metric-grid">
+        <div class="metric"><b>Open left</b><span id="openLeft">-45.000</span><small>safe when tiger is right</small></div>
+        <div class="metric"><b>Listen</b><span id="listenValue">-7.175</span><small>cost now, adapt after hearing</small></div>
+        <div class="metric"><b>Open right</b><span id="openRight">-45.000</span><small>safe when tiger is left</small></div>
+      </div>
+      <div class="decision"><strong>Best action:</strong> <span id="bestAction">listen</span></div>
+    </div>
+  </div>
+</div>
+
+<p>At \(p=0.5\), opening either door has expected reward \(-45\). If the controller hears &ldquo;left,&rdquo; Bayes' rule gives</p>
+<div class="eq">\[ \Pr(L\mid \text{hear }L)=
+\frac{0.85(0.5)}{0.85(0.5)+0.15(0.5)}=0.85. \]</div>
+
+<p>It should then open the right door, whose expected reward is \(0.85(10)+0.15(-100)=-6.5\). The symmetric result holds after hearing &ldquo;right,&rdquo; so listening is worth</p>
+<div class="eq">\[ Q_{\text{listen}}(0.5)=-1+0.95(-6.5)=-7.175, \]</div>
+<p>which is much better than \(-45\). Listening is optimal for approximately \(0.156\le p\le0.844\); outside that interval, the belief is already decisive enough that paying for information is not worthwhile in this two-step horizon.</p>
+
+<div class="figure">
+  <img src="assets/tiger-two-step-value.png" alt="Plot of open-left, open-right, listen, and optimal two-step value against the probability that the tiger is behind the left door">
+  <div class="legend" aria-label="Plot legend">
+    <span><i class="swatch" style="background:#b8372d"></i>open left</span>
+    <span><i class="swatch" style="background:#2f6fb6"></i>open right</span>
+    <span><i class="swatch" style="background:#277d49"></i>listen</span>
+    <span><i class="swatch" style="background:#111"></i>optimal value</span>
+  </div>
+  <div class="figure-caption"><b>Figure 3.</b> The black upper envelope is the optimal value. The flat middle segment is the region where listening dominates both immediate door choices. Values and thresholds were computed exactly before plotting.</div>
+</div>
+
+<div class="callout takeaway"><strong>Takeaway:</strong> information is valuable precisely where it is likely to change the next action.</div>
+
+<hr>
+
+<h2 id="exact">6. Exact finite-horizon solution: conditional plans and alpha vectors</h2>
+<p>Why can a continuous belief space sometimes be solved exactly? For a fixed finite horizon, every deterministic conditional plan has a value that is linear in the initial belief. If plan \(\pi\) yields state-conditioned returns \(\alpha_\pi(s)\), then</p>
+<div class="eq">\[ V_\pi(b)=\sum_s b(s)\alpha_\pi(s)=\alpha_\pi^\top b. \]</div>
+
+<p>The optimal policy chooses the best conditional plan, so its value is the maximum of linear functions:</p>
+<div class="eq">\[ V_H(b)=\max_{\alpha\in\Gamma_H}\alpha^\top b. \]</div>
+
+<div class="figure">
+  <div class="alpha-wrap">
+    <svg viewBox="0 0 800 350" role="img" aria-label="Three alpha-vector lines and their piecewise-linear convex upper envelope">
+      <defs><marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="3.5" orient="auto"><polygon points="0 0,8 3.5,0 7" fill="#6c675d"/></marker></defs>
+      <line x1="75" y1="295" x2="750" y2="295" stroke="#6c675d" stroke-width="2" marker-end="url(#arr)"/>
+      <line x1="75" y1="295" x2="75" y2="35" stroke="#6c675d" stroke-width="2" marker-end="url(#arr)"/>
+      <line x1="75" y1="255" x2="740" y2="75" stroke="#b33d2e" stroke-width="3" opacity=".72"/>
+      <line x1="75" y1="75" x2="740" y2="255" stroke="#3471b1" stroke-width="3" opacity=".72"/>
+      <line x1="75" y1="188" x2="740" y2="154" stroke="#368454" stroke-width="3" opacity=".72"/>
+      <polyline points="75,75 355,151 470,168 740,75" fill="none" stroke="#151515" stroke-width="6" stroke-linejoin="round"/>
+      <line x1="355" y1="295" x2="355" y2="151" stroke="#bbb3a3" stroke-dasharray="7 7"/>
+      <line x1="470" y1="295" x2="470" y2="168" stroke="#bbb3a3" stroke-dasharray="7 7"/>
+      <text x="395" y="335" text-anchor="middle" font-family="system-ui" font-size="18" fill="#504c45">belief coordinate</text>
+      <text x="22" y="170" text-anchor="middle" transform="rotate(-90 22 170)" font-family="system-ui" font-size="18" fill="#504c45">value</text>
+    </svg>
+    <div class="alpha-label" style="left:77%;top:18%;color:#b33d2e">\(\alpha_1^\top b\)</div>
+    <div class="alpha-label" style="left:77%;top:65%;color:#3471b1">\(\alpha_2^\top b\)</div>
+    <div class="alpha-label" style="left:60%;top:46%;color:#368454">\(\alpha_3^\top b\)</div>
+    <div class="alpha-label" style="left:38%;top:25%;color:#111">upper envelope \(V_H(b)\)</div>
+  </div>
+  <div class="figure-caption"><b>Figure 4.</b> Maximizing over conditional plans creates a piecewise-linear, convex value function. A line that never reaches the upper envelope is dominated and can be removed.</div>
+</div>
+
+<p>Why does the backup branch over observations? After selecting the current action, a conditional plan may choose a different continuation vector \(\alpha_o\) for each possible observation \(o\). One candidate backed-up vector is</p>
+<div class="eq">\[ \alpha(s)=R(s,a)+\gamma\sum_{s'}T(s'\mid s,a)
+\sum_o Z(o\mid s',a)\alpha_o(s'). \]</div>
+
+<p>Exact value iteration enumerates these action-and-continuation combinations, then prunes vectors that are never optimal at any belief. Incremental pruning and witness-style methods avoid retaining the full combinatorial cross-product longer than necessary.</p>
+
+<pre><code>Gamma = {zero-vector}
+repeat for each horizon step:
+    candidates = {}
+    for action a:
+        for each choice of one continuation alpha_o per observation o:
+            candidates.add(back_up(a, {alpha_o}))
+    Gamma = remove_vectors_that_never_win(candidates)
+return Gamma</code></pre>
+
+<div class="callout warning"><strong>Why exact methods become difficult:</strong> beliefs live in a simplex of dimension \(|\mathcal S|-1\), while each action can branch into \(|\mathcal O|\) continuation plans. The number of useful policy trees can still grow explosively with horizon.</div>
+<div class="callout takeaway"><strong>Takeaway:</strong> exact finite-horizon planning is dynamic programming over conditional plans, compressed into the upper envelope of alpha vectors.</div>
+
+<hr>
+
+<h2 id="solvers">7. How POMDPs are solved in practice</h2>
+<p>Why are there several solver families? The belief-MDP reduction is exact but continuous, so practical methods differ mainly in which beliefs and futures they choose to represent.</p>
+
+<div class="solver-map">
+  <div class="solver">
+    <div class="fit">small, discrete, offline</div>
+    <h3>Exact alpha-vector methods</h3>
+    <p>Use finite-horizon value iteration, witness methods, or incremental pruning when state, action, observation, and horizon sizes are genuinely small.</p>
+    <p><strong>Output:</strong> a policy valid over the full belief simplex, with exact finite-horizon values.</p>
+  </div>
+  <div class="solver">
+    <div class="fit">moderate, discrete, offline</div>
+    <h3>Point-based methods</h3>
+    <p>PBVI, HSVI, and SARSOP back up selected reachable beliefs instead of the whole simplex. This spends computation where the policy is likely to visit.</p>
+    <p><strong>Output:</strong> an approximate reusable policy, often with bounds or error guarantees under method-specific assumptions.</p>
+  </div>
+  <div class="solver">
+    <div class="fit">large, generative model, online</div>
+    <h3>Monte Carlo tree search</h3>
+    <p>POMCP samples hidden states and futures from a simulator, building an action-observation search tree only around the current history.</p>
+    <p><strong>Output:</strong> the next action after a computation budget, followed by replanning after the real observation.</p>
+  </div>
+</div>
+
+<p>A useful selection rule is based less on algorithm fashion than on the interface your system can supply:</p>
+<table>
+  <tr><th>available structure</th><th>usually start with</th><th>reason</th></tr>
+  <tr><td>Explicit small \(T\) and \(Z\), short horizon</td><td>Exact alpha-vector solver</td><td>Provides a ground-truth baseline and exposes modeling bugs.</td></tr>
+  <tr><td>Explicit model, many unreachable beliefs</td><td>Point-based solver</td><td>Approximates the reachable subset instead of uniformly gridding the simplex.</td></tr>
+  <tr><td>Fast black-box simulator, huge state space</td><td>POMCP-style online search</td><td>Sampling avoids enumerating transitions and observations.</td></tr>
+  <tr><td>Continuous or high-dimensional latent state</td><td>Particle belief plus online planning, or structured approximation</td><td>A dense tabular belief is no longer practical.</td></tr>
+  <tr><td>Unknown model but many trajectories</td><td>Learn a model/belief representation, or train a recurrent policy</td><td>This becomes a partially observable reinforcement-learning problem.</td></tr>
+</table>
+
+<div class="callout intuition"><strong>Approximation target:</strong> good solvers rarely approximate &ldquo;every possible belief equally.&rdquo; They concentrate on beliefs reachable from \(b_0\), especially those reachable under strong policies.</div>
+<div class="callout takeaway"><strong>Takeaway:</strong> choose an exact, point-based, or simulation-based solver according to model access, reachable-belief complexity, and when the action must be produced.</div>
+
+<hr>
+
+<h2 id="workflow">8. An engineering workflow that usually works</h2>
+<p>Why finish with a workflow? Most POMDP failures are modeling or validation failures, not failures to memorize another solver acronym.</p>
+
+<ol>
+  <li><strong>Define the hidden state minimally but sufficiently.</strong> Include every latent variable needed to make dynamics and sensing conditionally Markov; omit history that belief filtering already summarizes.</li>
+  <li><strong>Write a generative step first.</strong> Given \((s,a)\), sample \((s',o,r)\). Even when using matrices later, this interface enables simulation tests and online solvers.</li>
+  <li><strong>Validate probabilities and timing.</strong> Check that every transition and observation distribution sums to one and that the code agrees on whether observations depend on \(s\) or \(s'\).</li>
+  <li><strong>Test the belief filter independently.</strong> Use deterministic edge cases, impossible observations, symmetric priors, and Monte Carlo frequency checks.</li>
+  <li><strong>Build a tiny exact instance.</strong> Shrink the state space or horizon until exact enumeration is possible; use it as an oracle for the approximate pipeline.</li>
+  <li><strong>Choose the solver from the bottleneck.</strong> Alpha vectors address small exact models, point-based methods address large belief spaces, and online sampling addresses large generative models.</li>
+  <li><strong>Evaluate closed-loop behavior.</strong> Compare expected return, tail risk, belief calibration, runtime per action, and sensitivity to model mismatch across many simulated episodes.</li>
+</ol>
+
+<pre><code>b = initialBelief
+while not terminal:
+    a = planner.chooseAction(b)       # offline policy lookup or online search
+    execute(a)
+    o, r = receiveObservationReward()
+    b = updateBelief(b, a, o)
+    planner.reuseSearchTreeIfPossible(a, o)</code></pre>
+
+<div class="callout warning"><strong>Common implementation bug:</strong> selecting an action from observation \(o_t\) alone produces a reactive policy, not a general POMDP policy. Two identical current observations can demand different actions when their histories imply different beliefs.</div>
+<div class="callout takeaway"><strong>Takeaway:</strong> model, filter, solve, and validate as separate modules; use a tiny exact problem to keep the full stack honest.</div>
+
+<hr>
+
+<h2 id="connections">9. Where POMDPs fit</h2>
+<p>Why connect the theory? A POMDP is easiest to remember as the intersection of three familiar ideas:</p>
+
+<div class="figure figure-side-by-side">
+  <div class="panel"><h3>Hidden Markov model</h3><p>Supplies latent-state dynamics and Bayesian filtering. A POMDP adds actions and rewards.</p></div>
+  <div class="panel"><h3>Markov decision process</h3><p>Supplies Bellman recursion and policy optimization. A POMDP replaces observed states with beliefs.</p></div>
+  <div class="panel"><h3>Bayesian decision theory</h3><p>Supplies expected utility under uncertainty. A POMDP makes decisions sequential and lets actions affect future evidence.</p></div>
+  <div class="panel"><h3>Partially observable RL</h3><p>Handles unknown models or learned policies. Recurrent state is often an implicit approximation to a belief state.</p></div>
+</div>
+
+<div class="callout takeaway"><strong>Takeaway:</strong> a POMDP is Bayesian filtering coupled to sequential decision-making, with information acquisition inside the control loop.</div>
+
+<hr>
+
+<h2 id="summary">10. The whole mechanism in five lines</h2>
+<ol>
+  <li>The true state \(s_t\) is hidden, so maintain a belief \(b_t(s)\).</li>
+  <li>After action \(a_t\), predict through \(T\), then correct with observation likelihood \(Z\).</li>
+  <li>Treat beliefs as states and apply the Bellman principle.</li>
+  <li>Include how actions change future information, not only immediate reward.</li>
+  <li>Solve exactly with alpha vectors when small; otherwise focus computation on reachable beliefs or sampled futures.</li>
+</ol>
+<div class="callout takeaway"><strong>Final takeaway:</strong> POMDPs are not &ldquo;MDPs with noisy inputs&rdquo;; they are control problems whose state is the controller's posterior uncertainty.</div>
+
+<h3>Sources and further reading</h3>
+<ol class="sources">
+  <li>L. P. Kaelbling, M. L. Littman, and A. R. Cassandra, <a href="https://people.smp.uq.edu.au/YoniNazarathy/Control4406_2014/resources/KaelblingLittmanCassandra1998.pdf">&ldquo;Planning and Acting in Partially Observable Stochastic Domains&rdquo;</a>, <em>Artificial Intelligence</em>, 1998.</li>
+  <li>J. Pineau, G. Gordon, and S. Thrun, <a href="https://www.ijcai.org/Proceedings/03/Papers/147.pdf">&ldquo;Point-Based Value Iteration: An Anytime Algorithm for POMDPs&rdquo;</a>, IJCAI, 2003.</li>
+  <li>H. Kurniawati, D. Hsu, and W. S. Lee, <a href="https://openresearch-repository.anu.edu.au/items/85702486-fef8-4301-b7a3-daf9d182dced">&ldquo;SARSOP: Efficient Point-Based POMDP Planning by Approximating Optimally Reachable Belief Spaces&rdquo;</a>, RSS, 2008.</li>
+  <li>D. Silver and J. Veness, <a href="https://proceedings.neurips.cc/paper_files/paper/4031-monte-carlo-planning-in-large-pomdps.pdf">&ldquo;Monte-Carlo Planning in Large POMDPs&rdquo;</a>, NeurIPS, 2010.</li>
+  <li>M. J. Kochenderfer, T. A. Wheeler, and K. H. Wray, <a href="https://algorithmsbook.com/files/chapter-20.pdf">Algorithms for Decision Making, Chapter 20: Exact Belief State Planning</a>.</li>
+</ol>
+
+<nav class="toc">
+  <a href="#motivation">Why</a><a href="#model">Model</a><a href="#filter">Belief</a>
+  <a href="#bellman">Bellman</a><a href="#tiger">Tiger</a><a href="#exact">Exact</a>
+  <a href="#solvers">Solvers</a><a href="#workflow">Workflow</a><a href="#summary">Summary</a>
+</nav>
+
+<script>
+(function(){
+  var slider=document.getElementById('beliefSlider');
+  var pLabel=document.getElementById('pLabel');
+  var leftBar=document.getElementById('leftBar');
+  var rightBar=document.getElementById('rightBar');
+  var openLeft=document.getElementById('openLeft');
+  var openRight=document.getElementById('openRight');
+  var listenValue=document.getElementById('listenValue');
+  var bestAction=document.getElementById('bestAction');
+  function fmt(x){return (x<0?'-':'')+Math.abs(x).toFixed(3)}
+  function terminalValue(p){return Math.max(10-110*p,110*p-100)}
+  function updateTiger(){
+    var p=Number(slider.value)/100;
+    var ol=10-110*p,or=110*p-100;
+    var probHearLeft=.85*p+.15*(1-p);
+    var probHearRight=1-probHearLeft;
+    var postLeft=probHearLeft===0?0:(.85*p)/probHearLeft;
+    var postRight=probHearRight===0?0:(.15*p)/probHearRight;
+    var listen=-1+.95*(probHearLeft*terminalValue(postLeft)+probHearRight*terminalValue(postRight));
+    var values=[{n:'open left',v:ol},{n:'listen',v:listen},{n:'open right',v:or}];
+    values.sort(function(a,b){return b.v-a.v});
+    pLabel.textContent='p = '+p.toFixed(2);
+    leftBar.style.width=(p*100)+'%';rightBar.style.width=((1-p)*100)+'%';
+    leftBar.textContent=p>=.18?'left '+Math.round(p*100)+'%':'';
+    rightBar.textContent=(1-p)>=.18?'right '+Math.round((1-p)*100)+'%':'';
+    openLeft.textContent=fmt(ol);openRight.textContent=fmt(or);listenValue.textContent=fmt(listen);
+    bestAction.textContent=values[0].n+' (value '+fmt(values[0].v)+')';
+  }
+  slider.addEventListener('input',updateTiger);updateTiger();
+
+  var links=Array.prototype.slice.call(document.querySelectorAll('nav a[href^="#"]'));
+  var items=links.map(function(a){var el=document.querySelector(a.getAttribute('href'));return el?{a:a,el:el}:null}).filter(Boolean);
+  function updateNav(){
+    var ref=window.innerHeight*.35,cur=null,top=-Infinity;
+    items.forEach(function(it){var r=it.el.getBoundingClientRect();if(r.top<=ref&&r.top>top){top=r.top;cur=it}});
+    items.forEach(function(it){it.a.classList.toggle('active',it===cur)});
+  }
+  window.addEventListener('scroll',updateNav,{passive:true});window.addEventListener('resize',updateNav);updateNav();
+})();
+</script>
+</body>
+</html>
