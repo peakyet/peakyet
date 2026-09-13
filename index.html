@@ -331,39 +331,62 @@
 
     <div class="grid" id="grid">
 
-      <a class="card" href="Algebra/qz-algorithm/qz-generalized-schur.html" data-category="algebra" data-field="Numerical Linear Algebra" data-tags="linear-algebra generalized-eigen schur qz eigenvalue numerics">
+      <a class="card" href="Algebra/generalized-schur-decomposition/generalized-schur-decomposition.html" data-category="algebra control" data-field="Numerical Linear Algebra" data-tags="linear-algebra generalized-eigen schur qz pencil eigenvalue numerics backward-stability">
         <div class="toprow">
           <span class="tag amber">Generalized Eigenproblems</span>
           <span class="read"></span>
         </div>
-        <h3>QZ Algorithm and the Generalized Schur Decomposition</h3>
-        <p>Why the pencil \(Ax=\lambda Bx\) shows up everywhere, why eigenvalues are ratios \((\alpha,\beta)\) rather than points, the reduction to Hessenberg&ndash;triangular form, the QZ iteration, and how to read the answer off the generalized Schur form.</p>
+        <h3>The Generalized Schur (QZ) Decomposition</h3>
+        <p>Solving \(Ax=\lambda Bx\) without inverting \(B\): matrix pencils and homogeneous eigenvalue pairs, why unitary transformations on both sides keep the answer backward-stable, the reduction to Hessenberg&ndash;triangular form, the QZ iteration, and how to read the answer off the generalized Schur form.</p>
         <div class="tags">
           <span class="tag-pill">linear-algebra</span>
           <span class="tag-pill">generalized-eigen</span>
           <span class="tag-pill">schur</span>
           <span class="tag-pill">qz</span>
+          <span class="tag-pill">pencil</span>
           <span class="tag-pill">eigenvalue</span>
+          <span class="tag-pill">numerics</span>
+          <span class="tag-pill">backward-stability</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Numerical Linear Algebra</span></span>
+      </a>
+
+      <a class="card" href="Algebra/householder-transformations/householder-transformations.html" data-category="algebra" data-field="Numerical Linear Algebra" data-tags="linear-algebra householder reflector orthogonal qr least-squares tridiagonalization elimination numerics">
+        <div class="toprow">
+          <span class="tag amber">Orthogonal Elimination</span>
+          <span class="read"></span>
+        </div>
+        <h3>Householder Transformations: Zeroing Out with a Mirror</h3>
+        <p>Every serious solver reflects the coordinate system instead of eliminating rows. Why \(H = I-2vv^{\mathsf T}/v^{\mathsf T}v\) is its own inverse, the sign choice that makes it stable, how one mirror clears a whole column, and why the same atom gives QR, tridiagonalization, and bidiagonalization.</p>
+        <div class="tags">
+          <span class="tag-pill">linear-algebra</span>
+          <span class="tag-pill">householder</span>
+          <span class="tag-pill">orthogonal</span>
+          <span class="tag-pill">qr</span>
+          <span class="tag-pill">least-squares</span>
+          <span class="tag-pill">tridiagonalization</span>
           <span class="tag-pill">numerics</span>
         </div>
         <span class="go">Read the note</span>
         <span class="foot"><span class="field"><i></i>Numerical Linear Algebra</span></span>
       </a>
 
-      <a class="card" href="Algebra/givens-rotations/givens-rotations.html" data-category="algebra" data-field="Numerical Linear Algebra" data-tags="linear-algebra qr orthogonal givens rotation numerics elimination">
+      <a class="card" href="Algebra/francis-qr-step/francis-qr-step.html" data-category="algebra" data-field="Numerical Linear Algebra" data-tags="linear-algebra francis qr eigenvalue schur implicit-shift bulge-chasing complex-shift numerics lapack">
         <div class="toprow">
-          <span class="tag amber">Givens Rotations</span>
+          <span class="tag amber">Eigenvalue Iteration</span>
           <span class="read"></span>
         </div>
-        <h3>Givens Rotations: Local Orthogonal Elimination</h3>
-        <p>How one plane rotation turns a single entry into zero while preserving length &mdash; the surgical, two-row primitive that builds QR factorizations without disturbing the rest of the matrix.</p>
+        <h3>The Francis QR Step: Eigenvalues Without Complex Numbers</h3>
+        <p>How LAPACK finds complex eigenvalues of a real matrix using only real arithmetic: the double shift with a conjugate pair, the implicit \(Q\) theorem that lets you build only the first column, and how the resulting bulge is chased down a Hessenberg matrix.</p>
         <div class="tags">
           <span class="tag-pill">linear-algebra</span>
+          <span class="tag-pill">francis</span>
           <span class="tag-pill">qr</span>
-          <span class="tag-pill">orthogonal</span>
-          <span class="tag-pill">givens</span>
-          <span class="tag-pill">rotation</span>
-          <span class="tag-pill">numerics</span>
+          <span class="tag-pill">eigenvalue</span>
+          <span class="tag-pill">implicit-shift</span>
+          <span class="tag-pill">bulge-chasing</span>
+          <span class="tag-pill">lapack</span>
         </div>
         <span class="go">Read the note</span>
         <span class="foot"><span class="field"><i></i>Numerical Linear Algebra</span></span>
@@ -546,41 +569,62 @@
         <span class="foot"><span class="field"><i></i>Control Theory</span></span>
       </a>
 
-      <a class="card" href="Control/schur-qz-are/schur-qz-are.html" data-category="control algebra" data-field="Control Theory" data-tags="control riccati lqr schur qz linear-algebra optimal-control">
+      <a class="card" href="Control/sda-algebraic-riccati/sda-algebraic-riccati.html" data-category="control algebra" data-field="Control Theory" data-tags="control riccati lqr are doubling structure-preserving symplectic numerics quadratic-convergence">
         <div class="toprow">
           <span class="tag teal">Riccati Equations</span>
           <span class="read"></span>
         </div>
-        <h3>Schur &amp; QZ Methods for the Algebraic Riccati Equation</h3>
-        <p>Classical Schur-based and QZ-based methods for the algebraic Riccati equation &mdash; the stable-invariant-subspace view of the underlying generalized eigenproblem.</p>
+        <h3>SDA: Solving the Riccati Equation by Never Solving It</h3>
+        <p>The structure-preserving doubling algorithm rewrites the ARE into an equivalent problem whose data shrinks doubly exponentially &mdash; about ten rewrites to machine precision. Built up from repeated squaring, through the Stein equation and DARE, to the CARE and the Kronecker \(S = M_1 \otimes M_2\) convergence test.</p>
         <div class="tags">
           <span class="tag-pill">control</span>
           <span class="tag-pill">riccati</span>
           <span class="tag-pill">lqr</span>
-          <span class="tag-pill">schur</span>
-          <span class="tag-pill">qz</span>
-          <span class="tag-pill">linear-algebra</span>
-          <span class="tag-pill">optimal-control</span>
+          <span class="tag-pill">are</span>
+          <span class="tag-pill">doubling</span>
+          <span class="tag-pill">structure-preserving</span>
+          <span class="tag-pill">symplectic</span>
+          <span class="tag-pill">quadratic-convergence</span>
         </div>
         <span class="go">Read the note</span>
         <span class="foot"><span class="field"><i></i>Control Theory</span></span>
       </a>
 
-      <a class="card" href="Control/sda-are/sda-are.html" data-category="control algebra" data-field="Control Theory" data-tags="control riccati lqr doubling structure-preserving numerics stabilizing">
+      <a class="card" href="Control/signal-filter-design/signal-filter-design.html" data-category="control math" data-field="Control Theory" data-tags="control filter signal-processing noise lowpass notch bode loop-shaping phase-margin pid">
         <div class="toprow">
-          <span class="tag teal">Riccati Equations</span>
+          <span class="tag teal">Loop Shaping</span>
           <span class="read"></span>
         </div>
-        <h3>SDA: The Structure-Preserving Doubling Algorithm</h3>
-        <p>The structure-preserving doubling algorithm (SDA) for discrete- and continuous-time algebraic Riccati equations, and why it converges to the stabilizing solution.</p>
+        <h3>Designing a Filter for a Signal in a Control Loop</h3>
+        <p>A controller is a noise amplifier, and a filter inside the loop is never free: its gain at crossover is nearly one but its phase comes straight out of your margin. Corner frequency, steepness, group delay, notch versus low-pass, and how to place all of it against a real PID speed loop.</p>
         <div class="tags">
           <span class="tag-pill">control</span>
-          <span class="tag-pill">riccati</span>
-          <span class="tag-pill">lqr</span>
-          <span class="tag-pill">doubling</span>
-          <span class="tag-pill">structure-preserving</span>
-          <span class="tag-pill">numerics</span>
-          <span class="tag-pill">stabilizing</span>
+          <span class="tag-pill">filter</span>
+          <span class="tag-pill">signal-processing</span>
+          <span class="tag-pill">noise</span>
+          <span class="tag-pill">lowpass</span>
+          <span class="tag-pill">notch</span>
+          <span class="tag-pill">phase-margin</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Control Theory</span></span>
+      </a>
+
+      <a class="card" href="Control/contingency-planning/contingency-planning.html" data-category="control" data-field="Control Theory" data-tags="control contingency-planning recovery degradation rto rpo mtpd mpc safety risk runbook">
+        <div class="toprow">
+          <span class="tag teal">Fault Management</span>
+          <span class="read"></span>
+        </div>
+        <h3>Contingency Planning: Keeping the Important Thing Working</h3>
+        <p>Plan from functions and promises, not from component lists: what must keep running, how degraded it may safely become, and in what order recovery happens under scarce time and staff &mdash; with contingency MPC as the control-theoretic version of keeping an escape trajectory alive.</p>
+        <div class="tags">
+          <span class="tag-pill">control</span>
+          <span class="tag-pill">contingency-planning</span>
+          <span class="tag-pill">recovery</span>
+          <span class="tag-pill">degradation</span>
+          <span class="tag-pill">rto</span>
+          <span class="tag-pill">mpc</span>
+          <span class="tag-pill">safety</span>
         </div>
         <span class="go">Read the note</span>
         <span class="foot"><span class="field"><i></i>Control Theory</span></span>
@@ -754,6 +798,26 @@
           <span class="tag-pill">sinkhorn</span>
           <span class="tag-pill">wasserstein</span>
           <span class="tag-pill">trajectory</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Robotics</span></span>
+      </a>
+
+      <a class="card" href="Robotics/epsilon-planning/epsilon-planning.html" data-category="robotics control ai" data-field="Robotics" data-tags="robotics motion-planning trajectory-planning autonomous-driving interactive-prediction dcp-tree spatio-temporal-corridor bezier qp pomdp">
+        <div class="toprow">
+          <span class="tag rose">Interactive Planning</span>
+          <span class="read"></span>
+        </div>
+        <h3>EPSILON: Planning When Everyone Else Is Deciding Too</h3>
+        <p>An engineer's tour of a multi-agent driving planner: closed-loop maneuver policies instead of open-loop control sequences, conditional focused branching that keeps only the scenarios that change the answer, and spatio-temporal corridors that turn every road semantic into a box &mdash; then into one QP via B&eacute;zier hulls.</p>
+        <div class="tags">
+          <span class="tag-pill">robotics</span>
+          <span class="tag-pill">motion-planning</span>
+          <span class="tag-pill">autonomous-driving</span>
+          <span class="tag-pill">interactive-prediction</span>
+          <span class="tag-pill">dcp-tree</span>
+          <span class="tag-pill">spatio-temporal-corridor</span>
+          <span class="tag-pill">pomdp</span>
         </div>
         <span class="go">Read the note</span>
         <span class="foot"><span class="field"><i></i>Robotics</span></span>

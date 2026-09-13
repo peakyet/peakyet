@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contingency Planning — Engineer's Field Guide</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{font-size:17px;scroll-behavior:smooth}
+  body{font-family:"Source Serif Pro",Georgia,"Times New Roman",serif;color:#1a1a1a;background:#fdfcf8;line-height:1.7;max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+  img{max-width:100%;display:block}
+  h1{font-family:"Source Serif Pro",Georgia,serif;font-weight:700;font-size:2.1rem;letter-spacing:-0.01em;line-height:1.2;margin:2.5rem 0 .4rem;color:#111;border-bottom:2px solid #d4a72c;padding-bottom:.3rem}
+  h2{font-family:"Source Serif Pro",Georgia,serif;font-weight:600;font-size:1.45rem;color:#222;margin:2.2rem 0 .6rem}
+  h3{font-size:1.12rem;color:#333;margin:1.4rem 0 .4rem}
+  p{margin:.75rem 0} a{color:#9a5b00;text-decoration:none;border-bottom:1px solid #d4a72c} a:hover{color:#7a4a00}
+  strong{color:#111} em{color:#444} ul,ol{margin:.6rem 0 .6rem 1.4rem} li{margin:.3rem 0}
+  .eq{display:block;text-align:center;margin:1.1rem 0;padding:.75rem .5rem;background:#f7f4ec;border-left:3px solid #d4a72c;border-radius:4px;overflow-x:auto;line-height:1.9}
+  .callout{background:#f7f4ec;border-left:4px solid #d4a72c;border-radius:0 6px 6px 0;padding:.75rem 1rem;margin:1rem 0;font-size:.97rem}
+  .callout.takeaway{border-left-color:#3a7d44;background:#edf5ec}.callout.takeaway strong{color:#1d5e2a}
+  .callout.intuition{border-left-color:#4a7bb5;background:#eef4fb}.callout.intuition strong{color:#1f4f7a}
+  .figure{margin:1.4rem 0;padding:1rem;background:#fff;border:1px solid #e8e4d8;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .figure svg{width:100%;height:auto;display:block}.figure-caption{font-size:.88rem;color:#555;text-align:center;margin-top:.6rem;line-height:1.5}.figure-caption b{color:#333}
+  .figure-side-by-side{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}
+  table{border-collapse:collapse;margin:.8rem 0;font-size:.92rem;width:100%} th,td{border:1px solid #ddd;padding:.45rem .7rem;text-align:left;vertical-align:top} th{background:#f0ebe0;color:#333} tr:nth-child(even) td{background:#fafaf5}
+  hr{border:none;border-top:1px solid #e0dcd0;margin:2.5rem 0}
+  .toc{position:sticky;bottom:0;z-index:50;display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;justify-content:center;background:rgba(253,252,248,.96);backdrop-filter:blur(6px);border:1px solid #e8e4d8;border-radius:10px 10px 0 0;padding:.6rem .9rem;margin:1.4rem calc(50% - 50vw) 0}
+  .toc a{color:#6b5a29;text-decoration:none;font-size:.85rem;padding:.22rem .7rem;border-radius:999px;border:1px solid transparent;white-space:nowrap}.toc a:hover{background:#f7f4ec;border-color:#d4a72c;color:#9a5b00}.toc a.active{background:#d4a72c;color:#fff;border-color:#d4a72c}.toc a.active:hover{background:#d4a72c;color:#fff}
+  .hero{font-size:1.1rem;color:#333;margin-bottom:1.5rem;padding:.8rem 1rem;background:#f7f4ec;border-radius:6px}.hero strong{color:#111}
+  .microgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem;margin:1rem 0}.card{border:1px solid #e3ded1;border-radius:7px;background:#fff;padding:.7rem .8rem}.card h3{margin:0 0 .2rem;font-size:1rem}.card p{font-size:.91rem;margin:.2rem 0}
+  .step{display:grid;grid-template-columns:2.2rem 1fr;gap:.7rem;align-items:start;margin:1rem 0}.stepno{display:grid;place-items:center;width:2rem;height:2rem;border-radius:50%;background:#d4a72c;color:#fff;font-weight:bold}.step p{margin:0}
+  .timeline{display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin:1.2rem 0}.timeline .phase{padding:.7rem .6rem;min-height:92px;border-top:4px solid #d4a72c;background:#f7f4ec}.timeline .phase:nth-child(2){border-color:#c68a2e}.timeline .phase:nth-child(3){border-color:#a86d37}.timeline .phase:nth-child(4){border-color:#6c7d52}.timeline .phase:nth-child(5){border-color:#3a7d44}.phase b{display:block;font-size:.9rem}.phase span{display:block;font-size:.8rem;color:#555;line-height:1.35;margin-top:.25rem}
+  details{margin:1rem 0;border:1px solid #e3ded1;border-radius:7px;background:#fff} summary{cursor:pointer;padding:.65rem .8rem;color:#6b4d00;font-weight:600} details pre{overflow:auto;padding:.75rem;background:#f7f4ec;border-top:1px solid #e3ded1;font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap}
+  .source-list li{margin:.5rem 0;font-size:.93rem}
+  @media (max-width:700px){body{font-size:16px;padding:1.2rem .9rem 3rem}h1{font-size:1.7rem}h2{font-size:1.25rem}.figure-side-by-side{grid-template-columns:1fr}.microgrid{grid-template-columns:1fr}.timeline{grid-template-columns:1fr}.timeline .phase{min-height:auto}}
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}]});"></script>
+</head>
+<body>
+
+<h1>Contingency planning: how to keep the important thing working</h1>
+<p class="hero"><strong>What would you do if your most important dependency disappeared for six hours?</strong> Contingency planning is the engineering discipline of deciding, before the incident, which functions must survive, how degraded they may become, and what people and systems will do next. You will leave with a compact method for turning vague fears into tested recovery choices.</p>
+
+<h2 id="s1">1. The failure that exposes the real problem</h2>
+<p>Imagine a payment service whose database region has failed. The team has backups, a second region, and a detailed restore script. Yet after three hours, nothing useful is back: engineers restored dashboards first because they were easiest, the payment provider's credentials are in the unavailable secret store, and nobody knows who can authorize a degraded mode.</p>
+<p>That is the characteristic failure of a plan that lists <em>components</em> instead of preserving a <em>function</em>. The question is not “How do we restore every server?” It is:</p>
+<div class="callout intuition"><strong>Predict before reading on:</strong> with a fixed recovery team and a fixed 90-minute window, should the plan optimize for the largest number of restored services, or for the most important customer promise?</div>
+<p>The second choice is the heart of contingency planning. Disruption creates scarcity: time, staff, information, power, suppliers, and safe operating capacity are all limited. A plan is valuable when it makes the trade-off explicit <em>before</em> the trade-off becomes a fight.</p>
+
+<div class="figure">
+<svg viewBox="0 0 820 220" role="img" aria-label="Normal operation turns into disruption, degraded service, and restored service">
+ <defs><marker id="arrow1" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#7e6a3a"/></marker></defs>
+ <rect x="20" y="72" width="145" height="78" rx="10" fill="#edf5ec" stroke="#3a7d44" stroke-width="2"/><text x="92" y="103" text-anchor="middle" font-size="18" fill="#1a1a1a">Normal mode</text><text x="92" y="128" text-anchor="middle" font-size="13" fill="#555">all promises met</text>
+ <path d="M170 111 H238" stroke="#7e6a3a" stroke-width="2" marker-end="url(#arrow1)"/>
+ <rect x="245" y="72" width="145" height="78" rx="10" fill="#fff3dc" stroke="#d4a72c" stroke-width="2"/><text x="317" y="103" text-anchor="middle" font-size="18" fill="#1a1a1a">Disruption</text><text x="317" y="128" text-anchor="middle" font-size="13" fill="#555">dependency unavailable</text>
+ <path d="M395 111 H463" stroke="#7e6a3a" stroke-width="2" marker-end="url(#arrow1)"/>
+ <rect x="470" y="72" width="145" height="78" rx="10" fill="#eef4fb" stroke="#4a7bb5" stroke-width="2"/><text x="542" y="103" text-anchor="middle" font-size="18" fill="#1a1a1a">Degraded mode</text><text x="542" y="128" text-anchor="middle" font-size="13" fill="#555">essential function survives</text>
+ <path d="M620 111 H688" stroke="#7e6a3a" stroke-width="2" marker-end="url(#arrow1)"/>
+ <rect x="695" y="72" width="105" height="78" rx="10" fill="#edf5ec" stroke="#3a7d44" stroke-width="2"/><text x="747" y="103" text-anchor="middle" font-size="18" fill="#1a1a1a">Restore</text><text x="747" y="128" text-anchor="middle" font-size="13" fill="#555">rebuild safely</text>
+ <text x="410" y="30" text-anchor="middle" font-size="14" fill="#6b5a29">The plan is the middle box, not just the last one.</text>
+</svg>
+<div class="figure-caption"><b>Figure 1.</b> A useful plan creates a controlled bridge between failure and full recovery. “Keep everything identical” is often impossible; “keep the essential promise alive” is a design target.</div>
+</div>
+
+<div class="callout takeaway"><strong>Takeaway:</strong> Contingency planning is pre-deciding how the organization will continue its essential work under constrained, abnormal conditions.</div>
+<hr>
+
+<h2 id="s2">2. Start with the function, not the hazard</h2>
+<p>A hazard is only interesting because of what it prevents you from doing. A region outage, ransomware event, flood, or key supplier failure can all produce the same operational question: <em>which capability is now missing, and how long can the organization tolerate that?</em></p>
+<p>Use a <strong>business impact analysis (BIA)</strong> to answer that question. For each function, record the consequence of delay, the latest acceptable restoration time, the tolerable data loss, and the resources that make the function possible. NIST describes BIA as a way to determine criticality, impact, and recovery time objectives; FEMA similarly frames it around the consequences of failing to perform essential functions.</p>
+
+<div class="figure">
+<svg viewBox="0 0 820 290" role="img" aria-label="Business impact analysis maps customer promise to dependencies and recovery objectives">
+ <defs><marker id="arrow2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#7e6a3a"/></marker></defs>
+ <rect x="24" y="104" width="180" height="82" rx="9" fill="#eef4fb" stroke="#4a7bb5" stroke-width="2"/><text x="114" y="137" text-anchor="middle" font-size="18">Customer promise</text><text x="114" y="163" text-anchor="middle" font-size="13" fill="#555">“accept a payment”</text>
+ <path d="M209 145 H284" stroke="#7e6a3a" stroke-width="2" marker-end="url(#arrow2)"/>
+ <rect x="292" y="104" width="180" height="82" rx="9" fill="#fff3dc" stroke="#d4a72c" stroke-width="2"/><text x="382" y="137" text-anchor="middle" font-size="18">Function</text><text x="382" y="163" text-anchor="middle" font-size="13" fill="#555">payment authorization</text>
+ <path d="M477 145 H552" stroke="#7e6a3a" stroke-width="2" marker-end="url(#arrow2)"/>
+ <rect x="560" y="46" width="235" height="58" rx="9" fill="#f7f4ec" stroke="#c9c1ae"/><text x="677" y="72" text-anchor="middle" font-size="15">Dependencies</text><text x="677" y="92" text-anchor="middle" font-size="12" fill="#555">database • credentials • provider</text>
+ <rect x="560" y="116" width="235" height="58" rx="9" fill="#edf5ec" stroke="#3a7d44"/><text x="677" y="142" text-anchor="middle" font-size="15">Time objective</text><text x="677" y="162" text-anchor="middle" font-size="12" fill="#555">RTO ≤ 15 min • MTD = 1 h</text>
+ <rect x="560" y="186" width="235" height="58" rx="9" fill="#f7f4ec" stroke="#c9c1ae"/><text x="677" y="212" text-anchor="middle" font-size="15">Data objective</text><text x="677" y="232" text-anchor="middle" font-size="12" fill="#555">RPO ≈ 0 for accepted payments</text>
+ <text x="410" y="30" text-anchor="middle" font-size="14" fill="#6b5a29">Ask “what must be true?” before asking “what should we restore?”</text>
+</svg>
+<div class="figure-caption"><b>Figure 2.</b> The BIA turns a vague service name into a recoverable contract: a function, its dependencies, and the time/data limits that matter.</div>
+</div>
+
+<div class="microgrid">
+ <div class="card"><h3>RTO</h3><p><strong>Recovery Time Objective:</strong> how long the function may be unavailable before the target is missed.</p></div>
+ <div class="card"><h3>RPO</h3><p><strong>Recovery Point Objective:</strong> how much recent data loss is acceptable, measured backward in time.</p></div>
+ <div class="card"><h3>MTD</h3><p><strong>Maximum Tolerable Downtime:</strong> the outer limit after which the consequences become unacceptable.</p></div>
+</div>
+<p>These are not magical constants. They are negotiated consequences. A 15-minute RTO for payments might be justified by lost revenue and trust; a 24-hour RTO for analytics might be entirely reasonable. The point is to spend resilience budget where delay hurts.</p>
+<table>
+<tr><th>Function</th><th>RTO</th><th>RPO</th><th>Acceptable degraded mode</th></tr>
+<tr><td>Accept payment</td><td>15 min</td><td>Near zero</td><td>Queue signed requests; disable nonessential fraud enrichment</td></tr>
+<tr><td>Issue invoice</td><td>4 h</td><td>1 h</td><td>Batch generation when the ledger is healthy</td></tr>
+<tr><td>Show analytics</td><td>24 h</td><td>24 h</td><td>Serve yesterday’s cached snapshot</td></tr>
+</table>
+<div class="callout takeaway"><strong>Takeaway:</strong> A BIA is the bridge from “this system is important” to measurable recovery promises and explicit degraded behavior.</div>
+<hr>
+
+<h2 id="s3">3. The core mechanism: prioritize under scarcity</h2>
+<p>Once an incident starts, recovery is an allocation problem. Let each function have an impact rate \(c_i\) while unavailable, a restoration cost \(t_i\), and a deadline \(d_i\). With a recovery budget \(B\), the plan chooses actions that reduce the most consequential loss before deadlines:</p>
+<div class="eq">\[ \text{choose actions } a_i \quad\text{to minimize}\quad \sum_i c_i\,\text{downtime}_i \qquad\text{subject to}\qquad \sum_i t_i a_i \le B \]</div>
+<p>You do not need to solve this as a perfect optimization model. The equation exposes the hidden question: if you can only restore two things, <em>which two preserve the mission?</em> Priority is a policy decision informed by the BIA, not an accidental consequence of which runbook is shortest.</p>
+<div class="figure">
+<svg viewBox="0 0 820 260" role="img" aria-label="Recovery budget allocated to essential payments before less essential dashboards">
+ <text x="26" y="31" font-size="16" fill="#333">90-minute recovery budget</text>
+ <rect x="26" y="52" width="768" height="42" rx="7" fill="#f0ebe0" stroke="#d1c7b4"/>
+ <rect x="26" y="52" width="427" height="42" rx="7" fill="#4a7bb5"/><text x="239" y="79" text-anchor="middle" font-size="15" fill="#fff">payments · 50 min · essential</text>
+ <rect x="453" y="52" width="256" height="42" fill="#3a7d44"/><text x="581" y="79" text-anchor="middle" font-size="15" fill="#fff">invoices · 30 min</text>
+ <rect x="709" y="52" width="85" height="42" rx="0 7 7 0" fill="#d4a72c"/><text x="751" y="79" text-anchor="middle" font-size="12" fill="#fff">10 min left</text>
+ <text x="26" y="137" font-size="16" fill="#333">What is deliberately postponed?</text>
+ <rect x="26" y="158" width="768" height="42" rx="7" fill="#f7f4ec" stroke="#d1c7b4"/><rect x="26" y="158" width="341" height="42" rx="7" fill="#c7c0b2"/><text x="196" y="185" text-anchor="middle" font-size="15" fill="#333">dashboards · 40 min · postpone</text><text x="581" y="185" text-anchor="middle" font-size="14" fill="#6b5a29">serve cache or wait</text>
+ <text x="410" y="235" text-anchor="middle" font-size="14" fill="#6b5a29">A plan can be graceful precisely because it says “not now.”</text>
+</svg>
+<div class="figure-caption"><b>Figure 3.</b> Recovery capacity is a budget. Essential work gets a reserved path; less important work gets a safe fallback rather than competing for the same first 90 minutes.</div>
+</div>
+<details><summary>Demo: why priority beats build order (prioritized-recovery.py — run: <code>python3 prioritized-recovery.py</code>)</summary>
+<pre><code># Run: python3 prioritized-recovery.py — proves scarce recovery capacity must follow service priority.
+services = {
+    "payments": {"time": 50, "essential": True},
+    "invoices": {"time": 30, "essential": False},
+    "dashboards": {"time": 40, "essential": False},
+}
+budget = 90
+
+def recover(order):
+    used, restored = 0, []
+    for name in order:
+        if used + services[name]["time"] &lt;= budget:
+            restored.append(name)
+            used += services[name]["time"]
+    return restored, used
+
+# The order is the policy: build order accidentally restores the wrong promise.
+for label, order in [
+    ("naive build order", ["dashboards", "invoices", "payments"]),
+    ("priority order", ["payments", "invoices", "dashboards"]),
+]:
+    restored, used = recover(order)
+    status = "UP" if "payments" in restored else "DOWN"
+    print(f"{label:18} -&gt; {', '.join(restored):20} ({used:2} min), payments: {status}")
+
+$ python3 prioritized-recovery.py
+naive build order  -&gt; dashboards, invoices (70 min), payments: DOWN
+priority order     -&gt; payments, invoices   (80 min), payments: UP</code></pre>
+</details>
+<div class="callout takeaway"><strong>Takeaway:</strong> Recovery sequencing is not a technical afterthought; it is the operational encoding of what the organization values most.</div>
+<hr>
+
+<h2 id="s4">4. Contingency MPC: keep an escape trajectory alive</h2>
+<p>The previous sections plan recovery at the organizational level. <strong>Contingency model predictive control (CMPC)</strong> applies the same idea to a dynamical system: while the controller follows a high-performance nominal trajectory, it also preserves a feasible alternate trajectory for a known possible emergency.</p>
+<p>Why is that different from ordinary MPC? Ordinary MPC asks, “What is the best legal trajectory under the model I currently believe?” If a hazard appears later—ice, an obstacle, loss of an actuator, or a sudden change in friction—the best nominal trajectory may already have spent the state of the vehicle in a way that makes avoidance impossible. CMPC asks one extra question at every solve: <em>if the contingency happens, can I still escape from where this command takes me?</em></p>
+
+<div class="figure">
+<svg viewBox="0 0 820 310" role="img" aria-label="Contingency MPC keeps a nominal trajectory and an alternate safe trajectory coupled by the first command">
+ <defs><marker id="arrow4" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#7e6a3a"/></marker></defs>
+ <rect x="18" y="28" width="130" height="48" rx="8" fill="#eef4fb" stroke="#4a7bb5" stroke-width="2"/><text x="83" y="58" text-anchor="middle" font-size="16">current state</text>
+ <path d="M148 52 H202" stroke="#7e6a3a" stroke-width="2" marker-end="url(#arrow4)"/>
+ <circle cx="235" cy="52" r="9" fill="#d4a72c"/><text x="235" y="22" text-anchor="middle" font-size="13" fill="#6b5a29">same first command</text>
+ <path d="M244 52 C325 52 352 76 416 76 C495 76 531 49 622 49" fill="none" stroke="#4a7bb5" stroke-width="4"/>
+ <path d="M244 52 C322 52 338 202 422 218 C505 234 545 177 622 164" fill="none" stroke="#3a7d44" stroke-width="4" stroke-dasharray="9 6"/>
+ <path d="M416 76 C490 76 532 130 622 164" fill="none" stroke="#d4a72c" stroke-width="2" stroke-dasharray="4 5"/>
+ <rect x="622" y="25" width="170" height="48" rx="8" fill="#eef4fb" stroke="#4a7bb5" stroke-width="2"/><text x="707" y="55" text-anchor="middle" font-size="15">nominal objective</text>
+ <rect x="622" y="140" width="170" height="48" rx="8" fill="#edf5ec" stroke="#3a7d44" stroke-width="2"/><text x="707" y="170" text-anchor="middle" font-size="15">safe contingency</text>
+ <line x1="416" y1="76" x2="416" y2="218" stroke="#c9c1ae" stroke-width="1" stroke-dasharray="3 4"/><text x="416" y="286" text-anchor="middle" font-size="14" fill="#6b5a29">The controller spends a little performance now to keep the lower branch feasible.</text>
+ <text x="260" y="105" font-size="13" fill="#4a7bb5">normal prediction</text><text x="255" y="247" font-size="13" fill="#3a7d44">hazard prediction</text>
+</svg>
+<div class="figure-caption"><b>Figure 5.</b> CMPC optimizes a nominal path and a contingency path in parallel. They share the command applied now, but the contingency branch is constrained for the emergency rather than for nominal comfort or efficiency.</div>
+</div>
+
+<p>For a linear time-varying system, let \(x_i^n\), \(u_i^n\) be the nominal prediction and \(x_i^c\), \(u_i^c\) the contingency prediction. The two branches can use different models—for example, normal versus low-friction dynamics:</p>
+<div class="eq">\[ x^n_{i+1}=A_i^n x^n_i+B_i^n u^n_i, \qquad x^c_{i+1}=A_i^c x^c_i+B_i^c u^c_i \]</div>
+<p>Both start at the measured state. The key non-negotiable coupling is that the first command is the same, because the future event has not happened yet:</p>
+<div class="eq">\[ x^n_0=x^c_0=x_k, \qquad u^n_0=u^c_0 \]</div>
+<p>After the possible hazard is revealed, the controller may follow the contingency inputs. Before that moment, however, the nominal plan is judged partly by whether it leaves enough room for the emergency plan to work. A compact formulation is:</p>
+<div class="eq">\[ \begin{aligned}
+\min_{u^n,u^c,x^n,x^c}\;&J_n(x^n,u^n)+\lambda J_c(x^c,u^c)\\
+\text{s.t. }&x^n_{i+1}=f_n(x^n_i,u^n_i),\quad x^n_i\in\mathcal X_n,\;u^n_i\in\mathcal U_n,\\
+&x^c_{i+1}=f_c(x^c_i,u^c_i),\quad x^c_i\in\mathcal X_c,\;u^c_i\in\mathcal U_c,\\
+&x^n_0=x^c_0=x_k,\quad u^n_0=u^c_0.
+\end{aligned} \]</div>
+<p>Here \(J_n\) rewards ordinary performance, \(J_c\) can simply reward a feasible escape rather than a comfortable one, and \(\lambda\) controls how strongly the nominal plan protects the contingency. In a safety-critical setting, the contingency constraints—not merely its cost—carry the guarantee.</p>
+<h3>What exactly is shared, and where does branching happen?</h3>
+<p><strong>In the canonical two-horizon CMPC formulation, only the current command is forced to match.</strong> Both branches start from the same measured state \(x_k\), and the command actually sent to the plant is shared:</p>
+<div class="eq">\[x^n_0=x^c_0=x_k,\qquad u^n_0=u^c_0=u_k\]</div>
+<p>But the next predicted states need not match. If the nominal and contingency models differ, then even the same command can produce \(x^n_1\neq x^c_1\). The future inputs \(u^n_1,u^n_2,\ldots\) and \(u^c_1,u^c_2,\ldots\) are allowed to diverge because the controller will re-solve after applying \(u_k\). In the special case of identical dynamics, the common input also gives a common one-step state; that is a consequence of the model, not an additional CMPC coupling constraint.</p>
+<div class="figure">
+<svg viewBox="0 0 820 285" role="img" aria-label="Branch point is determined by when the contingency becomes observable; controls are shared before detection and can diverge after detection">
+ <defs><marker id="arrow5" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#7e6a3a"/></marker></defs>
+ <line x1="58" y1="78" x2="760" y2="78" stroke="#b8ae9a" stroke-width="2"/>
+ <line x1="58" y1="175" x2="760" y2="175" stroke="#b8ae9a" stroke-width="2"/>
+ <circle cx="105" cy="78" r="8" fill="#d4a72c"/><circle cx="230" cy="78" r="8" fill="#d4a72c"/><circle cx="355" cy="78" r="8" fill="#d4a72c"/>
+ <circle cx="480" cy="78" r="8" fill="#d4a72c"/><circle cx="605" cy="78" r="8" fill="#d4a72c"/><circle cx="730" cy="78" r="8" fill="#d4a72c"/>
+ <path d="M105 78 H355" stroke="#4a7bb5" stroke-width="6"/><path d="M355 78 C430 78 455 38 480 38 C555 38 600 38 730 38" fill="none" stroke="#4a7bb5" stroke-width="5"/>
+ <path d="M355 78 C430 78 455 118 480 118 C555 118 600 118 730 118" fill="none" stroke="#3a7d44" stroke-width="5" stroke-dasharray="9 6"/>
+ <line x1="355" y1="24" x2="355" y2="228" stroke="#d4a72c" stroke-width="2" stroke-dasharray="5 5"/>
+ <text x="70" y="52" font-size="15" fill="#4a7bb5">same inputs</text><text x="387" y="28" font-size="15" fill="#6b5a29">branch / detection time</text>
+ <text x="58" y="112" font-size="15" fill="#333">commands shared before the event is distinguishable</text>
+ <text x="480" y="28" font-size="14" fill="#4a7bb5">nominal inputs</text><text x="480" y="143" font-size="14" fill="#3a7d44">contingency inputs</text>
+ <text x="58" y="163" font-size="14" fill="#555">time</text><text x="95" y="204" font-size="14" fill="#555">\(k\)</text><text x="342" y="204" font-size="14" fill="#555">\(k+\tau_b\)</text><text x="710" y="204" font-size="14" fill="#555">future</text>
+ <rect x="70" y="232" width="680" height="34" rx="7" fill="#f7f4ec" stroke="#d1c7b4"/><text x="410" y="254" text-anchor="middle" font-size="14" fill="#6b5a29">If detection takes \(\tau_b\) samples, enforce equality through the common prefix.</text>
+</svg>
+<div class="figure-caption"><b>Figure 6.</b> The branch point is an information-timing decision. Before the event can be detected, both policies must prescribe the same input; after detection, the policies may diverge.</div>
+</div>
+<div class="eq">\[u^n_i=u^c_i\quad\text{for }i=0,\ldots,\tau_b-1;\qquad u^n_i\;\text{and}\;u^c_i\;\text{may differ for }i\ge\tau_b\]</div>
+<p>Choose \(\tau_b\) from the <strong>earliest time at which the real controller can know which world it is in</strong>, including sensing, state estimation, event classification, communication, and actuation delay. In the original CMPC setup, the next MPC solve occurs after the current command, so \(\tau_b=1\) is appropriate when the contingency can be detected before the next command is issued. If detection takes three sample periods, use a three-input common prefix. If the event time is uncertain, use several possible branch points in a scenario tree or impose a robust common prefix.</p>
+<div class="callout intuition"><strong>Rule of thumb:</strong> branch when information arrives, not when the optimizer wishes it had arrived. Making the branch earlier is physically impossible; making it later is conservative but may waste performance.</div>
+<h3>Can the branch time move online?</h3>
+<p>Yes—but the safest design is usually not to let the optimizer pick an arbitrary branch time. Let a <strong>monitor</strong> update the information state and trigger a branch when the evidence crosses a condition. The branch time then changes with the scenario, while the controller still respects causality.</p>
+<div class="figure">
+<svg viewBox="0 0 820 330" role="img" aria-label="Dynamic branch timing based on a risk margin and a detection event">
+ <defs><marker id="arrow6" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#7e6a3a"/></marker></defs>
+ <line x1="70" y1="248" x2="770" y2="248" stroke="#777" stroke-width="2"/><line x1="70" y1="54" x2="70" y2="248" stroke="#777" stroke-width="2"/>
+ <line x1="70" y1="118" x2="770" y2="118" stroke="#d4a72c" stroke-width="2" stroke-dasharray="7 6"/><text x="78" y="108" font-size="14" fill="#8a6500">minimum safe margin</text>
+ <path d="M75 75 C180 82 225 96 300 111 C365 124 410 141 462 168 C520 198 600 213 765 226" fill="none" stroke="#4a7bb5" stroke-width="4"/>
+ <line x1="462" y1="52" x2="462" y2="248" stroke="#3a7d44" stroke-width="3" stroke-dasharray="8 6"/>
+ <circle cx="462" cy="168" r="8" fill="#3a7d44"/><text x="462" y="35" text-anchor="middle" font-size="15" fill="#1d5e2a">event-triggered branch</text>
+ <path d="M462 168 C525 165 580 115 640 88 C687 67 720 67 765 70" fill="none" stroke="#3a7d44" stroke-width="5" stroke-dasharray="9 6"/>
+ <text x="80" y="280" font-size="14" fill="#555">time</text><text x="438" y="280" font-size="14" fill="#555">later than nominal fixed guess</text><text x="78" y="72" font-size="14" fill="#4a7bb5">remaining contingency margin</text>
+ <text x="410" y="315" text-anchor="middle" font-size="14" fill="#6b5a29">The branch occurs when predicted safe escape margin reaches its trigger—not at a preselected clock tick.</text>
+</svg>
+<div class="figure-caption"><b>Figure 7.</b> A dynamic branch rule can monitor detectability or remaining safe margin. Here the contingency branch activates when the predicted margin reaches a threshold; a different scenario would trigger at a different time.</div>
+</div>
+<p>Two useful versions are common. A <strong>measurement-triggered branch</strong> activates when a residual, fault classifier, belief probability, or sensor pattern indicates that the contingency is now likely enough to act. A <strong>viability-triggered branch</strong> activates when delaying the decision would make the contingency set infeasible—for example, when reachable safe corridors no longer overlap or the remaining braking/avoidance margin falls below a threshold.</p>
+<div class="eq">\[\tau_b(k)=\min\left\{\tau\ge 1:\;\text{evidence}_k(\tau)\ge\eta\;\text{or}\;\mathcal X_{\mathrm{safe}}^n(k+\tau)\cap\mathcal X_{\mathrm{safe}}^c(k+\tau)=\varnothing\right\}\]</div>
+<p>This is a conceptual trigger, not a universal formula. The first term says “branch when the evidence is strong enough”; the second says “branch before waiting destroys the escape.” In implementation, one often computes a safe upper bound on postponement and branches no later than that bound. Recent Branch MPC work uses reachability to estimate the maximum feasible decision-postponement time and to prune or cluster scenario branches while preserving safety-relevant modes.</p>
+<p>There is a subtle but important difference between <strong>dynamic branch activation</strong> and <strong>dynamic scenario generation</strong>. Activation chooses when an already-known contingency policy becomes actionable. Scenario generation changes which futures are represented as new measurements arrive; online scenario-tree adaptation and adaptive MPC address that problem by updating scenarios or uncertainty sets from current data.</p>
+<h3>A practical dynamic rule</h3>
+<p>At each MPC update, maintain two clocks. The first is an <strong>information clock</strong>: when could the real controller distinguish the scenarios? The second is a <strong>safety clock</strong>: how long can a common control prefix remain viable for all scenarios?</p>
+<div class="eq">\[\tau_{\mathrm{branch}}(k)=\min\bigl(\tau_{\mathrm{info}}(k),\;\tau_{\mathrm{safe}}(k)\bigr)\]</div>
+<p>Here \(\tau_{\mathrm{info}}\) is the first time a causal detector or belief update justifies different actions. \(\tau_{\mathrm{safe}}\) is the latest time at which at least one common-prefix policy still keeps every relevant scenario inside its safe controllable set. If information arrives first, branch on evidence. If safety becomes tight first, keep the controls common but switch to a more conservative emergency-ready policy; do not pretend that scenario identity is known.</p>
+<p>For interacting agents, a simpler heuristic is to delay branching while their predicted futures remain close, then branch once their reachable corridors separate beyond a task-dependent threshold. The threshold should be chosen from the control consequence—whether the same action remains safe—not merely from Euclidean distance. Recent reachability-based Branch MPC work uses corridor overlap to reduce scenario complexity and estimates the maximum feasible postponement time for branching decisions.</p>
+<table>
+<tr><th>Method</th><th>What changes online?</th><th>When it is useful</th></tr>
+<tr><td>Event-triggered CMPC</td><td>Branch activation time</td><td>Fault evidence arrives asynchronously or detection quality varies</td></tr>
+<tr><td>Reachability/viability trigger</td><td>Latest safe postponement time</td><td>Waiting is acceptable until geometry or constraints make escape impossible</td></tr>
+<tr><td>Adaptive scenario-tree MPC</td><td>Scenario set and branch structure</td><td>New data changes which uncertainty modes are plausible</td></tr>
+<tr><td>Belief-space or POMDP-style MPC</td><td>Branch probabilities and information state</td><td>The event is partially observed and sensing actions affect future knowledge</td></tr>
+</table>
+<div class="callout"><strong>Design warning:</strong> if the branch time is a decision variable, constrain it by a causal observation model and certify safety for every allowed delay. Otherwise the optimizer can “branch early” using information the real controller does not yet possess.</div>
+<div class="callout"><strong>Important nuance:</strong> if the contingency is already confirmed at time \\(k\\), there is no need to keep optimizing a nominal branch—the controller can activate the contingency policy. CMPC is useful while the hazard is plausible but not yet certain.</div>
+<div class="callout intuition"><strong>Connection to contingency planning:</strong> the nominal trajectory is “normal operation,” the contingency trajectory is “degraded mode,” and the shared prefix is the activation boundary. CMPC turns a prose fallback into a continuously maintained, dynamically feasible escape plan.</div>
+<h3>CMPC versus robust and scenario-tree MPC</h3>
+<table>
+<tr><th>Approach</th><th>What it protects against</th><th>Typical trade-off</th></tr>
+<tr><td>Robust MPC</td><td>All disturbances in a prescribed uncertainty set</td><td>Strong guarantees, often conservative</td></tr>
+<tr><td>Scenario-tree MPC</td><td>Several possible uncertainty evolutions, with nonanticipative branch policies</td><td>More recourse, but tree size grows rapidly</td></tr>
+<tr><td>Contingency MPC</td><td>A selected, identified emergency with an explicit escape trajectory</td><td>Less blanket robustness; more interpretable and targeted preparation</td></tr>
+</table>
+<p>CMPC is therefore <em>selectively robust</em>: it does not promise safety for every imaginable failure. It spends computation and performance margin on the failure that the designer has identified as consequential. The original CMPC formulation introduced an additional horizon in parallel with classical receding-horizon MPC and coupled the horizons through the first command; related multi-scenario MPC instead represents possible uncertainty evolutions in a scenario tree with nonanticipative inputs.</p>
+<div class="callout takeaway"><strong>Takeaway:</strong> Contingency MPC makes a fallback trajectory part of every optimization, so the controller avoids states from which the known emergency would be impossible to handle.</div>
+<hr>
+
+<h2 id="s5">5. Turn objectives into an executable plan</h2>
+<p>A document becomes a plan only when a tired person can use it at 3 a.m. Each recovery action should have an owner, a trigger, prerequisites, a safe stop condition, and a verification step. “Restore the database” is a goal. “On-call lead declares database-region loss; storage owner promotes replica B; verify checksum and write fence; announce read-only mode” is executable.</p>
+<div class="timeline">
+ <div class="phase"><b>1. Detect</b><span>What evidence says normal operation is no longer safe?</span></div>
+ <div class="phase"><b>2. Declare</b><span>Who has authority to activate all or part of the plan?</span></div>
+ <div class="phase"><b>3. Stabilize</b><span>Stop compounding damage; preserve evidence and data integrity.</span></div>
+ <div class="phase"><b>4. Continue</b><span>Move essential functions into the documented degraded mode.</span></div>
+ <div class="phase"><b>5. Reconstitute</b><span>Return to normal only after validation and a deliberate handoff.</span></div>
+</div>
+<p>Separate three kinds of work. <strong>Incident response</strong> contains and investigates the event. <strong>Continuity</strong> keeps essential organizational functions operating. <strong>Disaster recovery</strong> restores technology and data. They interact, but one runbook should not pretend to replace the others.</p>
+<table>
+<tr><th>Plan element</th><th>Question it must answer</th><th>Concrete artifact</th></tr>
+<tr><td>Trigger and authority</td><td>When do we stop normal procedures, and who can say so?</td><td>Activation matrix with named roles and alternates</td></tr>
+<tr><td>Dependencies</td><td>What people, systems, data, facilities, and suppliers are required?</td><td>Function-to-dependency map</td></tr>
+<tr><td>Strategy</td><td>How does the function continue if the primary path is gone?</td><td>Failover, manual, queue, cache, or alternate-supplier design</td></tr>
+<tr><td>Communication</td><td>Who needs which fact, through which channel, and how often?</td><td>Internal/customer message templates and contact tree</td></tr>
+<tr><td>Verification</td><td>How do we know the workaround is safe and complete?</td><td>Checks, acceptance tests, and exit criteria</td></tr>
+</table>
+<div class="callout intuition"><strong>Engineering test:</strong> hand the plan to someone who did not write it. If they must ask “where is the credential?”, “which replica?”, or “who decides?”, the missing answer is a dependency, not a documentation nit.</div>
+<div class="callout takeaway"><strong>Takeaway:</strong> Make the plan executable by attaching every important action to authority, prerequisites, verification, and a safe exit.</div>
+<hr>
+
+<h2 id="s6">6. Choose controls by failure mode</h2>
+<p>There is no universal “best” resilience control. Redundancy is useful when one component can fail independently; it is disappointing when both copies share the same region, identity system, power, vendor, or deployment pipeline. A manual fallback is powerful when the workload can be bounded and reconciled; it is dangerous when it creates untracked side effects.</p>
+<table>
+<tr><th>Failure mode</th><th>Possible strategy</th><th>Design question</th></tr>
+<tr><td>Primary service unavailable</td><td>Failover, queue, cache, read-only mode</td><td>What can remain truthful while writes are delayed?</td></tr>
+<tr><td>Data corruption or ransomware</td><td>Immutable/offline backups, point-in-time restore</td><td>Can recovery avoid reintroducing the bad state?</td></tr>
+<tr><td>People or facility unavailable</td><td>Cross-training, remote work, alternate site</td><td>Can another person perform the function safely?</td></tr>
+<tr><td>Supplier outage</td><td>Alternate supplier, inventory buffer, manual process</td><td>How quickly can the substitute be activated?</td></tr>
+<tr><td>Loss of trust or information</td><td>Prewritten messages, status page, communication tree</td><td>What do stakeholders need to decide or tolerate next?</td></tr>
+</table>
+<p>Think in terms of <strong>independence</strong>. Two replicas in one blast radius are one dependency with extra steps. The right question is not “do we have two?” but “what common cause can still take both away?”</p>
+<div class="figure">
+<svg viewBox="0 0 820 235" role="img" aria-label="Two replicas share a hidden common dependency and therefore are not fully independent">
+ <defs><marker id="arrow3" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#7e6a3a"/></marker></defs>
+ <rect x="63" y="32" width="200" height="58" rx="9" fill="#eef4fb" stroke="#4a7bb5" stroke-width="2"/><text x="163" y="67" text-anchor="middle" font-size="17">Replica A</text>
+ <rect x="557" y="32" width="200" height="58" rx="9" fill="#eef4fb" stroke="#4a7bb5" stroke-width="2"/><text x="657" y="67" text-anchor="middle" font-size="17">Replica B</text>
+ <path d="M163 91 V132 H410" fill="none" stroke="#7e6a3a" stroke-width="2" marker-end="url(#arrow3)"/><path d="M657 91 V132 H410" fill="none" stroke="#7e6a3a" stroke-width="2" marker-end="url(#arrow3)"/>
+ <rect x="260" y="142" width="300" height="58" rx="9" fill="#fff3dc" stroke="#d4a72c" stroke-width="2"/><text x="410" y="168" text-anchor="middle" font-size="16">Shared identity / pipeline</text><text x="410" y="187" text-anchor="middle" font-size="12" fill="#555">common-mode failure</text>
+ <text x="410" y="224" text-anchor="middle" font-size="14" fill="#6b5a29">Resilience is about independent failure domains, not copy count.</text>
+</svg>
+<div class="figure-caption"><b>Figure 4.</b> Apparent redundancy can hide a shared dependency. A contingency review searches for common-mode failures across technology, people, suppliers, and authority.</div>
+</div>
+<div class="callout takeaway"><strong>Takeaway:</strong> Select controls against concrete failure modes and test their independence; “redundant” is a claim about causes, not a count of replicas.</div>
+<hr>
+
+<h2 id="s7">7. Test the plan as a hypothesis</h2>
+<p>A plan contains assumptions: the backup is restorable, the alternate supplier answers, the credential works, the on-call person has authority, and the degraded mode is tolerable. An exercise is an experiment that tries to falsify those assumptions while failure is cheap.</p>
+<div class="step"><div class="stepno">1</div><p><strong>Walkthrough:</strong> read the scenario and narrate actions. This finds missing owners, contacts, and decisions.</p></div>
+<div class="step"><div class="stepno">2</div><p><strong>Functional test:</strong> exercise a subsystem or failover path with controlled scope. This finds integration and verification errors.</p></div>
+<div class="step"><div class="stepno">3</div><p><strong>Operational exercise:</strong> involve the real people, communications, and constraints. This finds coordination and load problems.</p></div>
+<p>Measure outcomes, not attendance: time to declare, time to preserve the essential function, data loss, unsafe actions avoided, and unresolved decisions. Feed every finding back into the BIA, architecture, or runbook. A plan that is never revised is a historical document.</p>
+<div class="callout intuition"><strong>Productive failure:</strong> during a rehearsal, do not rescue the team immediately. Let the missing dependency or ambiguous authority become visible; that is the cheapest time to learn it exists.</div>
+<div class="callout takeaway"><strong>Takeaway:</strong> Exercises turn contingency planning from confidence theater into an evidence loop: assume, test, observe, fix, repeat.</div>
+<hr>
+
+<h2 id="s8">8. A compact method you can use tomorrow</h2>
+<ol>
+<li><strong>Name the essential functions.</strong> Write customer or mission promises, not component names.</li>
+<li><strong>Set RTO, RPO, and MTD.</strong> Tie each number to a consequence someone can explain.</li>
+<li><strong>Map dependencies and common causes.</strong> Include people, data, facilities, suppliers, credentials, and authority.</li>
+<li><strong>Design a degraded mode.</strong> Decide what stops, what queues, what becomes read-only, and what remains safe.</li>
+<li><strong>Write the activation path.</strong> Trigger, owner, alternate, first five actions, communication channel.</li>
+<li><strong>Define recovery and exit checks.</strong> State how to validate correctness before reopening the full system.</li>
+<li><strong>Exercise the weakest assumption.</strong> Record time, data loss, confusion, and follow-up owners.</li>
+</ol>
+<div class="eq">\[ \text{resilience} \;\approx\; \text{important function preserved} \;\times\; \text{time under control} \]</div>
+<p>The formula is intentionally informal. A service that eventually recovers but loses an irreversible promise may be less resilient than one that operates in a constrained, honest mode. Contingency planning is the design of that honest mode.</p>
+<div class="callout takeaway"><strong>Final takeaway:</strong> Plan from essential promises, quantify tolerable delay and data loss, design graceful degradation, and rehearse the whole chain until the organization—not just the infrastructure—can recover.</div>
+
+<h2 id="s9">Recommended resources</h2>
+<ul class="source-list">
+<li><a href="https://arxiv.org/abs/2502.02550"><strong>Bouzidi et al., “Reachability-Based Contingency Planning against Multi-Modal Predictions with Branch MPC”</strong></a> — a recent Branch MPC approach that uses reachable corridors to prune scenarios and estimate how long a branching decision can safely be postponed.</li>
+<li><a href="https://arxiv.org/abs/2102.12045"><strong>Alsterda &amp; Gerdes, “Contingency Model Predictive Control for Linear Time-Varying Systems”</strong></a> — the core CMPC formulation: an additional prediction horizon in parallel with classical MPC, coupled through the first command.</li>
+<li><a href="https://arxiv.org/abs/1903.08818"><strong>Alsterda, Brown &amp; Gerdes, “Contingency Model Predictive Control for Automated Vehicles”</strong></a> — an accessible motivating example involving a possible loss of tire friction and an alternate avoidance trajectory.</li>
+<li><a href="https://csrc.nist.gov/pubs/sp/800/34/r1/upd1/final"><strong>NIST SP 800-34 Rev. 1, Contingency Planning Guide for Federal Information Systems</strong></a> — a practical seven-step structure, BIA guidance, recovery strategies, testing, and maintenance. Published May 2010; still useful as a foundational reference, especially for terminology.</li>
+<li><a href="https://www.fema.gov/sites/default/files/documents/fema_continuity-guidance-circular_082024.pdf"><strong>FEMA Continuity Guidance Circular (2024 update)</strong></a> — emphasizes essential functions, business process analysis, business impact analysis, activation, and continuity beyond IT.</li>
+<li><a href="https://www.iso.org/standard/75106.html"><strong>ISO 22301:2019, Security and resilience — Business continuity management systems</strong></a> — a management-system framework for planning, operating, reviewing, maintaining, and continually improving continuity capability.</li>
+<li><a href="https://sre.google/sre-book/embracing-risk/"><strong>Google SRE Book, “Embracing Risk”</strong></a> — connects availability targets and error budgets to explicit engineering trade-offs; useful for translating continuity objectives into service operations.</li>
+</ul>
+
+<nav class="toc">
+<a href="#s1">Failure</a><a href="#s2">BIA</a><a href="#s3">Priorities</a><a href="#s4">CMPC</a><a href="#s5">Runbook</a><a href="#s6">Controls</a><a href="#s7">Exercises</a><a href="#s8">Method</a><a href="#s9">Resources</a>
+</nav>
+<script>
+(function(){var links=[].slice.call(document.querySelectorAll('nav a[href^="#"]'));var items=links.map(function(a){var el=document.querySelector(a.getAttribute('href'));return el?{a:a,el:el}:null}).filter(Boolean);function update(){var ref=innerHeight*.35,cur=null,top=-Infinity;items.forEach(function(it){var r=it.el.getBoundingClientRect();if(r.top<=ref&&r.top>top){top=r.top;cur=it}});items.forEach(function(it){it.a.classList.toggle('active',it===cur)})}addEventListener('scroll',update,{passive:true});addEventListener('resize',update);update()})();
+</script>
+</body>
+</html>

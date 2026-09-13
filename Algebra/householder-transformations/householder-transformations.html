@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Householder Transformations — Orthogonal Elimination by Mirror</title>
+<style>
+  /* ---------- reset & base ---------- */
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{font-size:17px;scroll-behavior:smooth}
+  body{
+    font-family:"Source Serif Pro",Georgia,"Times New Roman",serif;
+    color:#1a1a1a; background:#fdfcf8;
+    line-height:1.7; max-width:900px; margin:0 auto; padding:2rem 1.5rem 4rem;
+  }
+  img{max-width:100%;display:block}
+
+  /* ---------- typography ---------- */
+  h1{font-family:"Source Serif Pro",Georgia,serif; font-weight:700; font-size:2.1rem;
+     letter-spacing:-0.01em; line-height:1.2; margin:2.5rem 0 0.4rem; color:#111;
+     border-bottom:2px solid #d4a72c; padding-bottom:0.3rem}
+  h2{font-family:"Source Serif Pro",Georgia,serif; font-weight:600; font-size:1.45rem;
+     color:#222; margin:2.2rem 0 0.6rem}
+  h3{font-size:1.12rem; color:#333; margin:1.4rem 0 0.4rem}
+  p{margin:0.75rem 0}
+  a{color:#9a5b00; text-decoration:none; border-bottom:1px solid #d4a72c}
+  a:hover{color:#7a4a00}
+  strong{color:#111}
+  em{color:#444}
+  ul,ol{margin:0.6rem 0 0.6rem 1.4rem}
+  li{margin:0.3rem 0}
+
+  /* ---------- equation blocks ---------- */
+  .eq{display:block; text-align:center; margin:1.1rem 0; padding:0.75rem 0.5rem;
+      background:#f7f4ec; border-left:3px solid #d4a72c; border-radius:4px;
+      overflow-x:auto; line-height:1.9}
+
+  /* ---------- callouts ---------- */
+  .callout{background:#f7f4ec; border-left:4px solid #d4a72c; border-radius:0 6px 6px 0;
+           padding:0.75rem 1rem; margin:1rem 0; font-size:0.97rem}
+  .callout.takeaway{border-left-color:#3a7d44; background:#edf5ec}
+  .callout.takeaway strong{color:#1d5e2a}
+  .callout.intuition{border-left-color:#4a7bb5; background:#eef4fb}
+  .callout.intuition strong{color:#1f4f7a}
+  details.pred{background:#eef4fb; border:1px solid #c9dcf1; border-left:4px solid #4a7bb5;
+        border-radius:0 6px 6px 0; padding:0.6rem 1rem; margin:1rem 0; font-size:0.97rem}
+  details.pred summary{cursor:pointer; color:#1f4f7a; font-weight:600}
+  details.pred[open]{padding-bottom:0.85rem}
+  details.pred .ans{margin-top:0.5rem}
+
+  /* ---------- figures ---------- */
+  .figure{margin:1.4rem 0; padding:1rem; background:#fff; border:1px solid #e8e4d8;
+          border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+  .figwrap{position:relative}
+  .figwrap svg{width:100%;height:auto;display:block}
+  .figwrap img{width:100%;height:auto}
+  .ovl{position:absolute; transform:translate(-50%,-50%); white-space:nowrap;
+       font-size:0.82rem; pointer-events:none}
+  .figure-caption{font-size:0.88rem; color:#555; text-align:center; margin-top:0.6rem;
+                  line-height:1.5}
+  .figure-caption b{color:#333}
+  .figure-side-by-side{display:grid; grid-template-columns:1fr 1fr; gap:1.2rem}
+
+  /* ---------- pipeline (gamma-trick diagram) ---------- */
+  .pipe{display:flex; align-items:stretch; justify-content:center; gap:0.4rem; flex-wrap:wrap;
+        margin:0.6rem 0 0.2rem}
+  .pipe .step{background:#f7f4ec; border:1px solid #e2dcc9; border-top:3px solid #d4a72c;
+        border-radius:6px; padding:0.5rem 0.8rem; text-align:center; min-width:8.5rem}
+  .pipe .step small{display:block; color:#8a6d1f; font-size:0.78rem; margin-top:0.25rem}
+  .pipe .arrow{align-self:center; color:#b0a888; font-size:1.25rem; padding:0 0.1rem}
+
+  /* ---------- algorithm & code ---------- */
+  .algo{background:#faf7ef; border:1px solid #e4ddc8; border-left:4px solid #9a5b00;
+        border-radius:0 6px 6px 0; padding:0.9rem 1.1rem; margin:1rem 0;
+        font-family:"SF Mono",Consolas,Menlo,monospace; font-size:0.82rem; line-height:1.65;
+        overflow-x:auto; white-space:pre}
+  .algo .cmt{color:#8b8571}
+  pre.out{background:#f4f2ea; border:1px solid #e0dccb; border-radius:6px;
+        padding:0.7rem 0.9rem; font-size:0.78rem; line-height:1.55; overflow-x:auto;
+        font-family:"SF Mono",Consolas,Menlo,monospace; color:#333; margin:0.8rem 0}
+
+  /* ---------- table ---------- */
+  table{border-collapse:collapse; margin:0.8rem 0; font-size:0.92rem}
+  th,td{border:1px solid #ddd; padding:0.45rem 0.7rem; text-align:left}
+  th{background:#f0ebe0; color:#333}
+  tr:nth-child(even) td{background:#fafaf5}
+  td.num{font-family:Consolas,Menlo,monospace; font-size:0.85em; white-space:nowrap}
+
+  /* ---------- page chrome ---------- */
+  hr{border:none; border-top:1px solid #e0dcd0; margin:2.5rem 0}
+  .toc{position:sticky; bottom:0; z-index:50; display:flex; gap:0.6rem;
+       flex-wrap:wrap; align-items:center; justify-content:center;
+       background:rgba(253,252,248,.96); backdrop-filter:blur(6px);
+       border:1px solid #e8e4d8; border-radius:10px 10px 0 0;
+       padding:0.6rem 0.9rem; margin:1.4rem calc(50% - 50vw) 0}
+  .toc a{color:#6b5a29; text-decoration:none; font-size:0.85rem;
+         padding:0.22rem 0.7rem; border-radius:999px; border:1px solid transparent;
+         white-space:nowrap}
+  .toc a:hover{background:#f7f4ec; border-color:#d4a72c; color:#9a5b00}
+  .toc a.active{background:#d4a72c; color:#fff; border-color:#d4a72c}
+  .toc a.active:hover{background:#d4a72c; color:#fff}
+  .hero{font-size:1.06rem; color:#333; margin-bottom:1.5rem;
+        padding:0.9rem 1rem; background:#f7f4ec; border-radius:6px}
+  .hero strong{color:#111}
+  .tease{font-style:italic; color:#7a6a35; font-size:0.95rem; margin:0.4rem 0 0}
+
+  @media (max-width:700px){
+    body{font-size:16px; padding:1.2rem 0.9rem 3rem}
+    h1{font-size:1.7rem}
+    h2{font-size:1.25rem}
+    .figure-side-by-side{grid-template-columns:1fr}
+    .ovl{font-size:0.62rem}
+  }
+</style>
+<!-- KaTeX is loaded from a CDN; inline it only if an offline copy is wanted. -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[
+    {left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}]});"></script>
+</head>
+<body>
+
+  <h1>Householder Transformations: Zeroing Out with a Mirror</h1>
+  <p class="hero"><strong>You hand your solver a least-squares problem and it refuses the textbook
+  method.</strong> Not Gram–Schmidt, not row reduction — instead, every serious solver
+  (LAPACK, NumPy, MATLAB, Julia) <em>reflects</em> the coordinate system in a sequence of mirrors,
+  each described by two short arrays and never assembled into a matrix. That idea is Householder's
+  1958 trick. On this page you will build the mirror from nothing but a perpendicular bisector, prove
+  in one line that it is free to apply, discover that a single sign choice separates machine-zero
+  from eight digits of garbage, and see why this same mirror is what makes eigenvalue solvers
+  work. Three debts we open now and collect later: why the "matrix" never exists
+  (§3–5), why the sign of one term decides everything (§4), and why Gaussian elimination is
+  banned from eigenvalue software but mirrors are not (§7).</p>
+
+  <h2 id="s1">1. Why solvers refuse Gram–Schmidt</h2>
+  <p>Here is the job. You have \(A\in\mathbb{R}^{m\times n}\) with \(m\ge n\) and want the
+  least-squares fit \(\min_x\|Ax-b\|\). The stable route is to <em>rotate the coordinate system</em>
+  until \(A\) becomes upper triangular: find an <strong>orthogonal</strong> \(Q\) (meaning
+  \(Q^{-1}=Q^{\mathsf T}\)) with</p>
+  <div class="eq">\[ Q^{\mathsf T}A \;=\; R \qquad\text{(upper triangular)},\qquad\; Q^{\mathsf T}b \;=\; c \;=\;\begin{bmatrix}c_1\\ c_2\end{bmatrix},\qquad\; x^{\ast}=R^{-1}c_1 \]</div>
+  <p>Why insist on <em>orthogonal</em>? Because orthogonality is the property that leaves the
+  objective itself untouched: rotations and reflections preserve \(\|\cdot\|_2\), so the problem you
+  solve after the transformation is the <em>same</em> problem in new coordinates. Skew transformations
+  — Gaussian elimination's weapon — distort the residual; that's the seed of the
+  \(A^{\mathsf T}A\) normal-equations trap, which silently squares the condition number.</p>
+  <p>So compute the orthogonal \(Q\) with the textbook Gram–Schmidt process and you're done, right?
+  No — and this is the first failure you should actually see. Run classical Gram–Schmidt on a Hilbert
+  matrix (harmless-looking entries, \(\kappa(H_{12})\approx10^{16}\)) and the returned "\(\hat Q\)"
+  is not orthogonal at all: \(\|\hat Q^{\mathsf T}\hat Q - I\|_F = \mathcal{O}(1)\). Its columns drift
+  away from perpendicular by more than they keep to it.</p>
+
+  <div class="figure">
+    <div class="figwrap"><img src="assets/gram-schmidt-loss.png?v=2" alt="Loss of orthogonality: classical and modified Gram-Schmidt vs Householder QR on Hilbert matrices"></div>
+    <div class="figure-caption"><b>Figure 1.</b> Orthogonality left behind. As the Hilbert matrix's condition
+    number climbs, classical Gram–Schmidt's computed \(Q\) (red) drifts to \(\mathcal{O}(1)\) deviation;
+    modified Gram–Schmidt (gold) holds longer but follows; Householder QR (blue) sits at
+    \(\sim10^{-15}\) for every \(\kappa\) tried. Both GS variants still give a small
+    \(\|QR-A\|\) — the failure is precisely in the <em>orthogonality promise</em> you were counting on.
+    (All numbers from <code>householder_demo.py</code> and a Wolfram cross-check, both in this folder.)</div>
+  </div>
+
+  <p>Now the twist that decides which tool wins: there is a <em>second</em> consumer of these
+  zeroing-out transformations — eigenvalue solvers — and it has an even stricter demand. For a
+  symmetric \(A=A^{\mathsf T}\), the transformation must be a <em>similarity</em>
+  \(A\mapsto P^{-1}AP\) that keeps symmetry, because all the magic of real eigenvalues and orthogonal
+  eigenvectors lives in that structure. \(P^{-1}AP\) stays symmetric exactly when \(P^{-1}=P^{\mathsf T}\)
+  <em>and</em> \(P=P^{\mathsf T}\)... which is a peculiar request: <strong>a matrix that is its own
+  inverse and its own transpose at the same time.</strong> Gaussian elimination cannot produce it. A mirror
+  can — collect that in §7.</p>
+  <p>So the shopping list for the tool that runs numerical linear algebra is: (i) orthogonal —
+  never amplifies error, preserves what you measure; (ii) kills up to \(n-1\) entries of a vector
+  in one move; (iii) costs \(\mathcal{O}(n)\) to apply, with an inverse you never have to compute.
+  Householder's answer is one formula and one integer-sized decision.</p>
+  <div class="callout takeaway"><strong>Takeaway:</strong> QR for least squares and tridiagonalization for
+  eigenvalues both need <em>orthogonal</em> eliminations — and Gram–Schmidt breaks exactly that promise,
+  which is why we must build a better zero-maker.</div>
+
+  <hr>
+
+  <h2 id="s2">2. The mirror trick: what a reflection is, and how to aim it</h2>
+  <p>Forget matrices for a moment and think geometrically. We want to send a nonzero
+  \(\boldsymbol{x}\in\mathbb{R}^n\) onto the \(e_1\)-axis by a transformation that preserves all
+  lengths — kill the tail \((x_2,\dots,x_n)^{\mathsf T}\) stone dead while touching nothing else we
+  care about. If lengths are preserved, the landing point is forced: a vector parallel to
+  \(e_1\) with length \(\mu\coloneqq\|\boldsymbol{x}\|_2\) can only be
+  \(\alpha e_1\) with \(\alpha=\pm\mu\). <strong>Two possible targets</strong> —
+  and (spoiler from Figure 1 territory) we get to choose, which is the sign decision the whole
+  art rests on. §4 settles it; here, take any \(\alpha\) with \(|\alpha|=\mu\).</p>
+  <p>What transformation swaps \(\boldsymbol{x}\leftrightarrow\alpha e_1\) while preserving lengths
+  and being its own inverse? A reflection. A Householder reflection flips space through a
+  hyperplane (an \((n{-}1)\)-dimensional "mirror" through the origin): everything in the mirror is fixed,
+  everything perpendicular to it is negated. Where should the mirror sit? A reflection is an isometry
+  that swaps \(\boldsymbol{x}\) and \(\alpha e_1\), so every point of the mirror must be
+  <em>equidistant</em> from the pair: the mirror is the perpendicular bisector of the chord
+  \(\boldsymbol{x}-\alpha e_1\). And here the Pythagoras of it pays off — because
+  \(\|\boldsymbol{x}\|=\|\alpha e_1\|=\mu\), the triangle \(\boldsymbol{0},\boldsymbol{x},\alpha e_1\) is isosceles, so
+  that bisector passes <em>through the origin</em> automatically (a reflection through an offset
+  plane wouldn't be linear). One-line check: the chord is perpendicular to the midpoint,</p>
+  <div class="eq">\[ (\boldsymbol{x}-\alpha e_1)^{\mathsf T}(\boldsymbol{x}+\alpha e_1) \;=\; \|\boldsymbol{x}\|^2-\alpha^2 \;=\; \mu^2-\mu^2 \;=\; 0 .\]</div>
+  <p>So the mirror's <strong>normal vector</strong> is exactly the chord:</p>
+  <div class="eq">\[ \boldsymbol{v} \;=\; \boldsymbol{x}-\alpha e_1 \qquad(\text{pick }\alpha=\pm\mu), \]</div>
+  <p>and both sign choices produce a geometrically perfect mirror — Figure 2. That's the punchline of the
+  construction: the mirror isn't clever linear algebra, it's the perpendicular bisector, and there are
+  only ever two of them.</p>
+
+  <div class="figure">
+    <div class="figwrap">
+      <svg viewBox="0 0 560 400" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,1 L9,5 L0,9 z" fill="#1a1a1a"/>
+          </marker>
+          <marker id="ahr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,1 L9,5 L0,9 z" fill="#b3382c"/>
+          </marker>
+          <marker id="ahb" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,1 L9,5 L0,9 z" fill="#2f6db5"/>
+          </marker>
+          <marker id="ahr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,1 L9,5 L0,9 z" fill="#b3382c"/>
+          </marker>
+          <marker id="ahb2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,1 L9,5 L0,9 z" fill="#2f6db5"/>
+          </marker>
+        </defs>
+        <!-- axes -->
+        <line x1="14" y1="200" x2="546" y2="200" stroke="#bbb5a0" stroke-width="1"/>
+        <line x1="210" y1="386" x2="210" y2="14" stroke="#bbb5a0" stroke-width="1"/>
+        <!-- radius circle -->
+        <circle cx="210" cy="200" r="150" fill="none" stroke="#cfc7b0" stroke-width="1.2" stroke-dasharray="5 5"/>
+        <!-- naive mirror: normal (1,-3), direction (3,1) -->
+        <line x1="79.5" y1="243.5" x2="340.5" y2="156.5" stroke="#b3382c" stroke-width="1.6"/>
+        <!-- safe mirror: direction (-1,3) -->
+        <line x1="168" y1="74" x2="252" y2="326" stroke="#2f6db5" stroke-width="1.6"/>
+        <!-- chords: x->targets -->
+        <line x1="330" y1="110" x2="360" y2="200" stroke="#b3382c" stroke-width="1" stroke-dasharray="3 3"/>
+        <line x1="330" y1="110" x2="60" y2="200" stroke="#2f6db5" stroke-width="1" stroke-dasharray="3 3"/>
+        <!-- normals as arrows from origin -->
+        <line x1="210" y1="200" x2="193.5" y2="150.5" stroke="#b3382c" stroke-width="2.2" marker-end="url(#ahr)"/>
+        <line x1="210" y1="200" x2="269.4" y2="180.2" stroke="#2f6db5" stroke-width="2.2" marker-end="url(#ahb)"/>
+        <!-- reflection arcs -->
+        <path d="M 326,104 Q 200,25 66,192" fill="none" stroke="#2f6db5" stroke-width="1.4" stroke-dasharray="1.5 4" marker-end="url(#ahb2)"/>
+        <path d="M 333,112 Q 385,145 361,194" fill="none" stroke="#b3382c" stroke-width="1.4" stroke-dasharray="1.5 4" marker-end="url(#ahr2)"/>
+        <!-- x -->
+        <line x1="210" y1="200" x2="330" y2="110" stroke="#1a1a1a" stroke-width="2.6" marker-end="url(#ah)"/>
+        <!-- targets -->
+        <circle cx="360" cy="200" r="5" fill="#b3382c"/>
+        <circle cx="60" cy="200" r="5" fill="#2f6db5"/>
+        <circle cx="210" cy="200" r="2.4" fill="#666"/>
+      </svg>
+      <span class="ovl" style="left:64.5%; top:23%;">\(\boldsymbol{x}\), \(\mu=\|\boldsymbol{x}\|=5\)</span>
+      <span class="ovl" style="left:71.5%; top:47%; color:#b3382c;">target \(+\mu e_1\)</span>
+      <span class="ovl" style="left:6%; top:42%; color:#2f6db5;">\(-\mu e_1\)</span>
+      <span class="ovl" style="left:16.5%; top:36.5%; color:#b3382c;">\(\boldsymbol{v}_1=\boldsymbol{x}-\mu e_1\) (short chord)</span>
+      <span class="ovl" style="left:56%; top:55%; color:#2f6db5;">\(\boldsymbol{v}_2=\boldsymbol{x}+\mu e_1\) (long chord)</span>
+      <span class="ovl" style="left:16.5%; top:15%; color:#2f6db5;">safe mirror \(\perp \boldsymbol{v}_2\)</span>
+      <span class="ovl" style="left:71%; top:43.5%; color:#b3382c;">naive mirror \(\perp \boldsymbol{v}_1\)</span>
+      <span class="ovl" style="left:63%; top:8.5%; color:#8a8570;">target must stay on the circle</span>
+    </div>
+    <div class="figure-caption"><b>Figure 2.</b> The two — and only two — mirrors that send
+    \(\boldsymbol{x}=(4,3)^{\mathsf T}\) onto the \(e_1\)-axis. Each mirror is the perpendicular bisector
+    of the chord from \(\boldsymbol{x}\) to its target; the chord <em>is</em> the mirror's normal. Both
+    reflectors are mathematically perfect. Only one survives floating-point arithmetic (§4).</div>
+  </div>
+
+  <p>Read the picture once more, because it earns its keep in §4: the <em>naive</em> fold sends
+  \(\boldsymbol{x}\) to the target <strong>on its own side</strong> (short chord — the normal nearly
+  cancels when \(\boldsymbol{x}\) already points along \(e_1\)), while the <em>safe</em> fold sends
+  \(\boldsymbol{x}\) <strong>past the origin</strong> to the opposite axis (long chord — components
+  add, never subtract). Same task, opposite robustness.</p>
+  <div class="callout intuition"><strong>Intuition:</strong> you never <em>choose</em> the reflection's
+  effect on the rest of space — the mirror decides. What you choose is only the target
+  (\(\pm\mu e_1\)), and the target fixes the normal \(\boldsymbol{v}=\boldsymbol{x}-\alpha e_1\).
+  Every "trick" in the rest of this article is really just this one line, read differently.</div>
+  <div class="callout takeaway"><strong>Takeaway:</strong> to zero a vector's tail by a length-preserving map,
+  reflect through the perpendicular bisector of the chord to \(\pm\mu e_1\); isosceles geometry guarantees the
+  mirror passes through the origin.</div>
+
+  <hr>
+
+  <h2 id="s3">3. Rank-one algebra: the mirror you can compute and the matrix that never exists</h2>
+  <p>Turn the construction into arithmetic. For any nonzero \(\boldsymbol{v}\) (we'll set it to the chord
+  from §2), split \(\boldsymbol{x}\) into the part along \(\boldsymbol{v}\) and the part in the mirror
+  \(\boldsymbol{v}^{\perp}\), then negate only the first part:</p>
+  <div class="eq">\[ H\boldsymbol{x} \;=\; \boldsymbol{x}-2\,\mathrm{proj}_{\boldsymbol{v}}\boldsymbol{x}
+  \;=\; \boldsymbol{x}-2\,\frac{\boldsymbol{v}^{\mathsf T}\boldsymbol{x}}{\boldsymbol{v}^{\mathsf T}\boldsymbol{v}}\,\boldsymbol{v}
+  \;=\; \Big(I-\beta\,\boldsymbol{v}\boldsymbol{v}^{\mathsf T}\Big)\boldsymbol{x},
+  \qquad \beta \coloneqq \frac{2}{\boldsymbol{v}^{\mathsf T}\boldsymbol{v}} .\]</div>
+  <div class="eq">\[ \boxed{\;H \;=\; I-\beta\,\boldsymbol{v}\boldsymbol{v}^{\mathsf T}\;}
+  \qquad\text{with}\qquad \boldsymbol{v}=\boldsymbol{x}-\alpha e_1,\;\; \alpha=\pm\|\boldsymbol{x}\|_2
+  \;\;\Longrightarrow\;\; H\boldsymbol{x}=\alpha e_1 .\]</div>
+  <p>That the boxed choice works is a two-line expansion — and it works for <strong>either</strong> sign,
+  which we verified symbolically in all its gory generality (Wolfram, exact arithmetic): with
+  \(\mu^2=\alpha^2\),</p>
+  <div class="eq">\[ \boldsymbol{v}^{\mathsf T}\boldsymbol{x} = \mu^2-\alpha x_1 = \alpha(\alpha-x_1),
+  \qquad \boldsymbol{v}^{\mathsf T}\boldsymbol{v} = \mu^2-2\alpha x_1+\alpha^2 = 2\alpha(\alpha-x_1),\]</div>
+  <div class="eq">\[ \gamma \coloneqq \beta\,\boldsymbol{v}^{\mathsf T}\boldsymbol{x} = \frac{2\,\alpha(\alpha-x_1)}{2\alpha(\alpha-x_1)} = 1
+  \qquad\Longrightarrow\qquad H\boldsymbol{x} = \boldsymbol{x}-\boldsymbol{v} = \alpha e_1 .\]</div>
+  <p>Note the almost suspicious-looking \(\gamma=1\): reflecting a vector across its own
+  chord-bisector costs you nothing but subtracting the chord. Keep that identity — §5 plays it on our
+  running example, and it explains why the arithmetic below stays in clean fractions.</p>
+
+  <p>Three one-line properties are what make the mirror the workhorse of numerical linear algebra.
+  Write them down once and they pay rent all article (each verified exactly in a computer-algebra
+  kernel):</p>
+  <table>
+    <tr><th style="width:30%">property</th><th>one-line proof</th><th>what it buys</th></tr>
+    <tr><td>\(H^{\mathsf T}=H\) <em>(symmetric)</em></td><td>\(\boldsymbol{v}\boldsymbol{v}^{\mathsf T}\) is symmetric</td>
+        <td>a similarity by \(H\) can preserve symmetry: \((HAH)^{\mathsf T}=HAH\) — §7 runs on this</td></tr>
+    <tr><td>\(H^2=I\) <em>(involutory)</em></td><td>\(H^2 = I-(2\beta-\beta^2\boldsymbol{v}^{\mathsf T}\boldsymbol{v})\boldsymbol{v}\boldsymbol{v}^{\mathsf T}=I\), since \(\beta\boldsymbol{v}^{\mathsf T}\boldsymbol{v}=2\)</td>
+        <td>the inverse of a reflection is the same reflection: undoing is free</td></tr>
+    <tr><td>\(H^{-1}=H^{\mathsf T}\) <em>(orthogonal)</em></td><td>combine the two lines above</td>
+        <td>\(\|H\boldsymbol{x}\|=\|\boldsymbol{x}\|\): error is never amplified, angles/norms are physical quantities that survive</td></tr>
+    <tr><td>eigenvalues \(-1,1,\dots,1\); \(\det H=-1\)</td><td>\(-1\) along \(\boldsymbol{v}\), \(+1\) on \(\boldsymbol{v}^{\perp}\)</td>
+        <td>a reflection, not a rotation — det \(-1\); two mirrors compose to a rotation (§8)</td></tr>
+  </table>
+
+  <details class="pred"><summary><b>Predict (carrying the hero's debt):</b> how much does it cost to apply
+  "\(H\)" to a vector of length \(n\)? (a) \(2n^2\) flops, (b) \(\approx 4n\) flops, (c) \(n^3\) to form and then \(n^2\). Commit
+  before reading on.</summary>
+  <div class="ans"><p><strong>(b): about \(4n\)</strong> — at \(n=4\) it is already 2× cheaper than a dense matrix–vector product, and the ratio grows as \(n/2\). The answer is structural: \(H\boldsymbol{x} = \boldsymbol{x}-\gamma\boldsymbol{v}\)
+  with \(\gamma=\beta\,\boldsymbol{v}^{\mathsf T}\boldsymbol{x}\) is one inner product, one scale, one update. The "matrix"
+  \(I-\beta\boldsymbol{v}\boldsymbol{v}^{\mathsf T}\) is a <em>recipe</em>, never data:</p>
+  <div class="pipe">
+    <div class="step">\(\boldsymbol{v}^{\mathsf T}\boldsymbol{x}\)<small>dot: \(2n-1\) flops</small></div>
+    <div class="arrow">→</div>
+    <div class="step">\(\gamma = \beta\,(\boldsymbol{v}^{\mathsf T}\boldsymbol{x})\)<small>scale: \(2\) flops</small></div>
+    <div class="arrow">→</div>
+    <div class="step">\(\boldsymbol{x}\leftarrow\boldsymbol{x}-\gamma\boldsymbol{v}\)<small>axpy: \(2n\) flops</small></div>
+    <div class="arrow">≈</div>
+    <div class="step"><strong>\(4n\)</strong><small>vs \(2n^2\) for dense \(H\boldsymbol{x}\)</small></div>
+  </div>
+  <p>This is how the first hero-debt gets paid: solvers store one vector \(\boldsymbol{v}\) (plus \(\beta\))
+  per reflector, and the whole QR factorization of an \(m\times n\) matrix lives in \(A\)'s own memory:
+  \(R\) in the upper triangle, \(\boldsymbol{v}\)'s below the diagonal. No copy, no assembly. (§5 stores
+  the exact one for our example; §6 the whole factorization.)</p>
+  </div></details>
+
+  <div class="callout takeaway"><strong>Takeaway:</strong> \(H=I-\beta\boldsymbol{v}\boldsymbol{v}^{\mathsf T}\)
+  with \(\boldsymbol{v}=\boldsymbol{x}-\alpha e_1\) sends \(\boldsymbol{x}\) exactly onto \(\alpha e_1\) for
+  either sign of \(\alpha\); it is symmetric, self-inverse, orthogonal, and costs \(\sim 4n\) flops to apply
+  because it is a rank-one recipe, not a matrix.</div>
+
+  <hr>
+
+  <h2 id="s4">4. The sign bit: a cancellation disaster you can delete from your code</h2>
+  <p>The algebra of §3 is sign-blind: <em>both</em> mirrors are perfect. So if you were writing the kernel
+  yourself, you'd probably pick \(\alpha=+\mu\) and take the short path — fold \(\boldsymbol{x}\) onto the
+  axis in front of it. LAPACK does the opposite. Someone made the "weirder" choice: the long way
+  <em>past the origin</em>, \(\alpha=-\operatorname{sign}(x_1)\,\mu\). Why would production software
+  choose the longer fold?</p>
+
+  <details class="pred"><summary><b>Predict:</b> with \(\boldsymbol{x}=(1,\,10^{-8},\,0,\,0)\) and IEEE double
+  arithmetic (\(u=1.1\times10^{-16}\)), which choice fails, and roughly how badly? (a) the safe long fold fails
+  sometimes, (b) the short fold leaves the \(10^{-8}\) entry fully unzeroed, (c) both give machine-zero.</summary>
+  <div class="ans"><p><strong>(b).</strong> Trace it by hand: \(\hat\mu=\mathrm{fl}\sqrt{1+10^{-16}} = 1\) exactly
+  (\(10^{-16}\) is below half an ulp of 1), so the short-fold normal becomes
+  \(\hat{\boldsymbol{v}}_1 = (1-\hat\mu,\,10^{-8}) = (0,\,10^{-8})\) — a vector pointing along
+  \(e_2\), not along the intended \((-5\times10^{-17},10^{-8})\). You built a mirror, but the <em>wrong one</em>:
+  the mirror perpendicular to \(e_2\) is the \(e_1\)-axis, and it maps
+  \(\boldsymbol{x}\mapsto(1,-10^{-8})\). Nothing got zeroed — the reflector just flipped the sign of the entry you
+  were trying to kill. The long fold gives \(\boldsymbol{v}_2=(2+5\!\times\!10^{-17},10^{-8})\), built entirely from
+  same-sign sums, and \(H\boldsymbol{x}=(-1,\sim10^{-17}\text{ leftovers})\): zero to the last bit.
+  Run <code>demo3</code> in <code>householder_demo.py</code> to see exactly this table.</p></div></details>
+
+  <p>What went wrong is the oldest villain in floating point: <strong>catastrophic cancellation</strong>.
+  The computed norm \(\hat\mu=\mu(1+\delta)\), \(|\delta|\le u\), carries an absolute error of order
+  \(u\mu\). The safe normal's first component is the <em>sum</em> \(x_1+\mu\) (magnitude \(\ge\mu\)), so
+  \(u\mu\) is a relative error of size \(u\) — harmless. The naive normal's first component is the
+  <em>difference</em> \(x_1-\mu = -\tfrac{1}{2}\|\text{tail}\|^2/x_1\) — its own size is
+  \(\|\text{tail}\|^2/2\mu\). The absolute error \(u\mu\) divided by the true component is relative garbage of
+  size \(u/\varepsilon^2\) when \(\|\text{tail}\|=\varepsilon\mu\); in direction terms,
+  \(\|\text{direction error of }\hat{\boldsymbol v}\|\approx 2u/\varepsilon\) — and the leftover after reflection is
+  twice that, scaled by \(\mu\):</p>
+  <div class="eq">\[ \text{leftover}\;\approx\; \frac{2u\,\mu^2}{\|\text{tail}\|} \;\;\text{until}\;\; \|\text{tail}\|\lesssim \sqrt{2u}\,\mu\approx 1.5\!\times\!10^{-8}\mu,\quad\text{then it saturates at}\quad\text{leftover}\approx\|\text{tail}\| .\]</div>
+  <p>The crossover \(\sqrt{u}\) — half the mantissa's bits flushed down the drain by one subtraction —
+  is visible as the knee in Figure 3.</p>
+
+  <div class="figure">
+    <div class="figwrap"><img src="assets/sign-choice.png?v=2" alt="Leftover entry after Householder reflection versus tail size for naive and LAPACK sign choice"></div>
+    <div class="figure-caption"><b>Figure 3.</b> \(\boldsymbol{x}=(1,\varepsilon)^{\mathsf T}\), IEEE double.
+    With the naive short fold (red), the leftover entry grows as \(2u/\varepsilon\) — the mirror's angle carries
+    relative error \(u/\varepsilon\) — until \(\varepsilon<\sqrt{2u}\) where it degenerates into an axis flip and the "zero"
+    stays as big as \(\varepsilon\) itself. The safe long fold (blue) lands at or below \(u\) for every
+    \(\varepsilon\) tried. Computed with <code>demo3</code>; plot exported from Wolfram.</div>
+  </div>
+
+  <p>Two things to hold onto. First, the fix is free: \(\alpha=-\operatorname{sign}(x_1)\mu\) costs one branch and
+  buys the whole first quadrant of numerical analysis — the safe normal also satisfies
+  \(|v_1| = |x_1|+\mu \ge \mu \ge \max_i|x_i|\), so it is always the largest component and always safe to
+  divide by, which is exactly how LAPACK stores reflectors (§5). (If the tail is exactly zero, the naive fold degenerates to \(\boldsymbol{v}=\boldsymbol{0}\) — division by zero — and <code>dlarfg</code> simply returns \(H=I\): no zeros to introduce, no mirror needed.) Second, notice <em>how</em> the naive
+  version fails: it still produced an <strong>exactly orthogonal</strong> matrix (you constructed it as a
+  reflection, after all) pointing in the wrong direction. Householder transforms cannot produce
+  error-amplification even when the parameters are garbage — at worst they give you a slightly
+  mis-aimed perfect mirror. That is a structural guarantee Gram–Schmidt's column arithmetic simply
+  does not have, and it is the seed of the backward-stability theorem we collect in §6.</p>
+  <div class="callout"><b>A published wrinkle:</b> the sign choice is not merely folklore tidiness. In weighted
+  least squares with row norms spanning 12 orders of magnitude, Cohen &amp; Higham (<em>SIAM J. Matrix Anal.
+  Appl.</em> 19, 1998) proved Householder QR is row-wise backward stable for exactly <em>one</em> of the two sign
+  choices — the safe one. When the stakes are exotic, the naive mirror really does lose digits.</div>
+  <div class="callout takeaway"><strong>Takeaway:</strong> always fold the target away from
+  \(x_1\), \(\alpha=-\operatorname{sign}(x_1)\mu\): mathematically either sign works, but only the long chord
+  survives IEEE arithmetic, and it doubles as the stable pivot for storage.</div>
+
+  <hr>
+
+  <h2 id="s5">5. Worked example: the tail of \((4,1,2,2)^{\mathsf T}\), killed by hand</h2>
+  <p>This is Golub &amp; Van Loan's classic vector for the purpose (Matrix Computations §5.1.6), chosen
+  because \(\|\boldsymbol{x}\|=5\) comes out integer. Do every step by hand, then check against the machine.</p>
+  <table>
+    <tr><th>step</th><th>quantity</th><th>value</th></tr>
+    <tr><td>\(\mu=\|\boldsymbol{x}\|_2\)</td><td>target must be \(\pm\mu e_1\)</td><td class="num">\(\sqrt{16+1+4+4}=\sqrt{25}=5\)</td></tr>
+    <tr><td>\(\alpha=-\operatorname{sign}(4)\cdot 5\)</td><td>safe fold (§4)</td><td class="num">\(-5\)</td></tr>
+    <tr><td>\(\boldsymbol{v}=\boldsymbol{x}-\alpha e_1\)</td><td>long chord</td><td class="num">\((4{+}5,\,1,\,2,\,2)=(9,1,2,2)\)</td></tr>
+    <tr><td>\(\boldsymbol{v}^{\mathsf T}\boldsymbol{v}=90\), \(\beta=2/90\)</td><td>mirror normalization</td><td class="num">\(\tfrac{1}{45}\)</td></tr>
+    <tr><td>\(\gamma=\beta\,\boldsymbol{v}^{\mathsf T}\boldsymbol{x}\)</td><td>\(\boldsymbol{v}^{\mathsf T}\boldsymbol{x}=36{+}1{+}4{+}4=45\)</td><td class="num">\(\gamma = 2\cdot45/90 = 1\) ✓ (the §3 identity)</td></tr>
+    <tr><td>\(H\boldsymbol{x}=\boldsymbol{x}-\gamma\boldsymbol{v}\)</td><td>one axpy</td><td class="num">\((4,1,2,2)-(9,1,2,2)=(-5,0,0,0)\) ✓</td></tr>
+  </table>
+  <p>Formed out explicitly, the mirror is the symmetric matrix</p>
+  <div class="eq">\[ H \;=\; I-\tfrac{1}{45}\boldsymbol{v}\boldsymbol{v}^{\mathsf T} \;=\;
+  \begin{pmatrix} -\tfrac45 & -\tfrac15 & -\tfrac25 & -\tfrac25\\[2pt]
+  -\tfrac15 & \tfrac{44}{45} & -\tfrac{2}{45} & -\tfrac{2}{45}\\[2pt]
+  -\tfrac25 & -\tfrac{2}{45} & \tfrac{41}{45} & -\tfrac{4}{45}\\[2pt]
+  -\tfrac25 & -\tfrac{2}{45} & -\tfrac{4}{45} & \tfrac{41}{45}\end{pmatrix}, \qquad
+  H^{\mathsf T}=H,\; H^2=I,\; \det H=-1 \;\checkmark \]</div>
+  <p>as verified symbolically (a computer-algebra kernel confirms \(H^{\mathsf T}H=I\) and
+  eigenvalues \(\{-1,1,1,1\}\) exactly). What actually lives in memory, LAPACK-style (§4's storage bonus), is the
+  pivot-normalized chord and one scalar:</p>
+  <div class="eq">\[ \hat{\boldsymbol{v}} = \boldsymbol{v}/v_1 = \big(1,\tfrac19,\tfrac29,\tfrac29\big),\qquad
+  \tau = \frac{\alpha-x_1}{\alpha} = \tfrac95,\qquad
+  H = I-\tau\hat{\boldsymbol{v}}\hat{\boldsymbol{v}}^{\mathsf T}, \]</div>
+  <p>with \(\gamma = \tau\hat{\boldsymbol{v}}^{\mathsf T}\boldsymbol{x} = \tfrac95\cdot 5 = 9\) and
+  \(\boldsymbol{x}-9\hat{\boldsymbol{v}}=(-5,0,0,0)\) — the same one axpy, now with four machine numbers instead of
+  sixteen. That is the whole algorithm's footprint per column: \(n\) reals plus one scalar, applied in \(4n\) flops.</p>
+  <div class="callout takeaway"><strong>Takeaway:</strong> for \(\boldsymbol{x}=(4,1,2,2)^{\mathsf T}\):
+  \(\boldsymbol{v}=(9,1,2,2)\), \(\beta=\tfrac1{45}\), \(\gamma=1\), one subtraction delivers
+  \((-5,0,0,0)\) — and the identity \(\boldsymbol{v}^{\mathsf T}\boldsymbol{x}=\tfrac12\boldsymbol{v}^{\mathsf T}\boldsymbol{v}\)
+  makes \(\gamma\equiv 1\) for every freshly-built reflector.</div>
+
+  <hr>
+
+  <h2 id="s6">6. Householder QR: zeros that stay zero</h2>
+  <p>A single mirror kills one vector's tail. To triangularize a whole matrix, aim the mirror at one
+  column at a time — with one subtlety that makes the loop terminate. After the first reflector has zeroed
+  column 1, the next reflector must not touch rows above its target. The solution is trivial by
+  construction: use \(H_2=\mathrm{diag}(1,\hat H_2)\), a mirror that reflects only
+  rows \(2..m\) and is the identity above. A transformation that is the identity on rows where your zeros
+  live cannot move them. <strong>Zeros stay zero.</strong></p>
+
+  <div class="figure">
+    <div class="figwrap">
+      <svg viewBox="0 0 560 118" xmlns="http://www.w3.org/2000/svg">
+        <!-- panel A -->
+  <rect x="8.0" y="14.0" width="14.4" height="14.4" rx="2" fill="#fff8e6" stroke="#d4a72c" stroke-width="1.6"/>
+  <rect x="24.6" y="14.0" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="41.2" y="14.0" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="57.8" y="14.0" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="74.4" y="14.0" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="8.0" y="30.6" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="24.6" y="30.6" width="14.4" height="14.4" rx="2" fill="#fff8e6" stroke="#d4a72c" stroke-width="1.6"/>
+  <rect x="41.2" y="30.6" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="57.8" y="30.6" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="74.4" y="30.6" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="8.0" y="47.2" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="24.6" y="47.2" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="41.2" y="47.2" width="14.4" height="14.4" rx="2" fill="#fff8e6" stroke="#d4a72c" stroke-width="1.6"/>
+  <rect x="57.8" y="47.2" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="74.4" y="47.2" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="8.0" y="63.8" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="24.6" y="63.8" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="41.2" y="63.8" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="57.8" y="63.8" width="14.4" height="14.4" rx="2" fill="#fff8e6" stroke="#d4a72c" stroke-width="1.6"/>
+  <rect x="74.4" y="63.8" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="8.0" y="80.4" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="24.6" y="80.4" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="41.2" y="80.4" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="57.8" y="80.4" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="74.4" y="80.4" width="14.4" height="14.4" rx="2" fill="#fff8e6" stroke="#d4a72c" stroke-width="1.6"/>
+  <!-- panel H1 -->
+  <rect x="160.0" y="14.0" width="14.4" height="14.4" rx="2" fill="#fff8e6" stroke="#d4a72c" stroke-width="1.6"/>
+  <rect x="176.6" y="14.0" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="193.2" y="14.0" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="209.8" y="14.0" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="226.4" y="14.0" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="160.0" y="30.6" width="14.4" height="14.4" rx="2" fill="#d9e8f7" stroke="#7fa8d9" stroke-width="1.1"/>
+  <rect x="176.6" y="30.6" width="14.4" height="14.4" rx="2" fill="#fff8e6" stroke="#d4a72c" stroke-width="1.6"/>
+  <rect x="193.2" y="30.6" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="209.8" y="30.6" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="226.4" y="30.6" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="160.0" y="47.2" width="14.4" height="14.4" rx="2" fill="#d9e8f7" stroke="#7fa8d9" stroke-width="1.1"/>
+  <rect x="176.6" y="47.2" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="193.2" y="47.2" width="14.4" height="14.4" rx="2" fill="#fff8e6" stroke="#d4a72c" stroke-width="1.6"/>
+  <rect x="209.8" y="47.2" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="226.4" y="47.2" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="160.0" y="63.8" width="14.4" height="14.4" rx="2" fill="#d9e8f7" stroke="#7fa8d9" stroke-width="1.1"/>
+  <rect x="176.6" y="63.8" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="193.2" y="63.8" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="209.8" y="63.8" width="14.4" height="14.4" rx="2" fill="#fff8e6" stroke="#d4a72c" stroke-width="1.6"/>
+  <rect x="226.4" y="63.8" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="160.0" y="80.4" width="14.4" height="14.4" rx="2" fill="#d9e8f7" stroke="#7fa8d9" stroke-width="1.1"/>
+  <rect x="176.6" y="80.4" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="193.2" y="80.4" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="209.8" y="80.4" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="226.4" y="80.4" width="14.4" height="14.4" rx="2" fill="#fff8e6" stroke="#d4a72c" stroke-width="1.6"/>
+  <rect x="174.6" y="28.6" width="67.4" height="67.4" rx="4" fill="none" stroke="#d4a72c" stroke-width="1.6" stroke-dasharray="4 3"/>
+  <!-- panel H2 -->
+  <rect x="312.0" y="14.0" width="14.4" height="14.4" rx="2" fill="#fff8e6" stroke="#d4a72c" stroke-width="1.6"/>
+  <rect x="328.6" y="14.0" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="345.2" y="14.0" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="361.8" y="14.0" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="378.4" y="14.0" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="312.0" y="30.6" width="14.4" height="14.4" rx="2" fill="#d9e8f7" stroke="#7fa8d9" stroke-width="1.1"/>
+  <rect x="328.6" y="30.6" width="14.4" height="14.4" rx="2" fill="#fff8e6" stroke="#d4a72c" stroke-width="1.6"/>
+  <rect x="345.2" y="30.6" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="361.8" y="30.6" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="378.4" y="30.6" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="312.0" y="47.2" width="14.4" height="14.4" rx="2" fill="#d9e8f7" stroke="#7fa8d9" stroke-width="1.1"/>
+  <rect x="328.6" y="47.2" width="14.4" height="14.4" rx="2" fill="#d9e8f7" stroke="#7fa8d9" stroke-width="1.1"/>
+  <rect x="345.2" y="47.2" width="14.4" height="14.4" rx="2" fill="#fff8e6" stroke="#d4a72c" stroke-width="1.6"/>
+  <rect x="361.8" y="47.2" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="378.4" y="47.2" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="312.0" y="63.8" width="14.4" height="14.4" rx="2" fill="#d9e8f7" stroke="#7fa8d9" stroke-width="1.1"/>
+  <rect x="328.6" y="63.8" width="14.4" height="14.4" rx="2" fill="#d9e8f7" stroke="#7fa8d9" stroke-width="1.1"/>
+  <rect x="345.2" y="63.8" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="361.8" y="63.8" width="14.4" height="14.4" rx="2" fill="#fff8e6" stroke="#d4a72c" stroke-width="1.6"/>
+  <rect x="378.4" y="63.8" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="312.0" y="80.4" width="14.4" height="14.4" rx="2" fill="#d9e8f7" stroke="#7fa8d9" stroke-width="1.1"/>
+  <rect x="328.6" y="80.4" width="14.4" height="14.4" rx="2" fill="#d9e8f7" stroke="#7fa8d9" stroke-width="1.1"/>
+  <rect x="345.2" y="80.4" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="361.8" y="80.4" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="378.4" y="80.4" width="14.4" height="14.4" rx="2" fill="#fff8e6" stroke="#d4a72c" stroke-width="1.6"/>
+  <rect x="343.2" y="45.2" width="50.8" height="50.8" rx="4" fill="none" stroke="#d4a72c" stroke-width="1.6" stroke-dasharray="4 3"/>
+  <!-- panel R -->
+  <rect x="464.0" y="14.0" width="14.4" height="14.4" rx="2" fill="#fff8e6" stroke="#d4a72c" stroke-width="1.6"/>
+  <rect x="480.6" y="14.0" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="497.2" y="14.0" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="513.8" y="14.0" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="530.4" y="14.0" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="464.0" y="30.6" width="14.4" height="14.4" rx="2" fill="#d9e8f7" stroke="#7fa8d9" stroke-width="1.1"/>
+  <rect x="480.6" y="30.6" width="14.4" height="14.4" rx="2" fill="#fff8e6" stroke="#d4a72c" stroke-width="1.6"/>
+  <rect x="497.2" y="30.6" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="513.8" y="30.6" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="530.4" y="30.6" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="464.0" y="47.2" width="14.4" height="14.4" rx="2" fill="#d9e8f7" stroke="#7fa8d9" stroke-width="1.1"/>
+  <rect x="480.6" y="47.2" width="14.4" height="14.4" rx="2" fill="#d9e8f7" stroke="#7fa8d9" stroke-width="1.1"/>
+  <rect x="497.2" y="47.2" width="14.4" height="14.4" rx="2" fill="#fff8e6" stroke="#d4a72c" stroke-width="1.6"/>
+  <rect x="513.8" y="47.2" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="530.4" y="47.2" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="464.0" y="63.8" width="14.4" height="14.4" rx="2" fill="#d9e8f7" stroke="#7fa8d9" stroke-width="1.1"/>
+  <rect x="480.6" y="63.8" width="14.4" height="14.4" rx="2" fill="#d9e8f7" stroke="#7fa8d9" stroke-width="1.1"/>
+  <rect x="497.2" y="63.8" width="14.4" height="14.4" rx="2" fill="#d9e8f7" stroke="#7fa8d9" stroke-width="1.1"/>
+  <rect x="513.8" y="63.8" width="14.4" height="14.4" rx="2" fill="#fff8e6" stroke="#d4a72c" stroke-width="1.6"/>
+  <rect x="530.4" y="63.8" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="464.0" y="80.4" width="14.4" height="14.4" rx="2" fill="#d9e8f7" stroke="#7fa8d9" stroke-width="1.1"/>
+  <rect x="480.6" y="80.4" width="14.4" height="14.4" rx="2" fill="#d9e8f7" stroke="#7fa8d9" stroke-width="1.1"/>
+  <rect x="497.2" y="80.4" width="14.4" height="14.4" rx="2" fill="#d9e8f7" stroke="#7fa8d9" stroke-width="1.1"/>
+  <rect x="513.8" y="80.4" width="14.4" height="14.4" rx="2" fill="#d9e8f7" stroke="#7fa8d9" stroke-width="1.1"/>
+  <rect x="530.4" y="80.4" width="14.4" height="14.4" rx="2" fill="#fff8e6" stroke="#d4a72c" stroke-width="1.6"/>
+      </svg>
+      <span class="ovl" style="left:8.8%; top:96.5%;">\(A\)</span>
+      <span class="ovl" style="left:36%; top:96.5%;">\(H_1A\)</span>
+      <span class="ovl" style="left:63.1%; top:96.5%;">\(H_2H_1A\)</span>
+      <span class="ovl" style="left:90.3%; top:96.5%;">\(R=Q^{\mathsf T}A\)</span>
+      <span class="ovl" style="left:22.4%; top:47%; font-size:1.15rem; color:#8a8570;">→</span>
+      <span class="ovl" style="left:49.6%; top:47%; font-size:1.15rem; color:#8a8570;">→</span>
+      <span class="ovl" style="left:76.7%; top:47%; font-size:1.15rem; color:#8a8570;">→</span>
+    </div>
+    <div class="figure-caption"><b>Figure 4.</b> Staircase of zeros for a \(5\times5\) example.
+    Blue = entries zeroed by the current reflector; dashed gold = the trailing block the <em>next</em>
+    reflector acts on. Each panel's earlier blue zeros never reappear in a later active block — embedded
+    reflectors are identity outside their block.</div>
+  </div>
+
+  <div class="algo">for k = 1 … n:
+    y ← A(k:m, k)                       <span class="cmt">// active tail of column k</span>
+    μ ← ‖y‖ ;  α ← −sign(y₁)·μ           <span class="cmt">// fold away from y₁  (§4)</span>
+    v ← y − α e₁ ;  τ ← (α − y₁)/α ;  v ← v / v₁   <span class="cmt">// unit pivot, one scalar (§5)</span>
+    for j = k … n:   A(k:m, j) ← A(k:m, j) − τ·v·(vᵀA(k:m, j))   <span class="cmt">// rank-1, 4(m−k+1)(n−k+1) flops</span>
+    b(k:m) ← b(k:m) − τ·v·(vᵀb(k:m))     <span class="cmt">// ride along; c = Qᵀb costs 2mn − n²</span></div>
+
+  <p>Run it on \(4\times4\) matrix \(A\) whose first column is our \((4,1,2,2)^{\mathsf T}\) — output below,
+  identical between the Python demo and the independent Wolfram implementation:</p>
+  <pre class="out">A = [ 4 1 2 2 ; 1 2 0 1 ; 2 0 3 1 ; 2 1 1 2 ]            (col norms: 5, √6, √14, √10)
+
+R = [ -5.000000  -1.600000  -3.200000  -3.000000 ]
+    [  0.000000  -1.854724   1.143027  -0.646997 ]
+    [  0.000000   0.000000  -1.566362  -0.089082 ]
+    [  0.000000   0.000000   0.000000  -0.757271 ]
+
+max |R below diagonal| = 1.6e-16      ||QᵀQ − I||_F = 1.1e-15      ||QR − A||_F = 1.9e-15</pre>
+  <p>Sanity-check the bookkeeping the way the algorithm does: column 2 of \(R\) holds
+  \((-1.6)^2+(-1.85472)^2 = 2.56+3.44 = 6.0 = \|a_2\|^2\) — the Pythagorean split of a column norm that
+  the orthogonal loop performs at every step. Nothing is ever "combined"; it is only re-pointed.</p>
+
+  <details class="pred"><summary><b>Predict:</b> after the factorization you solve \(R\hat x = c_1\) by back-substitution
+  (\(c=Q^{\mathsf T}b\), split \(c=(c_1,c_2)\) by rows). Where is the optimal residual
+  \(\min_x\|Ax-b\|\)? (a) nowhere — you must recompute \(A\hat x-b\); (b) hidden in \(c_2\); (c) hidden in \(R\)'s
+  last row.</summary>
+  <div class="ans"><p><strong>(b), exactly: \(\min_x\|Ax-b\| = \|c_2\|\)</strong> — a by-product, no extra pass, no
+  matrix–vector products. Proof is one line, and it's all orthogonality:</p>
+  <div class="eq">\[ \|A\boldsymbol{x}-b\|^2 = \|Q^{\mathsf T}(A\boldsymbol{x}-b)\|^2 = \left\|\begin{bmatrix}R\\0\end{bmatrix}x-\begin{bmatrix}c_1\\c_2\end{bmatrix}\right\|^2 = \|Rx-c_1\|^2+\|c_2\|^2 ,\]</div>
+  <p>so choosing \(x\) to zero the first term leaves the second untouched — and the second term doesn't even depend
+  on \(x\). The normal equations throw this information away (they square \(\kappa\) <em>and</em> lose
+  \(\|c_2\|\)). If your application is fit-quality monitoring, Householder QR hands it to you for the cost of
+  indexing.</p></div></details>
+
+  <p><strong>Cost and reputation.</strong> Per reflector the trailing-block update is
+  \(4(m-k+1)(n-k+1)\) flops; the sum is the canonical
+  \(2mn^2-\tfrac23n^3\) (\(\approx\tfrac43n^3\) when \(m=n\)) — about 2× LU's \(2n^3/3\), the same order as
+  classical Gram–Schmidt, but bought with a guarantee: the computed \(\hat Q,\hat R\) satisfy
+  \(\hat Q\hat R = A+\Delta A\) with \(\|\Delta A\|_2 \le p(m,n)\,u\,\|A\|_2\),
+  <em>and</em> \(\hat Q^{\mathsf T}\hat Q = I + p'(m,n)\,u\) — backward stable, with orthogonality to machine precision
+  <strong>for any \(\kappa(A)\)</strong> (Trefethen &amp; Bau, Lecture 16). That's Figure 1's blue line made
+  theorem — and the §4 "wrong-but-still-orthogonal" phenomenon is its mechanism.</p>
+  <p>Production detail: LAPACK's <code>dgeqrf</code> is exactly the pseudocode above
+  (with <code>dlarfg</code> = the safe-sign vector builder); <code>dormqr</code> applies the stored reflectors to
+  other matrices; <code>dorgqr</code> assembles \(Q\) only if someone truly needs the matrix. Householder's 1958
+  paper pitched the method as a cost cut over Givens — \(n\) square roots instead of \(n(n-1)/2\),
+  "highly stable numerically" inherited from Givens' track record; the formal stability proofs arrived with
+  Björck in the 1960s, and Trefethen–Bau Lecture 16 is the modern clean account.</p>
+  <div class="callout takeaway"><strong>Takeaway:</strong> Householder QR is \(\tfrac43n^3\)-ish flops for any
+  \(m\times n\) with a \(\kappa\)-free orthogonality guarantee, never forms \(Q\), and hands you the optimal
+  residual \(\|c_2\|\) for free.</div>
+
+  <hr>
+
+  <h2 id="s7">7. Eigenvalues: the same mirror, doubled</h2>
+  <p>§1's third debt, collected. Suppose \(A\) is symmetric and you want its eigenvalues. The classical
+  engine (the QR algorithm) iterates \(Q\)'s-and-\(R\)'s on a <em>structurally reduced</em> matrix, because
+  full QR sweeps on a dense matrix are \(\mathcal{O}(n^3)\) each and would never converge in time. So: zero
+  out a whole chunk <em>and keep the eigenvalues</em> <em>and keep the symmetry</em>. You need a similarity
+  \(T=Q^{\mathsf T}AQ\).</p>
+  <p>Similarities by orthogonal \(Q\) preserve eigenvalues for free (\(Q^{\mathsf T}AQ\) and \(A\) share the
+  characteristic polynomial). And now the trio from §3 cashes in: take the embedded Householder mirror as \(Q\).
+  Since \(H=H^{\mathsf T}\) <em>and</em> \(H^{-1}=H\), the similarity \(T=HAH\) is <strong>symmetric
+  automatically</strong>: \(T^{\mathsf T}=H^{\mathsf T}A^{\mathsf T}H^{\mathsf T}=HAH=T\). Compare Gaussian elimination's
+  \(P^{-1}AP\): \(P^{-1}\ne P^{\mathsf T}\), symmetry annihilated, real spectrum lost to
+  complex land, algorithmic chaos ensues. This — not speed — is why GE is banned from eigenvalue software.</p>
+  <p>The procedure, tridiagonalization, is §6's loop aimed at one column at a time but with the
+  reflector applied on <em>both sides</em> (the second \(H\) is the free inverse — applying the same
+  mirror twice is "undo"):</p>
+  <ol>
+    <li>Take the tail \(y=A(k{+}1{:}m,\,k)\) — for our example \(k=1\): \(y=(1,2,2)^{\mathsf T}\),
+    and note the running example pays again: \(\|y\|=3\), so one mirror sends \((1,2,2)\mapsto(-3,0,0)\),
+    zeroing <em>both</em> of its tail entries in one move.</li>
+    <li>Form \(H_k=\mathrm{diag}(I_k,\hat H_k)\) from that \(y\) (safe sign) and replace
+    \(A\leftarrow H_kAH_k\). Left multiplication zeros the column below the sub-diagonal; the same \(H_k\) on the
+    right zeroes the corresponding row — and because only half the matrix is independent, the two-sided
+    update is implemented as a symmetric rank-2 patch, which is what keeps the total at
+    \(\tfrac43n^3\) rather than twice that (Golub &amp; Van Loan p.459).</li>
+    <li>After \(n-2\) mirrors, \(T=Q^{\mathsf T}AQ\) is tridiagonal: same eigenvalues, \(3n\)
+    entries instead of \(n^2\), and the shifted QR algorithm now costs \(\mathcal{O}(n^2)\) per sweep on it — all
+    \(n\) eigenpairs in a handful of sweeps. This is what <code>dsyev</code> does.</li>
+  </ol>
+
+  <div class="figure">
+    <div class="figwrap">
+      <svg viewBox="0 0 560 118" xmlns="http://www.w3.org/2000/svg">
+        <!-- sym A -->
+  <rect x="20.0" y="14.0" width="14.4" height="14.4" rx="2" fill="#fff8e6" stroke="#d4a72c" stroke-width="1.6"/>
+  <rect x="36.6" y="14.0" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="53.2" y="14.0" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="69.8" y="14.0" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="86.4" y="14.0" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="20.0" y="30.6" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="36.6" y="30.6" width="14.4" height="14.4" rx="2" fill="#fff8e6" stroke="#d4a72c" stroke-width="1.6"/>
+  <rect x="53.2" y="30.6" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="69.8" y="30.6" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="86.4" y="30.6" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="20.0" y="47.2" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="36.6" y="47.2" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="53.2" y="47.2" width="14.4" height="14.4" rx="2" fill="#fff8e6" stroke="#d4a72c" stroke-width="1.6"/>
+  <rect x="69.8" y="47.2" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="86.4" y="47.2" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="20.0" y="63.8" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="36.6" y="63.8" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="53.2" y="63.8" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="69.8" y="63.8" width="14.4" height="14.4" rx="2" fill="#fff8e6" stroke="#d4a72c" stroke-width="1.6"/>
+  <rect x="86.4" y="63.8" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="20.0" y="80.4" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="36.6" y="80.4" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="53.2" y="80.4" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="69.8" y="80.4" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="86.4" y="80.4" width="14.4" height="14.4" rx="2" fill="#fff8e6" stroke="#d4a72c" stroke-width="1.6"/>
+  <!-- T -->
+  <rect x="330.0" y="14.0" width="14.4" height="14.4" rx="2" fill="#fff8e6" stroke="#d4a72c" stroke-width="1.6"/>
+  <rect x="346.6" y="14.0" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="363.2" y="14.0" width="14.4" height="14.4" rx="2" fill="#ffffff" stroke="#ddd7c4" stroke-width="1.0"/>
+  <rect x="379.8" y="14.0" width="14.4" height="14.4" rx="2" fill="#ffffff" stroke="#ddd7c4" stroke-width="1.0"/>
+  <rect x="396.4" y="14.0" width="14.4" height="14.4" rx="2" fill="#ffffff" stroke="#ddd7c4" stroke-width="1.0"/>
+  <rect x="330.0" y="30.6" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="346.6" y="30.6" width="14.4" height="14.4" rx="2" fill="#fff8e6" stroke="#d4a72c" stroke-width="1.6"/>
+  <rect x="363.2" y="30.6" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="379.8" y="30.6" width="14.4" height="14.4" rx="2" fill="#ffffff" stroke="#ddd7c4" stroke-width="1.0"/>
+  <rect x="396.4" y="30.6" width="14.4" height="14.4" rx="2" fill="#ffffff" stroke="#ddd7c4" stroke-width="1.0"/>
+  <rect x="330.0" y="47.2" width="14.4" height="14.4" rx="2" fill="#d9e8f7" stroke="#7fa8d9" stroke-width="1.1"/>
+  <rect x="346.6" y="47.2" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="363.2" y="47.2" width="14.4" height="14.4" rx="2" fill="#fff8e6" stroke="#d4a72c" stroke-width="1.6"/>
+  <rect x="379.8" y="47.2" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="396.4" y="47.2" width="14.4" height="14.4" rx="2" fill="#ffffff" stroke="#ddd7c4" stroke-width="1.0"/>
+  <rect x="330.0" y="63.8" width="14.4" height="14.4" rx="2" fill="#d9e8f7" stroke="#7fa8d9" stroke-width="1.1"/>
+  <rect x="346.6" y="63.8" width="14.4" height="14.4" rx="2" fill="#d9e8f7" stroke="#7fa8d9" stroke-width="1.1"/>
+  <rect x="363.2" y="63.8" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="379.8" y="63.8" width="14.4" height="14.4" rx="2" fill="#fff8e6" stroke="#d4a72c" stroke-width="1.6"/>
+  <rect x="396.4" y="63.8" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="330.0" y="80.4" width="14.4" height="14.4" rx="2" fill="#d9e8f7" stroke="#7fa8d9" stroke-width="1.1"/>
+  <rect x="346.6" y="80.4" width="14.4" height="14.4" rx="2" fill="#d9e8f7" stroke="#7fa8d9" stroke-width="1.1"/>
+  <rect x="363.2" y="80.4" width="14.4" height="14.4" rx="2" fill="#d9e8f7" stroke="#7fa8d9" stroke-width="1.1"/>
+  <rect x="379.8" y="80.4" width="14.4" height="14.4" rx="2" fill="#f0e9d8" stroke="#cfc7b0" stroke-width="1.0"/>
+  <rect x="396.4" y="80.4" width="14.4" height="14.4" rx="2" fill="#fff8e6" stroke="#d4a72c" stroke-width="1.6"/>
+      </svg>
+      <span class="ovl" style="left:11%; top:96.5%;">\(A=A^{\mathsf T}\)</span>
+      <span class="ovl" style="left:38.7%; top:47%; font-size:1.05rem; color:#8a8570;">\(H_1(\cdot)H_1\;\to\;H_2(\cdot)H_2\;\to\)</span>
+      <span class="ovl" style="left:66.3%; top:96.5%;">\(T=Q^{\mathsf T}AQ\), tridiagonal</span>
+    </div>
+    <div class="figure-caption"><b>Figure 5.</b> Symmetric tridiagonalization: each embedded mirror kills
+    column tail and row tail together (the two \(H\)'s are one reflection and its self-inverse).
+    The tridiagonal \(T\) keeps \(A\)'s exact spectrum: verified on the \(4\times4\) below —
+    \(|\lambda_i(A)-\lambda_i(T)| = 0\) to rounding.</div>
+  </div>
+
+  <p>The concrete \(4\times4\), first row/column \((4,1,2,2)\) (our vector again, now as a symmetric matrix's
+  first row), computed in the Wolfram session and checked for symmetry and spectrum:</p>
+  <pre class="out">A = [ 4 1 2 2 ; 1 2 1 0 ; 2 1 3 1 ; 2 0 1 2 ]
+
+T = [ 4.0000  -3.0000   0.        0.     ]      ← subdiagonal |−3| = ‖(1,2,2)‖  (§3's Pythagoras)
+    [ -3.0000  3.7778   0.7115    0.     ]
+    [  0.       0.7115  1.6125    0.5122 ]
+    [  0.       0.      0.5122    1.6098 ]      ← T symmetric, tridiagonal, eigenvalues unchanged</pre>
+  <p>Non-symmetric \(A\)? Same loop, one fewer zero per column (a mirror can't kill the entry it reflects
+  <em>into</em>), gives the \(\mathcal{O}(n^3)\) Hessenberg reduction — \(10n^3/3\) flops for the Francis
+  QR algorithm's starting point. And the SVD (bidiagonalization) is the mirror applied to two
+  rectangular blocks at once. If your solver's name ends in <em>-ev, -svd, -qz</em>, Householder is its
+  preprocessing backbone (see the sibling notes on the <a href="../francis-qr-step/francis-qr-step.html">Francis
+  QR step</a> and <a href="../generalized-schur-decomposition/generalized-schur-decomposition.html">QZ/Schur</a>).</p>
+  <div class="callout takeaway"><strong>Takeaway:</strong> \(H=H^{\mathsf T}=H^{-1}\) makes the similarity
+  \(HAH\) symmetric and eigenvalue-preserving for free, so \(n-2\) mirrors turn any symmetric eigenproblem into a
+  tridiagonal one in \(\tfrac43n^3\) flops — the front door of every real symmetric eigensolver.</div>
+
+  <hr>
+
+  <h2 id="s8">8. The wider family: rotations, blocks, and groups</h2>
+  <p>Householder is not the only zero-maker; it competes with its cousin, the Givens rotation, and the
+  boundary between them is pure mechanism:</p>
+  <div class="figure-side-by-side">
+    <div>
+      <table style="font-size:0.85rem">
+        <tr><th></th><th>Givens rotation</th><th>Householder reflection</th></tr>
+        <tr><td>kills per application</td><td>1 entry</td><td>\(n-1\) entries</td></tr>
+        <tr><td>cost on a vector</td><td>\(\sim 6n\) (touching 2 rows)</td><td>\(\sim 4n\)</td></tr>
+        <tr><td>determinant</td><td>\(+1\) (rotation)</td><td>\(-1\) (reflection)</td></tr>
+        <tr><td>needs \(\sqrt\cdot\) per step</td><td>yes (\(c,s\))</td><td>yes (\(\mu\))</td></tr>
+        <tr><td>wins when</td><td>sparsity / bandedness must survive; updating an existing QR (recursive LS, filtering); embarrassingly parallel</td><td>dense bulk elimination; one-shot QR/tridiagonalization</td></tr>
+      </table>
+    </div>
+    <div class="figure" style="margin:0">
+      <svg viewBox="0 0 260 150" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="ah6" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,1 L9,5 L0,9 z" fill="#2e7d32"/>
+          </marker>
+        </defs>
+        <!-- left: givens kills one -->
+        <text x="65" y="16" text-anchor="middle" font-size="11" fill="#555" font-style="italic">Givens: one plane, one zero</text>
+        <g>
+          <rect x="50" y="28" width="30" height="16" fill="#f0e9d8" stroke="#cfc7b0"/>
+          <rect x="50" y="46" width="30" height="16" fill="#d9e8f7" stroke="#7fa8d9"/>
+          <rect x="50" y="64" width="30" height="16" fill="#d9e8f7" stroke="#7fa8d9"/>
+          <rect x="50" y="82" width="30" height="16" fill="#f0e9d8" stroke="#cfc7b0"/>
+          <rect x="50" y="100" width="30" height="16" fill="#f0e9d8" stroke="#cfc7b0"/>
+          <path d="M 42,54 C 18,54 18,86 42,86" fill="none" stroke="#2e7d32" stroke-width="2" marker-end="url(#ah6)"/>
+        </g>
+        <!-- right: householder kills n-1 -->
+        <text x="190" y="16" text-anchor="middle" font-size="11" fill="#555" font-style="italic">Householder: one mirror, n−1</text>
+        <g>
+          <rect x="175" y="28" width="30" height="16" fill="#f0e9d8" stroke="#cfc7b0"/>
+          <rect x="175" y="46" width="30" height="16" fill="#d9e8f7" stroke="#7fa8d9"/>
+          <rect x="175" y="64" width="30" height="16" fill="#d9e8f7" stroke="#7fa8d9"/>
+          <rect x="175" y="82" width="30" height="16" fill="#d9e8f7" stroke="#7fa8d9"/>
+          <rect x="175" y="100" width="30" height="16" fill="#d9e8f7" stroke="#7fa8d9"/>
+          <path d="M 168,54 C 130,70 130,100 168,108" fill="none" stroke="#2e7d32" stroke-width="2" marker-end="url(#ah6)"/>
+        </g>
+        <text x="130" y="140" text-anchor="middle" font-size="11" fill="#8a8570">same 5-entry column, one shot each</text>
+      </svg>
+      <div class="figure-caption" style="font-size:0.8rem"><b>Figure 6.</b> One column of a matrix, two
+  philosophies: a Givens rotation acts in a chosen 2D coordinate plane (green arc) and removes a single
+  entry per shot; a Householder mirror cuts the whole tail at once. Same Pythagorean bookkeeping,
+  different blast radius.</div>
+    </div>
+  </div>
+
+  <p>Three deeper connections, one paragraph each. <strong>Mirrors compose into rotations.</strong>
+  The product of two Householder reflectors \(H_{\boldsymbol{v}}H_{\boldsymbol{w}}\) is a
+  rotation by twice the angle between the mirrors, living entirely in \(\mathrm{span}\{\boldsymbol{v},\boldsymbol{w}\}\)
+  (det \(+1\)). Conversely the QR factorization <em>of an orthogonal matrix</em> proves every
+  \(Q\in\mathbb{R}^{n\times n}\) is a product of at most \(n\) Householder reflectors — mirrors generate the
+  whole orthogonal group the way transpositions generate the permutation group. Your 3D rotation matrix,
+  if you ever need to build one without trig: two mirrors.</p>
+  <p><strong>Blocks make mirrors fast again.</strong> The rank-1 recipe is optimal per reflector but
+  starves modern machines of matrix–matrix work. Bischof &amp; Van Loan (SIAM J. Sci. Stat. Comput. 8(1),
+  1987) noticed that a product of \(b\) successive reflectors collapses into a <em>rank-\(b\)</em> update,
+  the <strong>WY form</strong> \(H_1\cdots H_b = I - V T V^{\mathsf T}\) with \(V\) unit-lower-trapezoidal and
+  \(T\in\mathbb{R}^{b\times b}\) upper triangular. Apply \(b\) reflectors at once as two matrix products
+  (BLAS-3 <code>gemm</code>): this is LAPACK's blocked <code>dgeqrf</code>, the reason QR runs at a respectable
+  fraction of peak FLOPS instead of stalling at the memory wall — the same "never form the matrix" idea
+  from §3, now forming a small dense one <em>on purpose</em>. (Schreiber &amp; Van Loan's storage-efficient
+  variant, 1989, is what the blocked codes keep in memory.)</p>
+  <p><strong>The mirror is the atom of the Clifford group.</strong> In geometric algebra, reflection of a
+  vector in the hyperplane normal to unit \(\boldsymbol{v}\) is the sandwich \(x\mapsto -\boldsymbol{v}\,x\,\boldsymbol{v}^{-1}\) —
+  the Householder formula with the projection hidden in the Clifford product (see the sibling note on
+  wedge products &amp; geometric algebra). Rotors are
+  even products of reflections (two = rotation, the odd/det\(-1\) class includes the quantum Hadamard gate,
+  \(H_{\text{frac}} = I-2uu^{\mathsf T}\), \(u=(\cos\tfrac\pi8,\sin\tfrac\pi8)\), literally a Householder
+  reflector). Once you see \(I-2\beta\boldsymbol{v}\boldsymbol{v}^{\mathsf T}\) as <em>the</em> way to reflect,
+  you start finding it in places you weren't promised: randomized range finders, rank-revealing QR with
+  column pivoting, Arnoldi restarts, and recursive least squares.</p>
+  <div class="callout takeaway"><strong>Takeaway:</strong> Householder vs Givens is a mechanism question
+  (n−1 zeros vs 1 zero), not a taste question; and mirrors scale up through the WY block form and down into
+  the group structure — every rotation is two reflections, every orthogonal matrix is a QR.</div>
+
+  <hr>
+
+  <h2 id="s9">9. Everything on one screen</h2>
+  <p><em>The recipe.</em> To zero \(\boldsymbol{x}\)'s tail:
+  \(\;\alpha=-\operatorname{sign}(x_1)\|\boldsymbol{x}\|,\;\;\boldsymbol{v}=\boldsymbol{x}-\alpha e_1,\;\;
+  H=I-\beta\boldsymbol{v}\boldsymbol{v}^{\mathsf T},\;\;\beta=2/\boldsymbol{v}^{\mathsf T}\boldsymbol{v}\),
+  apply as \(\boldsymbol{x}\leftarrow\boldsymbol{x}-\beta\boldsymbol{v}(\boldsymbol{v}^{\mathsf T}\boldsymbol{x})\);
+  \(\gamma=1\) on fresh reflectors (because \(\boldsymbol{v}^{\mathsf T}\boldsymbol{x}=\tfrac12\boldsymbol{v}^{\mathsf T}\boldsymbol{v}\));
+  store \((\hat{\boldsymbol{v}},\tau)\), \(\tau=1-x_1/\alpha\).</p>
+  <table>
+    <tr><th>what</th><th>number</th></tr>
+    <tr><td>apply one reflector to a length-\(k\) vector</td><td class="num">\(\approx 4k\) flops (never form \(H\))</td></tr>
+    <tr><td>Householder QR of \(m\times n\)</td><td class="num">\(2mn^2-\tfrac23n^3\) flops (\(\tfrac43n^3\) square)</td></tr>
+    <tr><td>\(Q^{\mathsf T}b\) afterwards</td><td class="num">\(2mn-n^2\) flops</td></tr>
+    <tr><td>symmetric tridiagonalization</td><td class="num">\(\tfrac43n^3\) flops, \(n-2\) reflectors</td></tr>
+    <tr><td>guarantees</td><td class="num">\(\hat Q^{\mathsf T}\hat Q = I+ \mathcal{O}(p\,u),\;\ \hat Q\hat R = A+\Delta A,\ \|\Delta A\|\le \mathcal{O}(p\,u)\|A\|\) — \(\kappa\)-independent orthogonality</td></tr>
+  </table>
+  <p><em>The loop closes.</em> The "matrix" never existed (§3, §5: it's \((\hat{\boldsymbol v},\tau)\) plus a
+  \(4n\)-flop recipe). One sign bit mattered (§4: cancellation scales the mirror error by \(u/\varepsilon\),
+  \(\sqrt{2u}\) cliff; LAPACK folds away). Gaussian elimination was the wrong tool for eigenproblems (§7:
+  mirrors keep symmetry because \(H=H^{\mathsf T}=H^{-1}\)). The residual hides in \(c_2\) (§6). And the reason
+  Figure 1's blue line is flat: a Householder QR <em>cannot</em> produce a non-orthogonal \(Q\)
+  even when its parameters are garbage — the structure is the stability.</p>
+
+  <h3>Try it yourself</h3>
+  <p><code>householder_demo.py</code> in this folder runs all four experiments (worked example, QR checks,
+  the sign cliff, GS orthogonality loss) in pure Python; <code>assets/</code> holds the figure exports; the
+  exact-arithmetic properties were verified in a Wolfram session and the plots exported from it.</p>
+
+  <h3>Further reading</h3>
+  <ul>
+    <li><strong>A. S. Householder, <em>Unitary triangularization of a nonsymmetric matrix</em>, J. ACM 5(4):339–342, 1958.</strong>
+    Four pages. Motivated by beating Givens' \(n(n-1)/2\) square roots; still reads well today.</li>
+    <li><strong>Trefethen &amp; Bau, <em>Numerical Linear Algebra</em>, SIAM 1997 — Lectures 8, 10, 16, 26.</strong>
+    The best route from Gram–Schmidt failure to Householder QR to its stability theorem and reduction to tridiagonal form.</li>
+    <li><strong>Golub &amp; Van Loan, <em>Matrix Computations</em>, 4th ed., Johns Hopkins §5.1–5.2, §8.3.</strong>
+    Canonical reference for the algorithm, the \((9,1,2,2)\) example, sign conventions, and flop counts (\(\tfrac43n^3\) tridiag is theirs, p.459).</li>
+    <li><strong>C. F. Van Loan / C. Bischof &amp; C. Van Loan, <em>The WY representation…</em>, SIAM J. Sci. Stat. Comput. 8(1):s2–s13, 1987; Schreiber &amp; Van Loan, 10(1):53–57, 1989.</strong>
+    Why block Householder turns inner loops into <code>gemm</code>.</li>
+    <li><strong>A. Cohen &amp; N. J. Higham, <em>Stability of Householder QR factorization for weighted least-squares problems</em>, SIAM J. Mx. Anal. Appl. 19, 1998.</strong>
+    The one place the sign choice bites theorems, not just folklore.</li>
+    <li><strong>LAPACK reference: <code>dlarfg</code>, <code>dgeqrf</code>, <code>dormqr</code>, <code>dsytrd</code></strong> (netlib docs).
+    The §4 rule, the §6 loop, the §7 tridiagonalizer — as shipped code.</li>
+    <li><strong>N. J. Higham, <em>What Is the Hilbert Matrix?</em> (blog, nhigham.com, 2020).</strong> Context for Figure 1's test family — and why its condition numbers explode by \(n\approx12\).</li>
+  </ul>
+
+  <nav class="toc">
+    <a href="#s1">The problem</a><a href="#s2">Mirror geometry</a><a href="#s3">Rank-one algebra</a>
+    <a href="#s4">The sign bit</a><a href="#s5">Worked example</a><a href="#s6">Householder QR</a>
+    <a href="#s7">Eigenvalues</a><a href="#s8">Wider family</a><a href="#s9">One screen</a>
+  </nav>
+
+  <script>
+  (function(){
+    var links = Array.prototype.slice.call(document.querySelectorAll('nav a[href^="#"]'));
+    var items = links.map(function(a){
+      var el = document.querySelector(a.getAttribute('href'));
+      return el ? {a:a, el:el} : null;
+    }).filter(Boolean);
+    function update(){
+      var ref = window.innerHeight * 0.35, cur = null, top = -Infinity;
+      items.forEach(function(it){
+        var r = it.el.getBoundingClientRect();
+        if (r.top <= ref && r.top > top){ top = r.top; cur = it; }
+      });
+      items.forEach(function(it){ it.a.classList.toggle('active', it === cur); });
+    }
+    window.addEventListener('scroll', update, {passive:true});
+    window.addEventListener('resize', update);
+    update();
+  })();
+  </script>
+</body>
+</html>

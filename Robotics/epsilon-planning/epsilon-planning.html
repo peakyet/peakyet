@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EPSILON: Planning When Everyone Else Is Deciding Too</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{font-size:17px;scroll-behavior:smooth}
+  body{
+    font-family:"Source Serif Pro",Georgia,"Times New Roman",serif;
+    color:#1a1a1a;background:#fdfcf8;line-height:1.7;
+    max-width:960px;margin:0 auto;padding:2rem 1.5rem 5rem;
+  }
+  img{max-width:100%;display:block;margin:0 auto}
+  h1{font-weight:700;font-size:2.05rem;line-height:1.2;margin:2.5rem 0 .4rem;
+     color:#111;border-bottom:2px solid #c98b2b;padding-bottom:.3rem}
+  h2{font-weight:600;font-size:1.42rem;color:#222;margin:2.4rem 0 .6rem}
+  h3{font-size:1.1rem;color:#333;margin:1.4rem 0 .4rem}
+  p{margin:.75rem 0}
+  a{color:#8a5100;text-decoration:none;border-bottom:1px solid #c98b2b}
+  a:hover{color:#643b00}
+  strong{color:#111} em{color:#444}
+  ul,ol{margin:.6rem 0 .6rem 1.4rem} li{margin:.3rem 0}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.86em}
+  pre{overflow:auto;background:#252b2f;color:#f7f4ec;border-radius:6px;padding:1rem;
+      margin:1rem 0;line-height:1.55;font-size:.84rem}
+  .eq{display:block;text-align:center;margin:1.1rem 0;padding:.8rem .6rem;
+      background:#f7f4ec;border-left:3px solid #c98b2b;border-radius:4px;
+      overflow-x:auto;line-height:2.0}
+  .callout{background:#f7f4ec;border-left:4px solid #c98b2b;border-radius:0 6px 6px 0;
+           padding:.78rem 1rem;margin:1rem 0;font-size:.97rem}
+  .callout.takeaway{border-left-color:#3a7d44;background:#edf5ec}
+  .callout.takeaway strong{color:#1d5e2a}
+  .callout.intuition{border-left-color:#3978aa;background:#eef4fb}
+  .callout.intuition strong{color:#1f4f7a}
+  .callout.warning{border-left-color:#b24b34;background:#fff2ed}
+  .figure{margin:1.4rem 0;padding:1rem;background:#fff;border:1px solid #e8e4d8;
+          border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .figure svg{width:100%;height:auto;display:block}
+  .figure img{border-radius:4px}
+  .figure-caption{font-size:.88rem;color:#555;text-align:center;margin-top:.65rem;line-height:1.5}
+  .figure-caption b{color:#333}
+  .side-by-side{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+  .panel{border:1px solid #ddd7c8;background:#fffdf8;border-radius:6px;padding:.9rem}
+  .panel h3{margin:.1rem 0 .45rem;font-size:.98rem}
+  table{border-collapse:collapse;margin:1rem auto;font-size:.92rem;width:auto}
+  th,td{border:1px solid #d9d2c0;padding:.42rem .75rem;text-align:center}
+  th{background:#f3eede;color:#4a3a10;font-weight:600}
+  tr:nth-child(even) td{background:#fbf8ef}
+  details{background:#eef4fb;border-left:4px solid #3978aa;border-radius:0 6px 6px 0;
+          padding:.7rem 1rem;margin:1rem 0;font-size:.97rem}
+  details summary{cursor:pointer;font-weight:600;color:#1f4f7a}
+  details[open] summary{margin-bottom:.4rem}
+  pre.demo{background:#252b2f}
+  .pipeline{display:grid;grid-template-columns:1fr 26px 1fr 26px 1fr 26px 1fr 26px 1fr;
+            gap:.3rem;align-items:stretch;margin:1rem 0}
+  .pipe-box{border:1px solid #d8d0bd;border-radius:6px;background:#fffaf0;
+            padding:.55rem .4rem;text-align:center;display:flex;flex-direction:column;justify-content:center}
+  .pipe-box b{font-size:.9rem;color:#5d4a10;display:block;line-height:1.25}
+  .pipe-box span{font-size:.72rem;color:#6a675e;line-height:1.25;display:block;margin-top:.2rem}
+  .pipe-box.hl{background:#f3e8fb;border-color:#b78ed8}
+  .pipe-arrow{display:flex;align-items:center;justify-content:center;color:#a3926a;font-size:1.05rem}
+  .toc{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:min(960px,100%);
+       background:rgba(253,252,248,.96);border-top:1px solid #e0d8c4;
+       display:flex;flex-wrap:wrap;gap:.15rem .55rem;justify-content:center;
+       padding:.45rem 1rem .55rem;font-size:.8rem;z-index:50}
+  .toc a{border:none;color:#6a5a2e;white-space:nowrap}
+  .alg{background:#fffdf8;border:1px solid #ddd7c8;border-radius:6px;
+       padding:.9rem 1.1rem;margin:1rem 0;font-size:.95rem}
+  .alg b{color:#5d4a10}
+  .foot{margin-top:3rem;padding-top:1rem;border-top:1px solid #e0d8c4;font-size:.88rem;color:#665}
+  @media (max-width:760px){.pipeline{grid-template-columns:1fr 1fr}.pipe-arrow{display:none}
+    .side-by-side{grid-template-columns:1fr}}
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {delimiters:[
+      {left:"\\[",right:"\\]",display:true},{left:"\\(",right:"\\)",display:false}
+    ]});
+  });
+</script>
+</head>
+<body>
+
+<h1>EPSILON: Planning When Everyone Else Is Deciding Too</h1>
+<p><em>An engineer's tour of <a href="https://arxiv.org/abs/2108.07993">“EPSILON: An Efficient Planning System for Automated Vehicles in Highly Interactive Environments”</a> (W. Ding, L. Zhang, J. Chen, S. Shen, IEEE Transactions on Robotics, 2021) and its open-source implementation.</em></p>
+
+<p><strong>The puzzle we'll spend this page on.</strong> You're driving in the left lane, stuck behind a car that just broke down. The right lane is a dense but moving queue. There is <em>technically</em> room to merge — bumper-to-bumper, at 60&nbsp;km/h. Will the driver behind the gap let you in?</p>
+<p>Notice what kind of question that is. The gap's future is not a fact you can observe — it depends on <em>your</em> next move. Wait politely and nobody needs to yield: the gap "doesn't exist". Signal and nudge in and the follower may back off, or may speed up. A planner that ignores this — the textbook <em>predict, then plan</em> pipeline — is stuck between two failures: predict that others won't cooperate and you wait forever; predict that they will, and bet a crash on it. EPSILON is a complete, open-source answer to this dilemma that ran for real kilometers in dense city traffic, and its two big ideas — <strong>maneuver-level branching with closed-loop forward simulation</strong>, and <strong>constraining a trajectory optimizer with a corridor of space-time boxes</strong> — are worth stealing even if you never touch a car (they show up in drone planners too).</p>
+
+<h2 id="s1">1 · The problem: your plan changes everyone else's</h2>
+
+<figure class="figure">
+<svg viewBox="0 0 900 310" xmlns="http://www.w3.org/2000/svg" font-family="Helvetica,Arial,sans-serif">
+  <rect x="0" y="18" width="900" height="140" fill="#f2f0ea"/>
+  <rect x="0" y="158" width="900" height="140" fill="#f2f0ea"/>
+  <line x1="0" y1="152" x2="900" y2="152" stroke="#b9b2a0" stroke-width="3" stroke-dasharray="18 14"/>
+  <!-- ego -->
+  <g>
+    <rect x="150" y="42" width="96" height="46" rx="9" fill="#6a4c93"/>
+    <rect x="176" y="50" width="44" height="14" rx="4" fill="#d9cdef"/>
+    <text x="198" y="112" font-size="15" fill="#4a3268" text-anchor="middle" font-weight="bold">you (ego)</text>
+  </g>
+  <!-- stalled -->
+  <g>
+    <rect x="400" y="42" width="96" height="46" rx="9" fill="#8d8d8d"/>
+    <rect x="426" y="50" width="44" height="14" rx="4" fill="#d8d8d8"/>
+    <text x="448" y="112" font-size="15" fill="#555" text-anchor="middle">broken down</text>
+    <text x="448" y="26" font-size="13" fill="#777" text-anchor="middle">60 km/h lane, blocked</text>
+  </g>
+  <!-- queue cars -->
+  <g>
+    <rect x="30" y="182" width="96" height="46" rx="9" fill="#b98a2e"/>
+    <rect x="300" y="182" width="96" height="46" rx="9" fill="#b98a2e"/>
+    <rect x="660" y="182" width="96" height="46" rx="9" fill="#b98a2e"/>
+    <text x="78" y="252" font-size="13" fill="#7a5c14" text-anchor="middle">queue</text>
+    <text x="348" y="252" font-size="13" fill="#7a5c14" text-anchor="middle">the follower</text>
+    <text x="708" y="252" font-size="13" fill="#7a5c14" text-anchor="middle">gap leader</text>
+  </g>
+  <!-- gap annotation -->
+  <line x1="396" y1="205" x2="660" y2="205" stroke="#3a7d44" stroke-width="2" stroke-dasharray="5 5"/>
+  <text x="528" y="196" font-size="14" fill="#3a7d44" text-anchor="middle" font-weight="bold">the "gap" — real now, but will it exist?</text>
+  <!-- intended merge arrow -->
+  <defs>
+    <marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0,0 L8,4.5 L0,9 z" fill="#6a4c93"/>
+    </marker>
+  </defs>
+  <path d="M 255 65 C 340 65, 380 130, 500 168" fill="none" stroke="#6a4c93" stroke-width="3" stroke-dasharray="8 6" marker-end="url(#arr)"/>
+  <text x="450" y="302" font-size="14" fill="#555" text-anchor="middle" font-style="italic">Same scene, two futures: the follower brakes politely, or sees a challenge and accelerates.</text>
+</svg>
+<figcaption class="figure-caption"><b>Fig. 1 — the running example.</b> The gap is not a state of the world you can look up; it is a <em>negotiation</em> whose outcome depends on your own next action.</figcaption>
+</figure>
+
+<p>Engineers usually split this into <em>prediction</em> (what will other cars do?) and <em>planning</em> (given those futures, what do I do?). The split is exactly what breaks here. A predicted trajectory is produced <em>before</em> anyone knows what you'll do, so it can't represent the follower reacting to your nudge. You then bolt on a safety margin to absorb the error — and in dense traffic the only margin that's genuinely safe is one where you never merge at all. Over-conservatism isn't a tuning bug; it's the predictable output of predicting an interaction that you are half of.</p>
+
+<p>The principled fix has been known for decades: model the whole thing as a <strong>partially observable Markov decision process (POMDP)</strong> — plan while reasoning about hidden things (their intent) and their reactions (their model of you). The catch is brute force. A POMDP solver expands a tree of <em>your</em> actions, and at every level branches again over what you'd then <em>observe</em>, and over what everyone else might do. The EPSILON authors point out what this means at driving scale: forward-simulating 5 seconds at 0.2&nbsp;s steps is 25 decision points; branch over even 9 primitive controls (3 speeds × 3 steerings) and you get \(9^{25} \approx 7\times10^{23}\) action sequences — before counting the other cars' intentions, which multiply per agent. The formalism is right; the search is comically infeasible.</p>
+
+<details><summary>Predict first: what could a planner throw away and still not miss the merge?</summary>
+<p>Full trajectories of every car? A fine speed/steer lattice? EPSILON's bet: neither is needed. Humans decide with a <em>short menu of maneuvers</em> ("squeeze in", "follow") and think mainly about the <em>two or three cars that could actually hit them</em>. Everything else can be approximated crudely. Hold that bet — §4–§5 cash it in.</p>
+</details>
+
+<div class="callout takeaway"><strong>Takeaway.</strong> Predict-then-plan fails at merges because the prediction is missing your own future; a full POMDP captures the coupling but explodes combinatorially. EPSILON's whole design is "keep the coupling, delete the explosion."</div>
+
+<h2 id="s2">2 · The system at a glance</h2>
+
+<p>EPSILON runs two planning layers side by side, both at 20&nbsp;Hz, and — this is the structural surprise — <strong>no prediction module</strong>. Anticipation happens inside the behavior planner (§3).</p>
+
+<div class="pipeline">
+  <div class="pipe-box"><b>Perception</b><span>free-space, lanes, traffic lights, object detection + tracking (cameras + radar; no LiDAR, no HD-map needed)</span></div>
+  <div class="pipe-arrow">→</div>
+  <div class="pipe-box"><b>Semantic map</b><span>20 Hz: occupancy grid, tracklets, lane/road semantics, query API</span></div>
+  <div class="pipe-arrow">→</div>
+  <div class="pipe-box hl"><b>Behavior planner</b><span>20 Hz: pick a maneuver sequence, simulated closed-loop against others' possible intents</span></div>
+  <div class="pipe-arrow">→</div>
+  <div class="pipe-box hl"><b>Motion planner</b><span>20 Hz: optimize a smooth Bézier trajectory inside a spatio-temporal corridor built around the decision</span></div>
+  <div class="pipe-arrow">→</div>
+  <div class="pipe-box"><b>Trajectory server</b><span>re-plan scheduling, feeds the tracking controller</span></div>
+</div>
+
+<p>The two highlighted layers divide the question cleanly. The <strong>behavior planner</strong> decides <em>what</em>: its output is not the word "merge" but a decision \(\mathcal{D}_t = [x_{t+1}, x_{t+2}, \ldots, x_{t+H}]\) — a coarse state sequence, about 5&nbsp;s long at 1&nbsp;s resolution — <em>for every agent on the road</em>, including how it expects the follower to react. The <strong>motion planner</strong> decides <em>how</em>: wrap that state sequence in a safety tube and optimize a smooth, dynamically feasible trajectory through it. Because the trajectory is forced to stay close to \(\mathcal{D}_t\), the two layers agree — a consistency property most modular stacks lack.</p>
+
+<div class="callout takeaway"><strong>Takeaway.</strong> Two 20&nbsp;Hz layers: a maneuver-level thinker that outputs a coarse future for <em>everyone</em>, and a trajectory optimizer that executes it smoothly. Prediction is absorbed into the first layer.</div>
+
+<h2 id="s3">3 · The POMDP, rewritten in driving clothes</h2>
+
+<p>Formally, the behavior layer solves a POMDP \(\langle \mathcal{X}, \mathcal{A}, \mathcal{Z}, T, O, R\rangle\). You never observe the full state \(x_t\) — other cars' <em>intentions</em> and aggressiveness are hidden — so you carry a belief \(b_t(x_t)\), updated by Bayes' rule after each action and observation:</p>
+<span class="eq">\[ b_t(x_t) = \eta\, O(x_t, z_t) \int_{\mathcal{X}} T(x_{t-1}, a_t, x_t)\, b_{t-1}(x_{t-1})\, dx_{t-1} \]</span>
+<p>with \(T\) the motion model, \(O\) the observation model, and \(\eta\) a normalizer. So far, textbook. The paper's first useful move is factoring \(T\) for traffic. You only command your own car (\(a_t = a_t^0\), superscripts index agents, \(i=0\) is ego); everyone else's motion is <em>their</em> decision. Assuming instantaneous independence between vehicles, the joint transition splits into one term per agent:</p>
+<span class="eq">\[ p(x_t \mid x_{t-1}, a_t) \approx \underbrace{p(x_t^0 \mid x_{t-1}^0, a_t^0)}_{\text{ego transition}} \prod_{i=1}^{N} \int_{\mathcal{A}^i} \underbrace{p(x_t^i \mid x_{t-1}^i, a_t^i)}_{\text{their kinematics}}\, \underbrace{p(a_t^i \mid x_{t-1})}_{\text{driver model}}\, da_t^i \]</span>
+<p>Read the last factor carefully — the <strong>driver model</strong> \(p(a_t^i \mid x_{t-1})\) maps the <em>whole joint state</em> to agent \(i\)'s action. It is the entire interaction physics of the paper: it's where "the follower sees you and decides" lives. And note what else fell out: because every agent's belief is updated against the same joint state and observations, <strong>prediction is literally the belief-update step inside planning</strong>. Methods that predict first and plan later are, in this formulation, a crude approximation of the POMDP — one that throws away the conditioning on your own future actions.</p>
+
+<div class="callout intuition"><strong>Why this matters more than it looks.</strong> In most stacks, "prediction" outputs trajectories stamped into a costmap, and the planner works around them like static rocks. Here the planner carries a <em>conditional</em> model: <em>if I nudge, the follower brakes with probability …</em> The same code that predicts also answers "what if I do X instead" — the merge question becomes answerable.</div>
+
+<p>One more bookkeeping step, and it's the bridge to the motion layer. Standard POMDP solvers output a single next action. EPSILON instead walks down the belief tree extracting, at every step, the best action \(a_t^*\) and the most likely observation \(z_t^*\), producing a trace \(\mathcal{S}_t = [b_t^*, a_{t+1}^*, z_{t+1}^*, \ldots]\). Collapsing each belief to its mode yields the decision \(\mathcal{D}_t = [x_{t+1}, \ldots, x_{t+H}]\) for <em>all</em> agents — a rough choreography of the next ~5 seconds. That's what the motion planner will receive. All that's left is computing \(\mathcal{D}_t\) in under 50&nbsp;ms. The next two sections are the two pruning knives: one through the <em>action</em> space, one through the <em>intention</em> space.</p>
+
+<div class="callout takeaway"><strong>Takeaway.</strong> Factor the joint transition into "ego transition × (their kinematics × driver model)" and the driver model — a function of the whole scene — is the interaction. The output is not one action but a coarse multi-agent future \(\mathcal{D}_t\).</div>
+
+<h2 id="s4">4 · Guided action branching: drive like a human, not a lattice</h2>
+
+<p>Watch a human driver in traffic. They do not re-decide steering angle every 50&nbsp;ms — they commit to a <em>maneuver</em> ("hold lane", "change left, assertively") for a second or two, then re-assess. EPSILON copies this structure. A <strong>semantic action</strong> \(\phi\) is a multi-second maneuver carried out by a closed-loop controller: at every 0.2&nbsp;s simulation step, the controller looks at the current scene and emits primitive controls (acceleration, steering). The ego menu is 3 longitudinal modes (aggressive / moderate / conservative — different desired speeds and headways) × 3 lateral modes (keep lane / change left / change right) = 9 actions; other agents get a smaller menu.</p>
+
+<div class="callout intuition"><strong>Why committing for 1 s isn't reckless.</strong> The commitment is <em>closed-loop</em>: "change left" doesn't prescribe a steering trace, it delegates to a controller that keeps reacting to the simulated world (§6). Branching over maneuvers prunes the search without open-loop blindness — exactly the high-likelihood region a human would consider.</div>
+
+<p>Maneuvers still compose into policies, and sequences explode: \(|\Phi|^h\). The second cut is behavioral: <strong>a driver never flips back and forth within one planning cycle</strong>. From the maneuver you're currently executing, every candidate policy changes action <em>at most once</em>. The candidates form a <strong>DCP-Tree</strong> (domain-specific closed-loop policy tree): its root is the ongoing action — the first move of last cycle's winning policy — and each path descends by either continuing or switching once. If that sounds lossy, note the loop: the tree is rebuilt every cycle (every 50&nbsp;ms) from whatever action is now ongoing, so multi-flip behavior emerges across cycles for free.</p>
+
+<figure class="figure">
+<svg viewBox="0 0 900 330" xmlns="http://www.w3.org/2000/svg" font-family="Helvetica,Arial,sans-serif">
+  <!-- left: naive -->
+  <text x="215" y="18" font-size="14" fill="#555" text-anchor="middle" font-weight="bold">naive: branch on primitive controls</text>
+  <g stroke="#a89f8d" fill="none" stroke-width="1.3">
+    <line x1="215" y1="52" x2="105" y2="98"/><line x1="215" y1="52" x2="215" y2="98"/><line x1="215" y1="52" x2="325" y2="98"/>
+    <line x1="105" y1="112" x2="75" y2="158"/><line x1="105" y1="112" x2="105" y2="158"/><line x1="105" y1="112" x2="135" y2="158"/>
+    <line x1="215" y1="112" x2="185" y2="158"/><line x1="215" y1="112" x2="215" y2="158"/><line x1="215" y1="112" x2="245" y2="158"/>
+    <line x1="325" y1="112" x2="295" y2="158"/><line x1="325" y1="112" x2="325" y2="158"/><line x1="325" y1="112" x2="355" y2="158"/>
+  </g>
+  <g fill="#8d8d8d">
+    <circle cx="215" cy="45" r="9"/><circle cx="105" cy="105" r="8"/><circle cx="215" cy="105" r="8"/><circle cx="325" cy="105" r="8"/>
+    <circle cx="75" cy="165" r="5"/><circle cx="105" cy="165" r="5"/><circle cx="135" cy="165" r="5"/>
+    <circle cx="185" cy="165" r="5"/><circle cx="215" cy="165" r="5"/><circle cx="245" cy="165" r="5"/>
+    <circle cx="295" cy="165" r="5"/><circle cx="325" cy="165" r="5"/><circle cx="355" cy="165" r="5"/>
+  </g>
+  <text x="215" y="200" font-size="16" fill="#777" text-anchor="middle">⋮</text>
+  <text x="215" y="232" font-size="14" fill="#8a3a2a" text-anchor="middle">9 actions × 25 steps of 0.2 s</text>
+  <text x="215" y="254" font-size="14" fill="#8a3a2a" text-anchor="middle" font-weight="bold">= 9²⁵ ≈ 7 × 10²³ sequences</text>
+  <text x="215" y="286" font-size="13" fill="#666" text-anchor="middle">most explored futures are driving nonsense —</text>
+  <text x="215" y="303" font-size="13" fill="#666" text-anchor="middle">the search is spent on low-likelihood space</text>
+
+  <line x1="440" y1="10" x2="440" y2="320" stroke="#e0d8c4" stroke-width="1.5"/>
+
+  <!-- right: DCP tree -->
+  <text x="685" y="18" font-size="14" fill="#555" text-anchor="middle" font-weight="bold">EPSILON: branch on maneuvers (DCP-Tree)</text>
+  <defs>
+    <marker id="arrp" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#6a4c93"/></marker>
+  </defs>
+  <g stroke="#a89f8d" fill="none" stroke-width="1.3">
+    <!-- root K(3) at (772,45); L2: K(642),L(800),R(874) y=120; L1: K(548),L(652),R(726) y=195; leaves y=270 -->
+    <line x1="772" y1="52" x2="642" y2="113"/><line x1="772" y1="52" x2="800" y2="113"/><line x1="772" y1="52" x2="874" y2="113"/>
+    <line x1="642" y1="127" x2="548" y2="188"/><line x1="642" y1="127" x2="652" y2="188"/><line x1="642" y1="127" x2="726" y2="188"/>
+    <line x1="548" y1="202" x2="496" y2="263"/><line x1="548" y1="202" x2="548" y2="263"/><line x1="548" y1="202" x2="600" y2="263"/>
+    <line x1="652" y1="202" x2="652" y2="263"/>
+    <line x1="726" y1="202" x2="726" y2="263"/>
+    <line x1="800" y1="127" x2="800" y2="263"/>
+    <line x1="874" y1="127" x2="874" y2="263"/>
+  </g>
+  <!-- best policy path K-K-L-L dashed purple -->
+  <path d="M 772 45 L 642 120 L 652 195 L 652 270" fill="none" stroke="#6a4c93" stroke-width="2.2" stroke-dasharray="6 4" marker-end="url(#arrp)"/>
+  <g font-size="13" text-anchor="middle">
+    <circle cx="772" cy="45" r="11" fill="#c98b2b"/><text x="772" y="50" fill="#fff" font-weight="bold">K</text>
+    <circle cx="642" cy="120" r="10" fill="#fff" stroke="#a89f8d"/><text x="642" y="125">K</text>
+    <circle cx="800" cy="120" r="10" fill="#fff" stroke="#a89f8d"/><text x="800" y="125">L</text>
+    <circle cx="874" cy="120" r="10" fill="#fff" stroke="#a89f8d"/><text x="874" y="125">R</text>
+    <circle cx="548" cy="195" r="10" fill="#fff" stroke="#a89f8d"/><text x="548" y="200">K</text>
+    <circle cx="652" cy="195" r="10" fill="#fff" stroke="#a89f8d"/><text x="652" y="200">L</text>
+    <circle cx="726" cy="195" r="10" fill="#fff" stroke="#a89f8d"/><text x="726" y="200">R</text>
+    <circle cx="496" cy="270" r="9" fill="#fff" stroke="#a89f8d"/><text x="496" y="274">K</text>
+    <circle cx="548" cy="270" r="9" fill="#fff" stroke="#a89f8d"/><text x="548" y="274">L</text>
+    <circle cx="600" cy="270" r="9" fill="#fff" stroke="#a89f8d"/><text x="600" y="274">R</text>
+    <circle cx="652" cy="270" r="9" fill="#6a4c93"/><text x="652" y="274" fill="#fff">L</text>
+    <circle cx="726" cy="270" r="9" fill="#fff" stroke="#a89f8d"/><text x="726" y="274">R</text>
+    <circle cx="800" cy="270" r="9" fill="#fff" stroke="#a89f8d"/><text x="800" y="274">L</text>
+    <circle cx="874" cy="270" r="9" fill="#fff" stroke="#a89f8d"/><text x="874" y="274">R</text>
+  </g>
+  <text x="480" y="45" font-size="12.5" fill="#6a4c93" text-anchor="start">root = the action currently</text>
+  <text x="480" y="61" font-size="12.5" fill="#6a4c93" text-anchor="start">being executed</text>
+  <text x="480" y="300" font-size="12.5" fill="#555" text-anchor="start">every path switches action at most once;</text>
+  <text x="480" y="316" font-size="12.5" fill="#555" text-anchor="start">here 7 policies — at h=5, |A|=9 → 33 (demo below)</text>
+</svg>
+<figcaption class="figure-caption"><b>Fig. 2 — the action-space cut.</b> Left: branching on primitive controls wastes the search on nonsense futures. Right: branching on maneuvers, each path holding its action after one switch, keeps a handful of plausible policies. K/L/R = keep lane / change left / change right; the dashed path is one candidate policy (keep, keep, then change left for the rest).</figcaption>
+</figure>
+
+<details><summary>Demo: at most one switch turns 59,049 candidate policies into 33 &nbsp;(<code>demos/dcp_tree_count.py</code> — run: <code>python3 demos/dcp_tree_count.py</code>)</summary>
+<pre class="demo"><code>$ python3 demos/dcp_tree_count.py
+action menu |A| = 9, tree depth h = 5
+all action sequences :  59,049 policies
+DCP-Tree (1 change)  :      33 policies
+reduction            :   1,789x
+
+ depth h   all sequences   DCP-Tree
+       2              81          9
+       3             729         17
+       4           6,561         25
+       5          59,049         33
+       6         531,441         41
+       7       4,782,969         49
+       8      43,046,721         57</code></pre>
+<p style="font-size:.93rem">Leaf count grows <em>linearly</em>, \(1 + (|\mathcal{A}|-1)(h-1)\): with 9 actions and a 5 s horizon you evaluate 33 policies instead of 59,049 — and each is a full closed-loop simulation, not a one-step guess.</p>
+</details>
+
+<details><summary>Predict: if every policy may change action only once, how does EPSILON ever do change → change back?</summary>
+<p>It re-plans at 20 Hz. The tree is rebuilt from the ongoing action each cycle, so "change left, then give up, then change again" is three consecutive planning cycles, each committing to one switch. The restriction tames the search <em>within</em> a cycle; replanning restores flexibility <em>across</em> cycles.</p>
+</details>
+
+<div class="callout takeaway"><strong>Takeaway.</strong> Two cuts — maneuver-level actions, and one-switch-per-cycle policies rooted at the ongoing action — shrink the action tree from millions to a few dozen, all still closed-loop.</div>
+
+<h2 id="s5">5 · Guided observation branching: only the critical cars matter</h2>
+
+<p>The action menu is now small, but each policy must still be evaluated against what other drivers <em>intend</em> — and intentions are hidden. In a raw POMDP you'd sample intention combinations: with \(N\) cars and a few intentions each, that's again exponential in the number of agents. EPSILON's observation-space knife has two parts.</p>
+
+<p><strong>Part 1 — make intentions a cheap probability.</strong> An "intention" is just <em>which lane center-line the car will follow</em>, so the belief over intentions is a categorical distribution over candidate center-lines. A deliberately tiny network estimates it: a 1D-convolution lane encoder, an LSTM trajectory encoder, and an MLP with a softmax head. Because the output is a distribution over <em>geometric candidates</em> rather than fixed classes, a new road just means new candidate lines — no retraining.</p>
+
+<p><strong>Part 2 — branch only where it's dangerous.</strong> This is <em>conditional focused branching</em> (CFB). For each candidate ego policy, first forward-simulate <em>once</em> with every car assigned its most-likely (MAP) intention. Most cars never come close to the ego policy's path — for them the MAP guess is fine. The few cars whose simulated future <em>does</em> threaten the maneuver are <strong>critical</strong>: re-simulate with their intentions swapped, one alternative at a time. A policy's score is the belief-weighted average over those few scenarios.</p>
+
+<figure class="figure">
+<svg viewBox="0 0 900 270" xmlns="http://www.w3.org/2000/svg" font-family="Helvetica,Arial,sans-serif">
+  <rect x="0" y="15" width="900" height="115" fill="#f2f0ea"/>
+  <rect x="0" y="130" width="900" height="115" fill="#f2f0ea"/>
+  <line x1="0" y1="126" x2="900" y2="126" stroke="#b9b2a0" stroke-width="3" stroke-dasharray="16 12"/>
+  <!-- follower (critical) -->
+  <rect x="150" y="152" width="96" height="46" rx="9" fill="#b98a2e" stroke="#8a3a2a" stroke-width="3"/>
+  <text x="198" y="145" font-size="13" fill="#8a3a2a" text-anchor="middle" font-weight="bold">critical → branch on its intent</text>
+  <g font-size="12.5" fill="#555">
+    <text x="198" y="222" text-anchor="middle">intent A: brake &amp; yield</text>
+    <text x="198" y="239" text-anchor="middle">intent B: hold / push</text>
+  </g>
+  <!-- leader far: not critical -->
+  <rect x="700" y="152" width="96" height="46" rx="9" fill="#b98a2e" opacity="0.45"/>
+  <text x="748" y="145" font-size="13" fill="#777" text-anchor="middle">far car → MAP intent only</text>
+  <!-- ego mid lane change -->
+  <g transform="rotate(-10 430 100)">
+    <rect x="382" y="77" width="96" height="46" rx="9" fill="#6a4c93"/>
+    <rect x="408" y="85" width="44" height="14" rx="4" fill="#d9cdef"/>
+  </g>
+  <text x="430" y="60" font-size="14" fill="#4a3268" text-anchor="middle" font-weight="bold">ego, testing "merge"</text>
+  <defs>
+    <marker id="arr2" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L8,4.5 L0,9 z" fill="#6a4c93"/></marker>
+  </defs>
+  <path d="M 480 118 C 520 140, 500 158, 460 172" fill="none" stroke="#6a4c93" stroke-width="3" stroke-dasharray="8 6" marker-end="url(#arr2)"/>
+  <line x1="246" y1="175" x2="700" y2="175" stroke="#3a7d44" stroke-width="2" stroke-dasharray="5 5"/>
+  <text x="473" y="240" font-size="13.5" fill="#3a7d44" text-anchor="middle" font-weight="bold">the gap — its future depends on the follower, not the far car</text>
+</svg>
+<figcaption class="figure-caption"><b>Fig. 3 — conditional focused branching.</b> Under the candidate policy "merge here", the queue follower is critical: its two plausible intentions are simulated separately. The distant car barely interacts with this maneuver, so it keeps its most-likely intention. Two scenarios instead of an exponential grid.</figcaption>
+</figure>
+
+<div class="callout takeaway"><strong>Takeaway.</strong> Intentions become a cheap softmax over candidate lanes; and per policy, only the few cars that actually threaten the maneuver get branched. Exponential → a handful of scenarios.</div>
+
+<h2 id="s6">6 · Forward simulation: a world that answers back</h2>
+
+<p>One ego policy × one intention assignment = one <strong>scenario</strong>, and each is realized by a deterministic multi-agent forward simulation: every car (simulated ego included) runs its driving controller on the <em>simulated</em> joint state, stepping at 0.2&nbsp;s over ~5&nbsp;s on a kinematic bicycle model. Because each controller reads the latest simulated state, the cars react to each other inside the hypothesis — "if I start drifting in, the follower brakes (or doesn't)". This is the conditional prediction the merge needs, and the scenarios are independent, so they parallelize trivially.</p>
+
+<p>The controllers are where "noisily rational" gets modeled. Other agents: a plain <strong>intelligent driver model (IDM)</strong> for speed — an acceleration law with a desired speed and a desired time headway (the aggressiveness knob: 1.0&nbsp;s headway is a tailgater, 2.0&nbsp;s is polite) — plus pure-pursuit steering. The <em>simulated ego</em> gets a smarter context-aware controller; the interesting half is how it handles a lane change into a specific gap:</p>
+<span class="eq">\[ s_{des} = \min\big(\max(s_{tr},\, s_{ego}),\, s_{tf}\big), \qquad \dot{s}_{des} = \min\big(\max(\dot{s}_{r},\, \dot{s}_{pref}),\, \dot{s}_{f}\big) \]</span>
+<p>where \(s_{tr}\) and \(s_{tf}\) mark the gap's usable window — just ahead of the rear car \(C_r\) and just behind the front car \(C_f\), each padded by a minimum spacing and a safe headway — and \(\dot{s}_{pref}\) is the maneuver's preferred speed. Read the two \(\min/\max\) sandwiches: the target position is clamped to <em>inside the gap</em>, and the target speed to <em>between the neighbors' speeds</em>. Even a snug gap yields a well-defined desired state, so the ego converges toward the slot instead of declaring "gap too small". A tracking law then drives \((s, \dot{s})\) toward \((s_{des}, \dot{s}_{des})\), blended with the ordinary cruise controller, while reactive pure-pursuit handles the lateral drift (and bends toward a fallback path when the target lane is blocked).</p>
+
+<figure class="figure">
+<svg viewBox="0 0 900 250" xmlns="http://www.w3.org/2000/svg" font-family="Helvetica,Arial,sans-serif">
+  <rect x="0" y="95" width="900" height="80" fill="#f2f0ea"/>
+  <!-- target lane cars -->
+  <rect x="180" y="112" width="96" height="46" rx="9" fill="#b98a2e"/>
+  <rect x="640" y="112" width="96" height="46" rx="9" fill="#b98a2e"/>
+  <text x="228" y="200" font-size="13.5" fill="#7a5c14" text-anchor="middle">C_r — rear car</text>
+  <text x="688" y="200" font-size="13.5" fill="#7a5c14" text-anchor="middle">C_f — front car</text>
+  <!-- ego in current lane -->
+  <rect x="330" y="22" width="96" height="46" rx="9" fill="#6a4c93"/>
+  <rect x="356" y="30" width="44" height="14" rx="4" fill="#d9cdef"/>
+  <text x="378" y="14" font-size="13.5" fill="#4a3268" text-anchor="middle">ego</text>
+  <defs>
+    <marker id="arr3" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L8,4.5 L0,9 z" fill="#6a4c93"/></marker>
+    <marker id="arrg" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#3a7d44"/></marker>
+  </defs>
+  <path d="M 426 60 C 500 68, 540 92, 545 118" fill="none" stroke="#6a4c93" stroke-width="3" stroke-dasharray="8 6" marker-end="url(#arr3)"/>
+  <!-- gap window -->
+  <line x1="296" y1="176" x2="620" y2="176" stroke="#3a7d44" stroke-width="2" marker-start="url(#arrg)" marker-end="url(#arrg)"/>
+  <text x="458" y="228" font-size="13.5" fill="#3a7d44" text-anchor="middle" font-weight="bold">gap window [ s_tr , s_tf ] — target position s_des is clamped inside it, target speed ṡ_des between the neighbors' speeds</text>
+  <line x1="458" y1="168" x2="458" y2="120" stroke="#3a7d44" stroke-width="1.4" stroke-dasharray="4 4"/>
+  <circle cx="458" cy="135" r="6" fill="#3a7d44"/>
+  <text x="475" y="139" font-size="12.5" fill="#3a7d44">s_des</text>
+</svg>
+<figcaption class="figure-caption"><b>Fig. 4 — the gap-informed velocity controller.</b> During a lane change the ego aims at a desired position <em>inside the chosen gap</em> and a desired speed <em>between the gap neighbors</em>, so "squeezing in" is a normal control target rather than an edge case. The rear car's response to this nudge is exactly what the branching in §5 explores.</figcaption>
+</figure>
+
+<div class="callout takeaway"><strong>Takeaway.</strong> Each scenario is a short deterministic closed-loop simulation where every car, including the hypothetical ego, reacts to the joint state — the gap-informed controller turns "merge into a snug slot" into ordinary target-tracking.</div>
+
+<h2 id="s7">7 · The safety net: assume drivers are only noisily rational</h2>
+
+<p>Everything so far has a hidden assumption: the simulated drivers behave like their models. Real city traffic breaks that — drivers are <em>noisily</em> rational, sometimes aggressively irrational. EPSILON (new in this paper, relative to the authors' earlier EUDM planner) adds two mechanisms that accept imperfect models instead of inflating safety margins.</p>
+
+<p><strong>1 — an RSS referee inside the simulation.</strong> At every step, each simulated car checks its situation against Responsibility-Sensitive-Safety (RSS) rules — formally provable "proper responses" like <em>maintain a headway from which you can always stop, given the leader's worst brake</em>. If the ego's simulated state becomes RSS-unsafe with respect to some proper response, the controller is overridden by that response. So a simulation can't wander into a dumb crash by trusting a bad driver model — and the <em>cost still records the danger</em>, so the reckless policy gets scored down (§8).</p>
+
+<p><strong>2 — a backup plan for every policy.</strong> A candidate policy is <em>executable</em> only if its designated backup policy — for a lane change, "cancel and fall back behind \(C_r\)" — also passes its own full simulation and checks. If the forward plan and its escape route are both safe, the maneuver is genuinely safe <em>even if other cars misbehave</em>; if no policy has a feasible backup, the system falls to autonomous emergency braking. This is the mechanism behind the benchmark behavior in Fig. 5 — no hand-written state machine, just "don't commit to a maneuver whose exit door you haven't checked".</p>
+
+<figure class="figure">
+<svg viewBox="0 0 900 250" xmlns="http://www.w3.org/2000/svg" font-family="Helvetica,Arial,sans-serif">
+  <g font-size="13.5" font-weight="bold" fill="#444">
+    <text x="150" y="22" text-anchor="middle">1 · push</text>
+    <text x="450" y="22" text-anchor="middle">2 · backup triggers</text>
+    <text x="750" y="22" text-anchor="middle">3 · merge completes</text>
+  </g>
+  <!-- panel 1 -->
+  <rect x="10" y="42" width="280" height="70" fill="#f2f0ea"/><rect x="10" y="112" width="280" height="70" fill="#f2f0ea"/>
+  <line x1="10" y1="112" x2="290" y2="112" stroke="#b9b2a0" stroke-width="2" stroke-dasharray="10 8"/>
+  <g transform="rotate(-14 150 112)"><rect x="120" y="89" width="60" height="30" rx="6" fill="#6a4c93"/></g>
+  <rect x="230" y="52" width="60" height="30" rx="6" fill="#8d8d8d"/>
+  <rect x="118" y="126" width="60" height="30" rx="6" fill="#b98a2e" stroke="#8a3a2a" stroke-width="2.5"/>
+  <text x="150" y="205" font-size="12.5" fill="#555" text-anchor="middle">follower doesn't yield (noisy-rational)</text>
+  <text x="150" y="222" font-size="12.5" fill="#8a3a2a" text-anchor="middle" font-weight="bold">RSS flags unsafe → policy scored down</text>
+  <!-- panel 2 -->
+  <rect x="310" y="42" width="280" height="70" fill="#f2f0ea"/><rect x="310" y="112" width="280" height="70" fill="#f2f0ea"/>
+  <line x1="310" y1="112" x2="590" y2="112" stroke="#b9b2a0" stroke-width="2" stroke-dasharray="10 8"/>
+  <rect x="360" y="52" width="60" height="30" rx="6" fill="#8d8d8d"/>
+  <rect x="284" y="52" width="60" height="30" rx="6" fill="#6a4c93"/>
+  <text x="450" y="205" font-size="12.5" fill="#555" text-anchor="middle">backup "cancel &amp; fall back" simulated, safe ✓</text>
+  <text x="450" y="222" font-size="12.5" fill="#3a7d44" text-anchor="middle" font-weight="bold">ego waits — no over-commitment</text>
+  <!-- panel 3 -->
+  <rect x="610" y="42" width="280" height="70" fill="#f2f0ea"/><rect x="610" y="112" width="280" height="70" fill="#f2f0ea"/>
+  <line x1="610" y1="112" x2="890" y2="112" stroke="#b9b2a0" stroke-width="2" stroke-dasharray="10 8"/>
+  <rect x="620" y="52" width="60" height="30" rx="6" fill="#8d8d8d"/>
+  <g transform="rotate(-12 780 130)"><rect x="750" y="106" width="60" height="30" rx="6" fill="#6a4c93"/></g>
+  <rect x="660" y="126" width="60" height="30" rx="6" fill="#b98a2e"/>
+  <text x="750" y="205" font-size="12.5" fill="#555" text-anchor="middle">queue moved on, a new gap opened</text>
+  <text x="750" y="222" font-size="12.5" fill="#3a7d44" text-anchor="middle" font-weight="bold">merge succeeds, margins stayed small</text>
+</svg>
+<figcaption class="figure-caption"><b>Fig. 5 — push-wait-merge, emergent from the backup-plan rule.</b> The planner nudges (proving the gap is interactable), retreats when the follower refuses (because the backup was checked to be safe), and completes the merge when the situation turns. In the real-vehicle trials this backup behavior activated 10 times.</figcaption>
+</figure>
+
+<details><summary>Predict: the RSS referee forces everyone to behave properly — doesn't that make the planner over-confident?</summary>
+<p>It would, if the referee were the only mechanism — that ablation exists, and it merges fastest while racking up 8.7× the safety cost (§10). The backup-plan rule is the counterweight: aggression is allowed only when a verified exit exists. The pairing "trust the simulation, but always price and verify the way out" is what buys both efficiency and safety.</p>
+</details>
+
+<div class="callout takeaway"><strong>Takeaway.</strong> Instead of fat margins against model error: an RSS override keeps simulations honest, and every policy must have a simulated-safe backup. Safety becomes "verified exit exists", not "keep everyone at arm's length".</div>
+
+<h2 id="s8">8 · Scoring: a cost function, not a rulebook</h2>
+
+<p>Each scenario is simulated; each policy is scored by a discounted sum over its ego trajectory:</p>
+<span class="eq">\[ F_{total} = \textstyle\sum_{t} \gamma^{t} \,\big( \lambda_1 F_e + \lambda_2 F_s + \lambda_3 F_n \big), \qquad \gamma = 0.7 \]</span>
+<p>Three terms, plain meanings. <strong>\(F_e\) efficiency:</strong> stay close to your desired progress — this is what makes waiting cost something. <strong>\(F_s\) safety:</strong> a collision costs a huge constant; RSS-dangerous states cost exponentially growing penalties; plus a term for keeping speed inside the provably-safe interval. <strong>\(F_n\) navigation:</strong> follow the human-set route command, and prefer decisions consistent with the previous cycle (stability). The weights are ordinary tuning knobs; the structure — especially "waiting is expensive" — is what produces push-wait-merge rather than either extreme.</p>
+
+<div class="alg">
+<b>One planning cycle (every 50 ms):</b> build DCP-Tree → for each candidate policy <em>(in parallel)</em>: simulate MAP-intent scenario → find critical agents → simulate their intention variants → score each scenario, average with belief weights → check executable (backup passes too) → pick the best-scoring executable policy → output its full ego + agents' state sequence \(\mathcal{D}_t\).
+</div>
+
+<div class="callout takeaway"><strong>Takeaway.</strong> The "decision" is an argmax over a few dozen fully simulated policies, scored by efficiency + safety + navigation. Deterministic, parallel, &lt;50 ms — and its output already contains everyone's expected future.</div>
+
+<h2 id="s9">9 · Motion planning: a corridor of space-time boxes, then one QP</h2>
+
+<p>The behavior layer hands over \(\mathcal{D}_t\) — a choreography sampled at 1&nbsp;s with an 0.2&nbsp;s-capable vehicle model nowhere in sight. The motion layer's job: a trajectory that is <em>smooth</em>, <em>dynamically feasible</em>, and <em>faithful to the decision</em>. EPSILON wraps the decision with a <strong>spatio-temporal semantic corridor (SSC)</strong>, from the authors' earlier work: a chain of boxes in \((x, y, t)\) space, each box carrying a <em>semantic meaning</em> — stay inside the lane, avoid this obstacle, keep speed under this limit. That last word is the trick: every constraint the road can throw at you becomes the same shape — "the trajectory must pass through box \(k\) during time interval \(k\), obeying box \(k\)'s rule".</p>
+
+<figure class="figure">
+<svg viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg" font-family="Helvetica,Arial,sans-serif">
+  <!-- left: top view with semantic corridor -->
+  <text x="220" y="18" font-size="14" fill="#555" text-anchor="middle" font-weight="bold">top view: corridor of semantic boxes</text>
+  <rect x="0" y="30" width="440" height="115" fill="#f2f0ea"/>
+  <rect x="0" y="145" width="440" height="115" fill="#f2f0ea"/>
+  <line x1="0" y1="139" x2="440" y2="139" stroke="#b9b2a0" stroke-width="2.5" stroke-dasharray="14 10"/>
+  <!-- corridor cubes -->
+  <g fill="#3a7d44" fill-opacity="0.14" stroke="#3a7d44" stroke-width="1.4" stroke-dasharray="6 4">
+    <rect x="40" y="48" width="100" height="62" rx="4"/>
+    <rect x="128" y="62" width="100" height="80" rx="4"/>
+    <rect x="216" y="105" width="110" height="82" rx="4"/>
+    <rect x="314" y="118" width="112" height="56" rx="4"/>
+  </g>
+  <!-- path -->
+  <path d="M 65 90 C 130 95, 150 110, 170 128 C 200 155, 260 150, 300 148 C 350 146, 380 152, 420 155" fill="none" stroke="#6a4c93" stroke-width="2.6" stroke-dasharray="2 5"/>
+  <!-- cars -->
+  <rect x="55" y="72" width="66" height="32" rx="6" fill="#6a4c93"/>
+  <rect x="300" y="52" width="66" height="32" rx="6" fill="#8d8d8d"/>
+  <rect x="150" y="160" width="66" height="32" rx="6" fill="#b98a2e"/>
+  <rect x="330" y="176" width="66" height="32" rx="6" fill="#b98a2e" opacity="0.5"/>
+  <g font-size="12" fill="#555">
+    <text x="90" y="36" text-anchor="middle">keep lane, v ≤ 15 m/s</text>
+    <text x="266" y="36" text-anchor="middle">avoid stalled car</text>
+    <text x="200" y="272" text-anchor="middle">clear of the queue, then cruise in the new lane</text>
+  </g>
+  <text x="70" y="124" font-size="12" fill="#4a3268">ego</text>
+  <text x="392" y="70" font-size="12" fill="#666" text-anchor="middle">stalled</text>
+
+  <line x1="440" y1="10" x2="440" y2="290" stroke="#e0d8c4" stroke-width="1.5"/>
+
+  <!-- right: s-t -->
+  <text x="675" y="18" font-size="14" fill="#555" text-anchor="middle" font-weight="bold">space-time: dynamic obstacles become stamps</text>
+  <g stroke="#cfc8b6" stroke-width="1">
+    <line x1="490" y1="40" x2="490" y2="210"/><line x1="490" y1="210" x2="880" y2="210"/>
+    <line x1="546" y1="40" x2="546" y2="210" stroke-dasharray="3 5"/><line x1="602" y1="40" x2="602" y2="210" stroke-dasharray="3 5"/>
+    <line x1="658" y1="40" x2="658" y2="210" stroke-dasharray="3 5"/><line x1="714" y1="40" x2="714" y2="210" stroke-dasharray="3 5"/>
+    <line x1="770" y1="40" x2="770" y2="210" stroke-dasharray="3 5"/><line x1="826" y1="40" x2="826" y2="210" stroke-dasharray="3 5"/>
+  </g>
+  <!-- follower stamp -->
+  <polygon points="490,139 880,54 880,84 490,169" fill="#b45309" fill-opacity="0.28" stroke="#b45309" stroke-width="1.2"/>
+  <text x="878" y="47" font-size="12" fill="#8a4a06" text-anchor="end">follower (predicted, conditional on ego)</text>
+  <!-- corridor A: pass in front -->
+  <polygon points="490,95 606,72 606,110 490,133" fill="#3a7d44" fill-opacity="0.16" stroke="#3a7d44" stroke-width="1.3" stroke-dasharray="6 4"/>
+  <text x="500" y="65" font-size="12" fill="#2d6537">A: pass in front</text>
+  <!-- corridor B: fall behind -->
+  <polygon points="490,169 880,84 880,200 490,200" fill="#3a7d44" fill-opacity="0.16" stroke="#3a7d44" stroke-width="1.3" stroke-dasharray="6 4"/>
+  <text x="690" y="192" font-size="12" fill="#2d6537">B: slot in behind</text>
+  <!-- Bezier s(t) inside B -->
+  <path d="M 490 178 C 610 176, 720 160, 876 122" fill="none" stroke="#6a4c93" stroke-width="3"/>
+  <!-- axes -->
+  <g font-size="12" fill="#777">
+    <text x="490" y="228" text-anchor="middle">0</text><text x="546" y="228" text-anchor="middle">1</text>
+    <text x="602" y="228" text-anchor="middle">2</text><text x="658" y="228" text-anchor="middle">3</text>
+    <text x="714" y="228" text-anchor="middle">4</text><text x="770" y="228" text-anchor="middle">5</text>
+    <text x="800" y="248" text-anchor="middle">t (s)</text>
+    <text x="478" y="130" text-anchor="middle" transform="rotate(-90 478 130)">s (m) ahead</text>
+  </g>
+</svg>
+<figcaption class="figure-caption"><b>Fig. 6 — the spatio-temporal semantic corridor.</b> Left: static and semantic constraints become a chain of labeled free boxes around the decision trace. Right: a predicted car becomes a forbidden parallelogram in \((s,t)\); threading above it or below it are different homotopy classes — exactly the "pass" vs "yield" maneuvers the behavior layer chose between. The optimized trajectory (purple) must live inside the chosen corridor.</figcaption>
+</figure>
+
+<p>Now the trajectory. EPSILON parameterizes it as a <strong>piecewise Bézier curve</strong> in time — one quintic per time segment —</p>
+<span class="eq">\[ \tau(t) = \textstyle\sum_{i=0}^{5} p_i\, B_i^5(t), \qquad \tau'(t) = \textstyle\sum_{i=0}^{4} q_i\, B_i^4(t), \quad q_i = \tfrac{5}{\Delta t}(p_{i+1} - p_i) \]</span>
+<p>— and Bézier curves have two properties that turn geometry into linear algebra:</p>
+<p><strong>The convex hull property:</strong> the entire curve segment lies inside the convex hull of its control points \(p_i\). So "the car avoids the obstacle during \([t_k, t_{k+1}]\)" — a statement about infinitely many points — becomes "the six control points lie in the corridor box", six <em>linear</em> constraints. Check the corners, own the whole segment.</p>
+<p><strong>The hodograph property:</strong> the derivative of a Bézier is another Bézier whose control points are the scaled differences above. Velocity, acceleration, even jerk limits become box constraints on \(q_i\) — again linear.</p>
+
+<img src="assets/bezier_hodograph.png" alt="Bezier curve with control polygon in a corridor; its hodograph with control points inside a velocity-limits box" style="max-width:820px;margin:1rem auto;border:1px solid #e8e4d8;border-radius:8px;padding:.6rem;background:#fff">
+<p style="font-size:.9rem;color:#555;text-align:center;margin-top:-.4rem"><b>Fig. 7 — the two properties at work.</b> Left: the curve τ(t) can never leave the hull (orange) of its control points; hull inside corridor ⇒ curve inside corridor. Right: the derivative is itself a Bézier; putting <em>its</em> control points inside the velocity-limit box caps the speed for the entire segment.</p>
+
+<p>Both cost terms are quadratic: minimize \(\int \|\tau'''(t)\|^2 dt\) (smoothness — the integral of squared jerk) plus \(\sum_k \|\tau(t_k) - x_{t+k}\|^2\) (similarity to the decision states from the behavior layer — the consistency glue between the two layers). Linear constraints + quadratic cost = a <strong>quadratic program</strong>, solved by OOQP in a few milliseconds; if the QP comes back infeasible, that's a message the corridor is impossible — fed back to the behavior layer to try the next-best decision. Plan and execution loop on each other.</p>
+
+<details><summary>Predict: how can one QP simultaneously encode "keep lane", "avoid the stalled car", "speed limit", and "don't hit the merging car"?</summary>
+<p>Because after the SSC translation, they are all the same object: per-segment box constraints on (some derivative's) control points. Lane geometry clips the box; obstacles and speed limits shrink it; the solver never learns which semantic produced which box. Adding a new road rule to the planner = adding a rule that inflates or clips boxes.</p>
+</details>
+
+<details><summary>Demo: control points inside the box certify the whole curve — but only for Bézier &nbsp;(<code>demos/bezier_hull.py</code> — run: <code>python3 demos/bezier_hull.py</code>)</summary>
+<pre class="demo"><code>$ python3 demos/bezier_hull.py
+1,500,000 sampled points on each curve family
+Bezier:             0 points outside the box (worst overshoot 0.000 m)
+Catmull-Rom:   35395 points outside the box (worst overshoot 0.077 m)</code></pre>
+<p style="font-size:.93rem">Same four random control points, two curve styles. The Bézier stays provably inside their convex hull — 0 violations in 1.5M samples. The interpolating spline passes <em>through</em> the same points yet bulges outside the box in ~2% of samples: certify-the-nodes is simply unsound for it. This is why corridor planners reach for Bézier (or B-spline) curves.</p>
+</details>
+
+<div class="callout takeaway"><strong>Takeaway.</strong> SSC turns every environmental rule into "be in this box at that time"; Bézier's hull + hodograph properties turn every one of those into linear constraints; what remains is one QP — smooth, feasible, and faithful to the decision by construction.</div>
+
+<h2 id="s10">10 · Does it work?</h2>
+
+<h3>Anticipation quality (Argoverse, 3 s ahead)</h3>
+<p>The forward simulation is itself a trajectory predictor, so it can be scored like one. On Argoverse's test set, the closed-loop simulation beats dedicated prediction networks on best-of-6 accuracy — with no learned trajectory decoder:</p>
+<table>
+<tr><th>Method</th><th>minADE ↓ (m)</th><th>minFDE ↓ (m)</th></tr>
+<tr><td>NN</td><td>1.71</td><td>3.29</td></tr>
+<tr><td>LSTM encoder–decoder</td><td>2.34</td><td>5.44</td></tr>
+<tr><td>TPNet-map-mm</td><td>1.61</td><td>3.28</td></tr>
+<tr><td>UST</td><td>1.47</td><td>2.94</td></tr>
+<tr><td><b>forward simulation (EPSILON)</b></td><td><b>1.41</b></td><td><b>2.48</b></td></tr>
+</table>
+<p>The ablation explains <em>why</em>: swapping the intention network for an oracle that knows the true future lane improves minADE only from 1.20 to 1.13 — the residual error lives in the <em>assumed driver controllers</em>, not the intention estimator. A cheap categorical estimator over center-lines is enough.</p>
+
+<h3>The running example, quantified (merge benchmark)</h3>
+<img src="assets/merge_benchmark.png" alt="Bar charts: travel efficiency 7.3 vs 10.7 vs 10.8 m/s; safety cost 42.3 vs 147.2 vs 16.8" style="max-width:760px;margin:1rem auto;border:1px solid #e8e4d8;border-radius:8px;padding:.6rem;background:#fff">
+<p>Same stalled-car-plus-dense-queue scenario as Fig. 1, simulated with agents whose aggressiveness is dialed up (shortest headway 1.0&nbsp;s). In polite traffic (2.0&nbsp;s headways) all three planners behave comparably. In aggressive traffic the decoupled predict-then-plan baseline <b>never finds a mergeable gap</b> — it waits in the hazard at 7.3&nbsp;m/s. Removing only the safety mechanism (§7) merges at speed but accepts 147.2 average safety cost — 8.7× EPSILON's 16.8 at the same 10.8&nbsp;m/s. That pair of ablations is the paper's thesis in one table: interaction-awareness buys the merge, the backup-plan check keeps it safe.</p>
+
+<h3>Real vehicle, dense city traffic</h3>
+<p>An electrified SUV with stereo + fisheye cameras, radar, ultrasonic, and low-cost INS/GNSS — <b>no LiDAR, no HD-map, no RTK GPS</b> — running the full stack on an NVIDIA Xavier, tracked by an MPC controller. Four highway/expressway trials:</p>
+<table>
+<tr><th></th><th>Trial 1</th><th>Trial 2</th><th>Trial 3</th><th>Trial 4</th><th>Total</th></tr>
+<tr><td>Distance / duration</td><td colspan="4">urban expressway, 60–90 km/h</td><td>12.5 km</td></tr>
+<tr><td>Lane changes (success)</td><td>14 (12)</td><td>17 (15)</td><td>8 (5)</td><td>10 (8)</td><td>49 (40, &gt;80%)</td></tr>
+<tr><td>Backup plan triggered (canceled)</td><td>3 (2)</td><td>2 (1)</td><td>3 (1)</td><td>2 (0)</td><td>10 (4)</td></tr>
+<tr><td>Human takeovers</td><td>1</td><td>1</td><td>3</td><td>2</td><td>7</td></tr>
+<tr><td>Worst longitudinal decel.</td><td>−2.07</td><td>−3.24</td><td>−4.88</td><td>−2.08</td><td>m/s²</td></tr>
+</table>
+<p>Both planning layers hold 20 Hz with &lt;50 ms per cycle on a desktop i7. The backup-plan rule fired 10 times in real traffic — the push-wait-merge behavior of Fig. 5 is not a demo artifact. Takeover causes were all "unsafe lane change / distance" judgments by the safety driver, i.e., the system kept driving until a human got nervous, and the rides stayed comfortable (worst braking 4.88 m/s², comparable to an attentive human).</p>
+
+<div class="callout takeaway"><strong>Takeaway.</strong> Best-of-class anticipation without a learned predictor; the merge benchmark isolates each idea's contribution; and the whole thing drove 12.5 km of real dense traffic on automotive-grade sensing.</div>
+
+<h2 id="s11">11 · The code: what's in the repo</h2>
+
+<p><a href="https://github.com/HKUST-Aerial-Robotics/EPSILON">HKUST-Aerial-Robotics/EPSILON</a> is a complete, runnable C++/ROS system (MIT license) — decision-making <em>and</em> motion planning, plus a lightweight multi-agent simulator so you can exercise it without a car:</p>
+<pre><code>EPSILON/
+├── core/
+│   ├── behavior_planner/     # mission/route logic, behavior-level glue
+│   ├── forward_simulator/    # closed-loop multi-agent scenario rollout (§6)
+│   ├── semantic_map_manager/ # occupancy grid, tracklets, lanes, grid inflation
+│   ├── motion_predictor/     # semantic trajectory prediction for baselines
+│   ├── vehicle_model/        # kinematic bicycle + ideal MPC tracking model
+│   ├── phy_simulator/        # physical simulation & interface to RViz
+│   ├── route_planner/  common/          # routing, math/basics/lane primitives
+├── util/
+│   ├── eudm_planner/         # ★ the behavior planner: DCP-Tree, semantic actions, scoring
+│   ├── ssc_planner/          # ★ the motion planner: corridor + Bézier QP (OOQP)
+│   └── ai_agent_planner/     # scriptable other-agents (IDM policies, Python)
+├── app/planning_integrated/  # launch files wiring the full pipeline
+└── aux_tools/                # terminal_server: W-A-S-D to perturb any agent live</code></pre>
+
+<p>To see it drive: <code>roscore</code>, open RViz with <code>phy_simulator/rviz/phy_simulator_planning.rviz</code>, then launch <code>planning_integrated test_ssc_with_eudm_ros.launch</code>, the adversarial agents <code>ai_agent_planner onlane_ai_agent.launch</code>, and finally <code>phy_simulator phy_simulator_planning.launch</code>. The fun part is <code>aux_tools/terminal_server.py</code>: click any traffic car and drive it with W-A-S-D — cut the planner off and watch the backup-plan machinery catch it. Dependencies are modest for the scale: ROS, OOQP (the QP solver), protobuf (parameter config), glog, OpenBLAS. Reading order for the algorithms: <code>eudm_planner</code> first (the semantic action set and DCP-Tree are easy to find), then <code>ssc_planner</code> for the corridor → QP pipeline.</p>
+
+<div class="callout takeaway"><strong>Takeaway.</strong> The repo is the paper, not a teaser: both layers, the simulator, and adversarial co-agents are all there — the fastest way to internalize §4–§9 is to bully it in RViz.</div>
+
+<h2 id="s12">12 · Takeaways, connections, limits</h2>
+
+<ol>
+<li><strong>The merge paradox is real, and it's a formal matter.</strong> Decoupled predict-then-plan cannot represent "the gap exists because I act". The POMDP factorization — ego transition × (their kinematics × driver model) — puts the coupling back without changing the theory.</li>
+<li><strong>Prune with humanity.</strong> Maneuver-level actions + one-switch-per-cycle policies (DCP-Tree) turn \(9^{25}\) control sequences into 33 closed-loop policies; conditional focused branching turns \(|Φ|^N\) intention grids into a handful of critical scenarios. Both cuts are <em>domain knowledge as search heuristics</em> — the paper's style in one sentence.</li>
+<li><strong>Safety without fat margins.</strong> RSS referee inside the simulation + a verified backup policy per maneuver = "aggressive when a proven exit exists", which is exactly when humans merge.</li>
+<li><strong>Unified constraints are worth a paper on their own.</strong> The SSC reduces every road semantic to boxes in space-time, and Bézier's hull/hodograph properties reduce every box to linear constraints — one QP for all scenarios, with infeasibility as a well-defined channel back to the decision layer.</li>
+</ol>
+
+<p><strong>Where this sits.</strong> The behavior layer descends from MPDM (evaluate a small set of semantic policies by closed-loop simulation) and the authors' EUDM; the motion layer is their SSC planner. The corridor + Bézier-hull trick is the same one used by several quadrotor motion planners (fitting, for a group named "Aerial Robotics") — if you've seen flight corridors, you already know §9. The driver model is IDM; the safety referee is RSS. If you want the decision-theory underneath §3, the local <a href="../../Control/pomdp/pomdp.html">POMDP explainer</a> covers beliefs and belief trees in depth.</p>
+
+<p><strong>Honest limits.</strong> The maneuver vocabulary is only as rich as the hand-written controllers behind it; the driver models are assumptions that the safety net mitigates but does not erase; the prediction win is benchmark-scale (Argoverse), not a SOTA-claims paper; and 49 real lane changes is a strong demo, not a fleet study. The 2022+ literature (game-theoretic and joint prediction-planning methods) builds directly on this foundation.</p>
+
+<h3>Go deeper</h3>
+<ul>
+<li><a href="https://arxiv.org/abs/2108.07993">The EPSILON paper (T-RO 2021)</a> — this page's source; §V and §VI have the full equation-level detail, and the supplementary video shows the RViz demos.</li>
+<li><a href="https://arxiv.org/abs/2003.02746">EUDM (ICRA 2020)</a> — the behavior planner's precursor; the DCP-Tree and CFB machinery in full detail.</li>
+<li><a href="https://arxiv.org/abs/1906.09788">SSC (RA-L 2019)</a> — the motion planner's precursor: corridor construction and the complete QP formulation that EPSILON summarizes.</li>
+<li><a href="https://arxiv.org/abs/1708.06374">RSS (Mobileye, 2017)</a> — the formal "proper response" rules used as the in-simulation referee and the safety-cost metric.</li>
+<li><a href="https://arxiv.org/abs/cond-mat/0002177">IDM (Treiber et al., 2000)</a> — the intelligent driver model; a two-page classic every planner engineer should know ("Congested traffic states in empirical observations and active experiments").</li>
+<li><a href="https://github.com/HKUST-Aerial-Robotics/EPSILON">The repository</a> and its <a href="https://youtu.be/3i0cIQrZs-4">demo video</a> — run it before you read §V of the paper; the W-A-S-D adversarial terminal makes the safety mechanisms visceral.</li>
+</ul>
+
+<div class="foot">
+<p>Written as a learning artifact in the <code>reference/</code> library. Sources: EPSILON (Ding, Zhang, Chen, Shen, IEEE T-RO 2021, arXiv:2108.07993), the <a href="https://github.com/HKUST-Aerial-Robotics/EPSILON">official repository</a>, and the linked precursor papers. Local files: <code>demos/dcp_tree_count.py</code>, <code>demos/bezier_hull.py</code>, <code>assets/bezier_hodograph.png</code>, <code>assets/merge_benchmark.png</code>.</p>
+</div>
+
+<div class="toc">
+  <a href="#s1">1 Problem</a><a href="#s2">2 System</a><a href="#s3">3 POMDP</a><a href="#s4">4 Action branching</a><a href="#s5">5 Intention branching</a><a href="#s6">6 Forward simulation</a><a href="#s7">7 Safety net</a><a href="#s8">8 Scoring</a><a href="#s9">9 Corridor &amp; Bézier</a><a href="#s10">10 Results</a><a href="#s11">11 The code</a><a href="#s12">12 Takeaways</a>
+</div>
+</body>
+</html>
