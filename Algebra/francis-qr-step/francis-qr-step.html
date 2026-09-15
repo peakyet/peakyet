@@ -355,19 +355,112 @@ that zeroes everything below the diagonal in column \(k\), apply it to the remai
 multiply the reflectors back into an accumulator. Cost: \(\tfrac43 n^3\) flops, provably backward
 stable. Done.</p>
 
-<p>Now the QR <em>algorithm</em> — one of the great one-liners of numerical analysis:
+<p><strong>But where does that iteration come from?</strong> It does not pop out of thin air — it
+<em>is</em> §3&rsquo;s power iteration, run on <em>all \(n\) columns at once</em>. Take the identity
+basis and multiply every vector by \(A\), as power iteration does. Disaster: within a few rounds every
+column points at the same dominant eigenvector. The fix is to keep them apart by
+<em>orthonormalizing after every multiplication</em> — Gram&ndash;Schmidt, i.e. one QR factorization
+per round, applied to the whole matrix:</p>
+
+<div class="eq">\[
+  Z_0 = I, \qquad Z_k R_k = A\,Z_{k-1} .
+\]</div>
+
+<p>Read the recursion as a definition: <em>&ldquo;QR-factor the matrix \(A Z_{k-1}\); call its
+orthogonal factor \(Z_k\) and its upper-triangular factor \(R_k\)&rdquo;</em>. So \(Z_k\) is literally
+&ldquo;the columns of \(A Z_{k-1}\), orthonormalized&rdquo;, and the sequence \(Z_1, Z_2, \ldots\) is
+<em>simultaneous subspace iteration</em>. It is worth pinning down exactly how the columns behave, because
+a tempting (and wrong) mental model is &ldquo;column 1 grabs the dominant eigenvector and columns 2, 3
+tag along&rdquo;. What actually happens (measured on the 3×3 example below): the multiplication
+\(A\) <em>drags every</em> column of \(A Z_{k-1}\) toward the dominant eigenvector \(u_1\) — that is
+pure power iteration, and without orthonormalization all \(n\) columns collapse onto \(u_1\) (in the
+3×3 test, all three normalized columns \(A^k e_j\) reach \(|\langle \cdot, u_1\rangle| \geq 0.995\)
+by step 5). The orthonormalization is what saves the day: Gram&ndash;Schmidt then <em>removes the
+already-claimed directions from every later column</em>. Concretely, the first column of \(Z_{k+1}\) is
+just the normalized first column of \(A Z_k\), so \(z^{(1)}_{k+1} \propto A z^{(1)}_k\) — a plain
+power-iteration vector — and it converges to \(u_1\) (rate governed by \(|\lambda_2/\lambda_1|\)). The
+second column is the normalized leftover after subtracting the first column&rsquo;s direction, so the
+\(u_1\)-component that \(A\) keeps injecting is ripped out at every step and column 2 converges to the
+<em>next</em>-largest eigenvector \(u_2\) instead — and so on: in the 3×3 test,
+\(|\langle z^{(2)}, u_1\rangle|\) falls \(0.63 \to 0.06\) over six steps while
+\(|\langle z^{(2)}, u_2\rangle|\) rises \(0.68 \to 0.998\). One eigen-direction at a time, largest
+magnitude first — the deflation is done by the orthonormalization, not by hand.</p>
+
+<p><strong>Why is this the same loop as the QR algorithm?</strong> Write the QR-algorithm factors as
+\(A = Q_1 R_1\) and \(A_j = Q_{j+1} R_{j+1}\) with \(A_j = R_j Q_j\) (so \(R_j Q_j = Q_{j+1}
+R_{j+1}\)). Then, by induction, the subspace-iteration bases are exactly the running products of those
+\(Q\)&rsquo;s:
+\[ Z_k = Q_1 Q_2 \cdots Q_k . \]
+<em>Base case:</em> \(A Z_0 = A = Q_1 R_1\) is a QR factorization of \(A Z_0\), so its Q-factor is
+\(Z_1 = Q_1\). <em>Inductive step:</em> assume \(Z_k = Q_1 \cdots Q_k\). Then \(A Z_k = A Q_1 \cdots
+Q_k\) telescopes — at each &ldquo;swap&rdquo; replace \(R_j Q_j\) by \(Q_{j+1} R_{j+1}\):
+\[
+  A Q_1 \cdots Q_k
+  \;=\; Q_1 (R_1 Q_1) Q_2 \cdots Q_k
+  \;=\; Q_1 Q_2 (R_2 Q_2) Q_3 \cdots Q_k
+  \;=\; \cdots
+  \;=\; (Q_1 Q_2 \cdots Q_{k+1})\, R_{k+1} .
+\]
+The right-hand side is (orthogonal) \(\times\) (upper triangular) — a QR factorization of
+\(A Z_k\) — and \(Z_{k+1}\) is <em>defined</em> as that factorization&rsquo;s Q-factor, so
+\(Z_{k+1} = Q_1 \cdots Q_{k+1}\). \(\square\) (Uniqueness of the QR factorization, with
+\(R\)&rsquo;s diagonal taken positive — the Householder convention — pins the factors down exactly,
+which is what makes the two sequences coincide rather than merely coincide up to signs.)</p>
+
+<p>Two consequences fall out of \(Z_k = Q_1 \cdots Q_k\). First, the same telescoping applied to
+\(A^k = A \cdot A^{k-1}\) yields
+\[ A^k = (Q_1 Q_2 \cdots Q_k)\,(R_k \cdots R_2 R_1), \]
+so \(Q_1 \cdots Q_k\) is the orthogonal factor of the QR factorization of \(A^k\) itself. Second, the
+matrix \(A\) <em>expressed in the power-iteration basis \(Z_k\)</em> is
+\[
+  Z_k^{\mathsf T} A Z_k
+  \;=\; (Q_1\cdots Q_k)^{\mathsf T} A\,(Q_1\cdots Q_k)
+  \;=\; R_k Q_k \;=\; A_k ,
+\]
+the two factors you just factored, re-multiplied in the other order. So the QR algorithm — one of the
+great one-liners of numerical analysis,
 \[ A_0 = A; \qquad \underbrace{A_k = Q_k R_k}_{\text{QR factorization}},\qquad
-   A_{k+1} = R_k Q_k . \]
-Since \(A_{k+1} = R_k Q_k = Q_k^{\mathsf T}(Q_k R_k) Q_k = Q_k^{\mathsf T} A_k Q_k\), each step is an
-<em>orthogonal similarity transformation</em>: eigenvalues are preserved exactly, and — critically —
-<strong>the same reflectors you used to factor \(A_k\) serve as the similarity</strong>, so no extra work
-buys the transformation. Why should \(A_k\) become triangular? Because the first \(m\) columns of
-\(\widehat Q_k = Q_1 Q_2 \cdots Q_k\) span, for each \(m\le k\), the Krylov space
-\(\mathrm{span}\{e_1, A e_1, \ldots, A^{m-1} e_1\}\) — a built-in, simultaneous <em>power iteration</em> on
-every column at once. The last diagonal entry \((A_k)_{nn}\) is the Rayleigh quotient of a vector that
-steadily converges to the dominant eigenvector, so it converges to the dominant eigenvalue, and the
-last subdiagonal entry shrinks to zero. Repeating on the deflated submatrix peels off eigenvalue after
-eigenvalue.</p>
+   A_{k+1} = R_k Q_k , \]
+is not a magic incantation: it is the running Rayleigh-quotient view of \(A\) under simultaneous power
+iteration, and the change of basis costs nothing beyond the factorization you already performed. As the
+basis converges to an eigenbasis, \(A_k\) becomes upper triangular with the eigenvalues on the
+diagonal, ordered by decreasing magnitude — the largest eigenvalue lands top-left. (History:
+Rutishauser&rsquo;s 1958 <em>LR algorithm</em> ran the same loop with Gaussian elimination; Francis
+and, independently, Kublanovskaya (1961) replaced the unstable \(LR\) by the orthogonal \(QR\) — that
+is literally where the name &ldquo;QR algorithm&rdquo; comes from.)</p>
+
+<table>
+  <tr><th>\(k\)</th><th>diagonal of \(A_k\)</th><th>\(|(A_k)_{21}|\)</th><th>\(|(A_k)_{32}|\)</th><th>\(|(A_k)_{11}-\lambda_1|\)</th></tr>
+  <tr><td>1</td><td>2.80000, 2.34286, 0.85714</td><td>7.5e−1</td><td>6.4e−1</td><td>6.1e−1</td></tr>
+  <tr><td>2</td><td>3.14286, 2.24845, 0.60870</td><td>5.6e−1</td><td>1.9e−1</td><td>2.7e−1</td></tr>
+  <tr><td>4</td><td>3.37605, 2.03800, 0.58594</td><td>2.3e−1</td><td>1.5e−2</td><td>3.8e−2</td></tr>
+  <tr><td>6</td><td>3.40961, 2.00460, 0.58579</td><td>8.1e−2</td><td>1.3e−3</td><td>4.6e−3</td></tr>
+  <tr><td>12</td><td>3.41421, 2.00001, 0.58579</td><td>3.3e−3</td><td>8.0e−7</td><td>7.5e−6</td></tr>
+</table>
+<p class="small-note">Table 1. Unshifted QR on \(A=\begin{pmatrix}2&amp;1&amp;0\\1&amp;2&amp;1\\0&amp;1&amp;2\end{pmatrix}\)
+(eigenvalues \(2+\sqrt2,\,2,\,2-\sqrt2\)): the diagonal peels into the sorted eigenvalue list, largest
+top-left; the last subdiagonal collapses fastest (computed with the page&rsquo;s verification script).</p>
+
+<p>Each step of the loop is an orthogonal similarity (eigenvalues preserved exactly), and — the point
+of the derivation above — <strong>the reflectors you used to factor \(A_k\) <em>are</em> the
+similarity</strong>, so the basis change costs nothing extra. Why does \(A_k\) become triangular?
+Because \(Q_1 Q_2 \cdots Q_k\) is the orthonormalized power-iteration basis: its first \(m\) columns
+span \(\mathrm{span}\{e_1, A e_1, \ldots, A^{m-1} e_1\}\), and once that basis converges to an
+eigenbasis, \(A_k = Z_k^{\mathsf T} A Z_k\) is triangular. The first diagonal entry \((A_k)_{11}\) — a
+Rayleigh quotient of the dominant power-iteration direction — heads for the largest-magnitude
+eigenvalue, which ends up top-left. Every subdiagonal \((A_k)_{j,j-1}\) shrinks at its own rate, roughly
+\((\lambda_j/\lambda_{j-1})^k\)-ish for distinct magnitudes — the adjacent pair’s smaller-over-larger ratio
+(measured: 0.59 per step for \(|(A_k)_{21}|\), 0.29 for \(|(A_k)_{32}|\) in this section’s 3×3) — so the first
+split happens at whichever end has the bigger <em>relative</em> gap. Here the smallest eigenvalue splits
+first; for eigenvalues 10, 2, 1.5 it is the reverse (ratios 0.2 vs 0.75: \(|(A_k)_{21}|\) reaches \(10^{-27}\)
+while \(|(A_k)_{32}|\) is still \(10^{-6}\)). Splitting off a 1×1 deflates a real eigenvalue. A
+complex-conjugate pair \(\lambda,\bar\lambda\) has \(|\lambda_{n-1}|=|\lambda_n|\), so it can never split
+into 1×1s in real arithmetic: a real 2×2 block forms at the bottom instead (the quasi-triangular form of
+§2), its <em>internal</em> subdiagonal — which encodes the imaginary part — stays nonzero, and the
+quantity you watch collapse is the subdiagonal <em>above</em> the block, \((n-1,n-2)\). The pair is then
+read off the block with the quadratic formula; the double shift of §6–§7 is what steers the bottom 2×2
+there in pure real arithmetic. Repeating on the deflated submatrix peels off eigenvalue
+after eigenvalue.</p>
 
 <p><strong>The disease.</strong> Unshifted QR converges like power iteration: <em>linearly</em>, with a
 ratio supplied by the eigenvalue gap. For the symmetric test matrix in Figure&nbsp;3 the subdiagonal
@@ -446,7 +539,7 @@ triples each iteration.</div>
   <tr><td>80</td><td>2.98e−24</td><td>—</td></tr>
   <tr><td>199</td><td>1.53e−56</td><td>—</td></tr>
 </table>
-<p class="small-note">Table 1. The numbers behind Figure 3 (log-decades of the trailing subdiagonal).
+<p class="small-note">Table 2. The numbers behind Figure 3 (log-decades of the trailing subdiagonal).
 Shifted QR reaches machine precision in ~5 iterations; unshifted needs hundreds.</p>
 
 <div class="callout reveal"><strong>Predict:</strong> both curves start near the diagonal — why does the
@@ -922,7 +1015,7 @@ bookkeeping):</p>
   <tr><td>6</td><td>3.79056</td><td>4.16e−6</td><td>7.50e−16</td><td>−0.25950 ± 1.23247 i</td></tr>
   <tr><td>12</td><td>3.79056</td><td>2.19e−12</td><td>3.49e−104</td><td>−0.25950 ± 1.23247 i</td></tr>
 </table>
-<p class="small-note">Table 2. Twelve Francis double-shift steps on the 5×5 example (real arithmetic
+<p class="small-note">Table 3. Twelve Francis double-shift steps on the 5×5 example (real arithmetic
 throughout). The bottom-right 2×2 block has converged to the pair \(-0.25950\pm 1.23247 i\); the
 top-left entry to \(3.79056\); the matrix trace is preserved at \(4.0\). (A production code would
 deflate once \(|h_{43}|\) drops below tolerance and shrink the active window — that is why LAPACK
