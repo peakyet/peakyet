@@ -6,11 +6,18 @@ How a `teach-an-engineer` artifact lands in this repository. The repo's `AGENTS.
 
 ```text
 index.html                                     landing page: every note is a card in #grid
-<Category>/<topic-slug>/<topic-slug>.html      the note (file name repeats the folder name)
+<Category>/<topic-slug>/<topic-slug>.html      the page (file name repeats the folder name)
 <Category>/<topic-slug>/summary.md             audience calibration, verified claims, running example
 <Category>/<topic-slug>/assets/                generated figures (png/svg) only when inline SVG will not do
 <Category>/<topic-slug>/scripts/               runnable helpers (.mjs, .py, .json) that produced numbers on the page
 ```
+
+The default page is a Beamer-style deck built from `templates/beamer-deck.html`, and
+a new topic's deck owns the plain name above. An existing note keeps that name: add
+`<Category>/<slug>/<slug>-deck.html` beside it instead of overwriting, and use
+`<Category>/<slug>/<slug>-note.html` for a long-form note that follows a deck. Either
+way it is one self-contained page, the same `assets/` and `scripts/` rules apply, and
+the two pages link to each other.
 
 Category folder -> the `data-category` chip token the card must carry:
 
@@ -45,11 +52,25 @@ Insert into `<div class="grid" id="grid">` in `index.html`, ordered with the nei
 - `data-field` is a human label ("Numerical Linear Algebra", "Control Theory"), shown as the card footer and counted in the hero. It must equal the `.foot` text.
 - Tag colour classes available on `.tag`: `amber`, `teal`, `purple`, `rose`. Match the neighbouring cards in the same category.
 - Placeholder notes use `class="card soon"` and are excluded from the computed counts; a real note must not.
+- A deck gets its card the same way, with `slides` (or `talk`) in `data-tags`,
+  `<span class="go">Open the slides</span>`, and a `data-field` matching its field, so
+  the grid counts it exactly like a note.
 - `#stat-notes`, `#stat-fields`, and the per-field `#cnt-*` numbers are all derived from `.card` elements. Do not hardcode them, and do not leave an `href` pointing at a file that does not exist.
 
 ## Style contract
 
-`templates/note-page.html` carries the CSS already used by the newer notes, so start from it rather than hand-rolling a page:
+Default to `templates/beamer-deck.html`. A deck keeps the same vocabulary inside a fixed
+1280x720 frame: `.frame-head` with `.frametitle`, a `.frame-body`, and a script-filled
+`.frame-foot`; `.block` in place of `.callout`, with the `.intuition` / `.takeaway`
+variants; `data-fragment` in place of a collapsed `details.predict`, since a slide answer
+should arrive on a key press rather than a click; one `.eq` per display equation;
+`.figure` + `.figure-caption` for the frame's single visual claim. Frames stack and
+reflow below ~700px, and a frame that no longer fits its page is tagged `overfull`.
+
+The contract below is the repository's long-form note style, which every newer note under
+`<Category>/<slug>/` already follows. No template ships for it: read these bullets when
+editing an existing note, and keep that note's renderer and class names. For anything new,
+start from the deck template rather than hand-rolling a page:
 
 - Serif on paper: `"Source Serif Pro", Georgia, ...`, background `#fdfcf8`, gold accent `#d4a72c`, links `#9a5b00`. Base font size 17px, content column `max-width:900px`.
 - `h1` with a gold underline, a `p.hero` summary, numbered `h2` sections with `id="sN"`, `<hr>` between sections.
@@ -61,22 +82,30 @@ Insert into `<div class="grid" id="grid">` in `index.html`, ordered with the nei
 - `nav.toc` sticky at the bottom with one anchor per section, plus the scroll-spy script that marks the active section.
 - Keep the page responsive below ~700px; the media query in the template covers the common cases.
 
-Math renderer: new notes use the template's KaTeX (auto-render from the jsDelivr CDN). Some older notes load MathJax instead. When editing an existing note, keep that note's renderer; never mix the two on one page, and never convert a page just for consistency.
+Math renderer: a new deck uses the template's KaTeX (auto-render from the jsDelivr CDN). Some older notes load MathJax instead. When editing an existing page, keep that page's renderer; never mix the two on one page, and never convert a note to slides just for consistency.
 
 ## summary.md
 
-Match the existing summaries (`Algebra/francis-qr-step/summary.md`, `Algebra/generalized-schur-decomposition/summary.md`): a `# Current understanding: <topic>` title, an audience line, the prerequisite map as a table with each node marked assumed / taught briefly / taught fully / main topic, the mechanism or worked numbers, and an explicit list of which claims were verified by running code. This is the handoff file for the next session, so record the calibration answers rather than re-deriving them.
+Match the existing summaries (`Algebra/francis-qr-step/summary.md`, `Algebra/generalized-schur-decomposition/summary.md`): a `# Current understanding: <topic>` title, an audience line, the prerequisite map as a table with each node marked assumed / taught briefly / taught fully / main topic, the mechanism or worked numbers, and an explicit list of which claims were verified by running code. Add the section-to-frame map (`section 2 = #/4-#/6`), so a resumed session can deep-link straight back to the frame it stopped on. This is the handoff file for the next session, so record the calibration answers rather than re-deriving them.
 
 ## Verify
 
 ```sh
 cd /home/chun/work/peakyet
-P="$PWD/<Category>/<slug>/<slug>.html"
-firefox --headless --screenshot=/tmp/<slug>-wide.png  --window-size=1440,2600 "file://$P"
-firefox --headless --screenshot=/tmp/<slug>-narrow.png --window-size=420,2600 "file://$P"
+P="$PWD/<Category>/<slug>/<slug>.html"          # a new topic's deck
+firefox --headless --screenshot=/tmp/<slug>-f1.png    --window-size=1440,900 "file://$P#/1"
+firefox --headless --screenshot=/tmp/<slug>-dense.png --window-size=1440,900 "file://$P#/4"
+firefox --headless --screenshot=/tmp/<slug>-last.png  --window-size=1440,900 "file://$P#/<N>"
+firefox --headless --screenshot=/tmp/<slug>-narrow.png --window-size=420,1600 "file://$P"
 ```
 
-Then look at both images: math rendered, figures placed and labelled, nothing clipped or overlapping, TOC anchors present. For relative cross-links, serve the repo (`python3 -m http.server 8000`) and open `http://localhost:8000/index.html`, then confirm the new card appears, filters find it, and its link resolves. Note any check you could not run instead of implying it passed.
+The default deck is checked frame by frame, because one shot can only show one frame:
+`#/N` deep-links to frame N and reveals every overlay inside it, which is what the
+printed deck shows. Shoot the title frame, the densest content frame, and the last one,
+and leave no `overfull` tag in any of them. For a long-form note, shoot the document
+instead at `1440,2600` and `420,2600`.
+
+Then look at the shots: math rendered, figures placed and labelled, nothing clipped or overlapping, TOC anchors present. For relative cross-links, serve the repo (`python3 -m http.server 8000`) and open `http://localhost:8000/index.html`, then confirm the new card appears, filters find it, and its link resolves. Note any check you could not run instead of implying it passed.
 
 ## Housekeeping
 

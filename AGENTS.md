@@ -60,6 +60,14 @@ to change it for the whole series:
 - A sticky table of contents uses `.toc`, with active-section highlighting.
 - Use `hr` as section dividers; keep the page responsive below ~700px.
 
+Every new teaching page is a Beamer-style deck built from `templates/beamer-deck.html`,
+and it is taught from the frames rather than in chat. A deck uses a fixed 1280x720 frame
+with tinted head and foot bands, `.block` boxes, and overlays, while keeping the same
+`.eq`, `.figure`, and `.callout` vocabulary as the list above; below ~700px its frames
+stack into readable pages. File a deck as `<Category>/<slug>/<slug>.html`, or
+`<Category>/<slug>/<slug>-deck.html` when a page already owns that name. The list above
+still governs the repository's existing long-form notes, which have no template file.
+
 ## Content principles
 
 - Motivation first, then the reasoning, then the details.
@@ -70,5 +78,17 @@ to change it for the whole series:
 
 - Keep the repo statically servable by GitHub Pages. Commit only source HTML; generated/site
   artifacts (`.gitignore` already covers `_site/`, `/vendor`, `Gemfile.lock`) should not be added.
-- The landing page is exempt from the note-page rules; everything else should stay coherent with
-  the existing patterns above.
+- The landing page is exempt from the note rules above; everything else should stay coherent with
+  the existing patterns.
+
+## Agent skills
+
+- `.agents/skills/` holds repo-local skills, checked in so they are available to any agent working
+  in this repository. `teach-an-engineer` is the one that matters here: it writes a new deck end to
+  end (audience calibration → research → frames → `summary.md` → landing-page card) and teaches one
+  section at a time from those frames, so the terminal carries a deep link and a question rather
+  than the lesson. It encodes the layout and style rules above. Its `references/repo-notes.md` is
+  the concrete checklist for where files go and how the card is registered, and
+  `templates/beamer-deck.html` is the skill's only page skeleton.
+- If the rules in this file and in that skill disagree, this file wins; update the skill rather than
+  working around it.

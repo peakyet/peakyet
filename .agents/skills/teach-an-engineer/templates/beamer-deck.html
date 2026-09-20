@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deck Title — Beamer-Style Slides</title>
+<!--
+  beamer-deck.html — the default, and only, page skeleton of this repository's
+  teach-an-engineer skill. One <section class="slide"> per frame.
+
+  Teaching flow: write a section's frames into the deck before discussing it, then
+  hand over the deep link (this file, "#/4") for the frame that carries the
+  question. The terminal is for the link and the user's answer, not the lesson.
+
+  Frame kinds:
+    .slide.title    the \titlepage frame (first frame)
+    .slide.toc-frame the \tableofcontents frame (second frame)
+    .slide.section  a \sectionpage divider; carries data-section="N"
+    .slide.frame    a content frame; carries data-section="N" and
+                    data-secname="Section name" for the foot band
+
+  Beamer vocabulary available: \frametitle / \framesubtitle, itemize and
+  enumerate (.item, .enum), block / alertblock / exampleblock (.block,
+  .block.alert, .block.example), theorem-like environments (.thm, .defn,
+  .lem, .cor, .proof), columns (.cols), and overlays (data-fragment on any
+  element, revealed one at a time).
+
+  The long-form class names the repository's existing notes use (.eq, .callout,
+  .figure, .demo, details.predict, table, pre/code) are also styled here, so
+  content lifted from a note keeps its look inside a frame. See
+  templates/README.md for the class mapping and for how a deck is filed and
+  registered on the landing page.
+
+  Keyboard: Right/Space/PageDown next frame (or next fragment), Left/PageUp
+  back, Home/End first/last, f fullscreen, r reader mode (stacked frames).
+  Print to PDF with "Background graphics" on: one frame per landscape page.
+-->
+<style>
+  /* ---------- reset & theme tokens ---------- */
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{font-size:16px;overflow-x:clip}
+  body{background:#d7dade;color:#1a1a1a;font-family:var(--font-body);
+      -webkit-font-smoothing:antialiased}
+
+  body[data-theme="beamer"]{
+    --font-body:"Helvetica Neue",Helvetica,Arial,"Liberation Sans",sans-serif;
+    --font-head:var(--font-body);
+    --frame-w:1280px; --frame-h:720px; --slide-fs:26px;
+    --paper:#fff; --ink:#1a1a1a; --muted:#5c6169;
+    --accent:#1f5f9c; --accent-ink:#123c63;
+    --band:#eaf0f7; --rule:#bacfe4; --link:#1f5f9c;
+    --blk-bg:#f4f8fc; --blk-title:#dbe7f3; --blk-border:#b9cee3; --blk-ink:#123c63;
+    --alt-bg:#fdf4f4; --alt-title:#f3d9d9; --alt-border:#dfb3b3; --alt-ink:#8f2323;
+    --ex-bg:#f7faee; --ex-title:#e3ecc9; --ex-border:#c9d8a5; --ex-ink:#4f6218;
+    --intuition:#4a7bb5; --intuition-bg:#eef4fb; --takeaway:#3a7d44; --takeaway-bg:#edf5ec;
+    --eq-bg:#f3f7fb; --tint:#f7f9fc; --code-bg:#f4f4f2;
+  }
+  /* Repo-paper variant: same layout, the knowledge base's serif/gold palette. */
+  body[data-theme="paper"]{
+    --font-body:"Source Serif Pro",Georgia,"Times New Roman",serif;
+    --font-head:var(--font-body);
+    --frame-w:1280px; --frame-h:720px; --slide-fs:26px;
+    --paper:#fffdf7; --ink:#1a1a1a; --muted:#5c574a;
+    --accent:#9a5b00; --accent-ink:#7a4a00;
+    --band:#f7f4ec; --rule:#d4a72c; --link:#9a5b00;
+    --blk-bg:#f7f4ec; --blk-title:#efe7d3; --blk-border:#e2d9bd; --blk-ink:#7a5a00;
+    --alt-bg:#fbf1ee; --alt-title:#f0dcd5; --alt-border:#e0c0b6; --alt-ink:#8f3b23;
+    --ex-bg:#f2f6ee; --ex-title:#e2ebd8; --ex-border:#cbd9ba; --ex-ink:#3a6b3f;
+    --intuition:#4a7bb5; --intuition-bg:#eef4fb; --takeaway:#3a7d44; --takeaway-bg:#edf5ec;
+    --eq-bg:#f7f4ec; --tint:#faf8f2; --code-bg:#f4f0e4;
+  }
+
+  /* ---------- stage & frame geometry ---------- */
+  .stage{position:fixed; inset:0; overflow:hidden}
+  body.reader{background:var(--paper)}
+  body.reader .stage{position:static; inset:auto; overflow:visible;
+    padding:0.75rem 0.5rem 3rem}
+  .slide{
+    position:absolute; left:50%; top:50%; width:var(--frame-w); height:var(--frame-h);
+    transform:translate(-50%,-50%) scale(var(--s,1));
+    transform-origin:center center;
+    background:var(--paper); color:var(--ink); font-size:var(--slide-fs);
+    line-height:1.45; overflow:hidden;
+    box-shadow:0 6px 24px rgba(20,30,45,.28);
+    display:flex; flex-direction:column;
+    opacity:0; visibility:hidden;
+  }
+  /* Keep the opening frame instant: animate only after the deck has painted once. */
+  .slide{transition:none}
+  .deck.ready .slide{transition:opacity .16s ease}
+  .slide.current{opacity:1; visibility:visible}
+  body.reader .slide{position:relative; left:auto; top:auto; width:min(1100px,100%);
+    height:auto; min-height:0; margin:0 auto 1rem; transform:none; opacity:1;
+    visibility:visible; box-shadow:0 1px 6px rgba(20,30,45,.14); font-size:17px}
+  body.reader [data-fragment]{opacity:1; transform:none}
+  body.reader .slide.ov-v::after,body.reader .slide.ov-h::after{display:none}
+  body.reader .controls,body.reader .progress{display:none}
+  /* Stacked reading needs no foot band: the frametitle already names the frame. */
+  body.reader .frame-foot{display:none}
+
+  /* Beamer's overfull-box warning, for the two ways a frame can fail to fit. */
+  .slide.ov-v::after,.slide.ov-h::after{position:absolute; right:0; top:0;
+    font:500 11px/1 ui-monospace,Menlo,Consolas,monospace; letter-spacing:0;
+    color:#fff; background:#b3352e; padding:0.35em 0.5em; border-radius:0 0 0 6px}
+  .slide.ov-v::after{content:"overfull \\vbox"}
+  .slide.ov-h::after{content:"overfull \\hbox"}
+  .slide.ov-v.ov-h::after{content:"overfull \\vbox + \\hbox"}
+  /* Keep the badge clear of a long frametitle. */
+  .slide.ov-v .frametitle,.slide.ov-h .frametitle{padding-right:8em}
+
+  /* ---------- head & foot bands ---------- */
+  .frame-head{background:var(--band); border-bottom:2px solid var(--rule);
+    padding:0.5em 1.1em 0.42em; flex:0 0 auto}
+  .frametitle{font-family:var(--font-head); font-size:1.3em; font-weight:700;
+    line-height:1.2; color:var(--accent-ink); letter-spacing:0}
+  .framesubtitle{display:block; font-size:0.78em; font-weight:400; color:var(--muted);
+    margin-top:0.12em}
+  .frame-body{flex:1 1 auto; padding:0.6em 1.1em 0.5em; min-height:0; overflow:hidden}
+  .frame-foot{flex:0 0 auto; display:grid; grid-template-columns:1fr auto 1fr;
+    align-items:center; gap:0.8em; background:var(--band); border-top:1px solid var(--rule);
+    color:var(--accent-ink); font-size:0.62em; padding:0.5em 1.1em}
+  .foot-left{text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .foot-right{text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap}
+  .miniframes{display:flex; gap:0.45em; align-items:center; justify-content:center}
+  .miniframes button{width:0.72em; height:0.72em; padding:0; border-radius:50%;
+    border:1px solid var(--accent); background:transparent; cursor:pointer}
+  .miniframes button.done{background:var(--accent)}
+  .miniframes button.present{background:var(--accent); box-shadow:0 0 0 2px var(--paper),
+    0 0 0 3px var(--accent)}
+  .miniframes button:hover{border-color:var(--accent-ink)}
+
+  /* ---------- typography ---------- */
+  .frame-body p{margin:0.42em 0}
+  .frame-body p.lead{font-size:1.06em; color:var(--muted)}
+  h1,h2,h3,h4{font-family:var(--font-head); letter-spacing:0}
+  .frame-body h3{font-size:1.05em; color:var(--accent-ink); margin:0.7em 0 0.2em}
+  a{color:var(--link); text-decoration:none; border-bottom:1px solid var(--rule)}
+  a:hover{color:var(--accent-ink)}
+  strong{color:var(--ink); font-weight:700}
+  em{color:var(--ink)}
+  .frame-body small{font-size:0.78em; color:var(--muted)}
+  .frame-body>ol,.frame-body>ul{margin:0.3em 0 0.3em 1.15em}
+  li{margin:0.18em 0}
+  /* Beamer bullets: filled triangles, smaller for nested levels. */
+  ul.item{list-style:none; margin-left:0.1em}
+  ul.item>li{position:relative; padding-left:0.95em}
+  ul.item>li::before{content:""; position:absolute; left:0; top:0.52em;
+    border-left:0.42em solid var(--accent); border-top:0.26em solid transparent;
+    border-bottom:0.26em solid transparent}
+  ul.item ul.item{list-style:none; margin:0.1em 0 0.1em 1.1em}
+  ul.item ul.item>li::before{border-left-width:0.3em; border-top-width:0.19em;
+    border-bottom-width:0.19em; opacity:.75}
+  ol.enum{margin-left:1.5em}
+  ol.enum>li::marker{color:var(--accent); font-weight:700}
+
+  /* ---------- overlays / fragments ---------- */
+  [data-fragment]{opacity:0; transform:translateY(0.14em)}
+  .deck.ready [data-fragment]{transition:opacity .18s ease, transform .18s ease}
+  [data-fragment].on{opacity:1; transform:none}
+
+  /* ---------- beamer blocks ---------- */
+  .block{border:1px solid var(--blk-border); border-radius:0.28em; background:var(--blk-bg);
+    margin:0.5em 0; overflow:hidden}
+  .block>.blk-title{background:var(--blk-title); color:var(--blk-ink); font-weight:700;
+    font-size:0.88em; padding:0.26em 0.6em; border-bottom:1px solid var(--blk-border)}
+  .block>.blk-body{padding:0.36em 0.6em 0.44em}
+  .block.alert{border-color:var(--alt-border); background:var(--alt-bg)}
+  .block.alert>.blk-title{background:var(--alt-title); color:var(--alt-ink);
+    border-bottom-color:var(--alt-border)}
+  .block.example{border-color:var(--ex-border); background:var(--ex-bg)}
+  .block.example>.blk-title{background:var(--ex-title); color:var(--ex-ink);
+    border-bottom-color:var(--ex-border)}
+  /* block variants carrying the note template's teaching roles */
+  .block.intuition{border-color:#b9cee3; background:var(--intuition-bg)}
+  .block.intuition>.blk-title{background:var(--intuition-bg); color:#1f4f7a;
+    border-bottom-color:#cfdff0}
+  .block.takeaway{border-color:#bcd6bf; background:var(--takeaway-bg)}
+  .block.takeaway>.blk-title{background:var(--takeaway-bg); color:#1d5e2a;
+    border-bottom-color:#cbe0cd}
+
+  /* ---------- theorem-like environments ---------- */
+  .thm,.defn,.lem,.cor{margin:0.55em 0; padding:0.42em 0.6em; border-left:3px solid var(--rule);
+    background:var(--tint)}
+  .thm>.thm-name,.defn>.thm-name,.lem>.thm-name,.cor>.thm-name{display:inline;
+    font-weight:700; color:var(--accent-ink)}
+  .thm,.lem,.cor{font-style:italic}
+  .thm .thm-body,.lem .thm-body,.cor .thm-body,.defn .thm-body{display:inline}
+  .proof{margin:0.55em 0; padding-left:0.6em; border-left:3px solid var(--rule)}
+  .proof>.proof-name{font-weight:700; font-style:italic; color:var(--accent-ink)}
+  .proof::after{content:"\25FD"; float:right; color:var(--accent); font-size:0.9em}
+
+  /* ---------- equations ---------- */
+  .eq{display:block; text-align:center; margin:0.5em 0; padding:0.4em 0.5rem;
+    background:var(--eq-bg); border-left:3px solid var(--rule); border-radius:0.2em;
+    overflow-x:auto; line-height:1.8}
+  .eq.tight{font-size:0.82em}
+
+  /* ---------- figures ---------- */
+  .figure{margin:0.5em auto; padding:0.45em; background:var(--paper);
+    border:1px solid var(--rule); border-radius:0.28em; max-width:100%}
+  .figure svg{width:100%; height:auto; display:block}
+  .figure img{max-width:100%; margin:0 auto; display:block}
+  .figure-caption{font-size:0.72em; color:var(--muted); text-align:center;
+    margin-top:0.28em; line-height:1.35}
+  .figure-caption b{color:var(--accent-ink)}
+
+  /* ---------- callouts lifted from the note template ---------- */
+  .callout{background:var(--blk-bg); border-left:4px solid var(--rule);
+    border-radius:0 .3em .3em 0; padding:0.4em 0.6em; margin:0.5em 0; font-size:0.94em}
+  .callout.intuition{border-left-color:var(--intuition); background:var(--intuition-bg)}
+  .callout.intuition strong{color:#1f4f7a}
+  .callout.takeaway{border-left-color:var(--takeaway); background:var(--takeaway-bg)}
+  .callout.takeaway strong{color:#1d5e2a}
+  details.predict{background:var(--tint); border:1px solid var(--rule); border-radius:0.3em;
+    padding:0.4em 0.6em; margin:0.5em 0}
+  details.predict summary{cursor:pointer; font-weight:700; color:var(--accent-ink)}
+
+  /* ---------- tables, code, demos ---------- */
+  table{border-collapse:collapse; margin:0.4em 0; font-size:0.84em}
+  th,td{border:1px solid var(--rule); padding:0.22em 0.5em; text-align:left}
+  th{background:var(--band); color:var(--accent-ink); font-weight:700}
+  tr:nth-child(even) td{background:var(--tint)}
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:0.86em}
+  pre{background:var(--code-bg); border:1px solid var(--rule); border-radius:0.25em;
+    padding:0.4em 0.6em; overflow-x:auto; font-size:0.72em; line-height:1.45}
+  code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:0.88em;
+    background:var(--code-bg); padding:0.05em 0.3em; border-radius:0.2em}
+  pre code{background:none; padding:0}
+  .demo{border:1px solid var(--rule); border-radius:0.3em; padding:0.5em 0.7em;
+    margin:0.5em 0; background:var(--tint)}
+  .demo-controls{display:flex; flex-wrap:wrap; gap:0.8em; align-items:center; margin:0.2em 0 0.5em}
+  .demo-controls input[type=range]{width:min(16em,100%); vertical-align:middle}
+  button,.demo select,.demo input{font:inherit; color:inherit}
+  .btn{border:1px solid var(--accent); background:var(--band); color:var(--accent-ink);
+    border-radius:0.25em; padding:0.16em 0.6em; cursor:pointer}
+  .btn:hover{background:var(--blk-title)}
+
+  /* ---------- columns ---------- */
+  .cols{display:grid; grid-template-columns:1fr 1fr; gap:0.8em; align-items:start}
+  .cols.c3{grid-template-columns:1fr 1fr 1fr}
+  .cols.w64{grid-template-columns:3fr 2fr}
+  .cols.w46{grid-template-columns:2fr 3fr}
+  .col{min-width:0}
+
+  /* ---------- title page ---------- */
+  .slide.title .titlepage{flex:1; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; gap:1.1em; padding:1.2em 2em; text-align:center;
+    background:linear-gradient(180deg,var(--paper) 0%,var(--band) 100%)}
+  .titlebox,.authorbox{background:var(--paper); border:1px solid var(--rule);
+    border-radius:0.3em; box-shadow:0 3px 10px rgba(20,30,45,.14); padding:0.7em 1.4em}
+  .titlebox h1{font-size:2.25em; line-height:1.15; color:var(--accent); font-weight:700}
+  .titlebox .subtitle{display:block; font-size:1.05em; color:var(--muted); margin-top:0.35em}
+  .authorbox{font-size:0.92em; color:var(--accent-ink)}
+  .authorbox .author{font-weight:700}
+  .authorbox .institute,.authorbox .date{color:var(--muted); margin-top:0.12em}
+
+  /* ---------- toc & section frames ---------- */
+  .toc-list{list-style:none; margin:0.3em 0}
+  .toc-list>li{margin:0.3em 0; padding:0.14em 0.3em; display:flex;
+    gap:0.5em; align-items:baseline}
+  .secnum{flex:0 0 auto; display:inline-grid; place-items:center; min-width:1.5em; height:1.5em;
+    padding:0 0.22em; border-radius:50%; background:var(--band); border:1px solid var(--rule);
+    color:var(--accent-ink); font-size:0.74em; font-weight:700}
+  .toc-list .sec-title{font-size:1.02em; font-weight:600}
+  .toc-list li.current{background:var(--band); border-radius:0.25em}
+  .toc-list li.current .secnum{background:var(--accent); color:#fff; border-color:var(--accent)}
+  .toc-list .sec-frames{color:var(--muted); font-size:0.84em}
+
+  .slide.section .sectionpage{flex:0 0 auto; padding:0.9em 1.1em;
+    background:var(--band); border-left:0.32em solid var(--accent); border-radius:0.2em}
+  .section-kicker{font-size:0.8em; color:var(--muted); text-transform:uppercase}
+  .section-title{font-size:1.7em; font-weight:700; color:var(--accent); line-height:1.2;
+    margin-top:0.12em}
+  .section-wrap{flex:1; display:flex; flex-direction:column; justify-content:center;
+    padding:0 1.4em; gap:0.9em}
+
+  /* ---------- deck chrome ---------- */
+  .progress{position:fixed; left:0; top:0; height:3px; width:100%; z-index:70}
+  .progress i{display:block; height:100%; width:0; background:var(--accent);
+    transition:width .18s ease}
+  .controls{position:fixed; right:0.9rem; bottom:0.9rem; z-index:70; display:flex;
+    gap:0.3rem; background:rgba(255,255,255,.92); border:1px solid #bacfe4;
+    border-radius:0.6rem; padding:0.28rem; backdrop-filter:blur(6px);
+    box-shadow:0 2px 10px rgba(20,30,45,.18)}
+  .controls button{border:0; background:transparent; color:#123c63;
+    cursor:pointer; font-size:1rem; line-height:1; padding:0.3rem 0.5rem; border-radius:0.35rem}
+  .controls button:hover{background:#eaf0f7}
+  .sr-only{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);
+    white-space:nowrap}
+
+  @media (max-width:700px){
+    .controls,.progress{display:none}
+    [data-fragment]{opacity:1; transform:none}
+    .cols,.cols.c3,.cols.w64,.cols.w46{grid-template-columns:1fr}
+    .slide.ov-v::after,.slide.ov-h::after{display:none}
+    .titlebox h1{font-size:1.75em}
+    .frame-head{padding:0.45em 0.7em 0.4em}
+    .frame-body{padding:0.5em 0.7em}
+    .frame-foot{padding:0.45em 0.7em; font-size:0.68em}
+  }
+
+  /* ---------- print: one frame per landscape page ---------- */
+  @media print{
+    @page{size:1280px 720px; margin:0}
+    html,body{background:#fff}
+    .stage{position:static; padding:0}
+    .slide{position:relative; left:auto; top:auto; width:var(--frame-w);
+      height:var(--frame-h); transform:none; opacity:1; visibility:visible;
+      box-shadow:none; break-after:page; font-size:var(--slide-fs)}
+    .slide:last-of-type{break-after:auto}
+    [data-fragment]{opacity:1; transform:none}
+    .controls,.progress,.slide.ov-v::after,.slide.ov-h::after{display:none}
+  }
+</style>
+<!-- KaTeX is loaded from a CDN; inline it only if an offline copy is wanted. -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[
+    {left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}]});"></script>
+</head>
+
+<body data-theme="beamer" class="deck">
+<!-- data-theme="paper" switches to the repository's serif/gold look; the layout is identical. -->
+<div class="progress" aria-hidden="true"><i id="progress-bar"></i></div>
+
+<main class="stage" id="stage">
+
+  <!-- ================= \titlepage ================= -->
+  <section class="slide title" aria-label="Title">
+    <div class="titlepage">
+      <div class="titlebox">
+        <h1>Deck Title</h1>
+        <span class="subtitle">One-line hook: the problem this talk resolves, in plain words.</span>
+      </div>
+      <div class="authorbox">
+        <p class="author">Speaker name</p>
+        <p class="institute"><a href="../../index.html">knowledge base home</a> &middot; companion note: <a href="../sibling-note/sibling-note.html">sibling note</a></p>
+        <p class="date">Occasion &middot; date</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= \tableofcontents ================= -->
+  <section class="slide toc-frame" aria-label="Outline">
+    <header class="frame-head"><h2 class="frametitle">Outline</h2></header>
+    <div class="frame-body">
+      <p class="lead">Read this as the route: the failure first, then the mechanism, then the limits.</p>
+      <ul class="toc-list">
+        <li data-for-section="1"><span class="secnum">1</span>
+          <span class="sec-title">First section</span>
+          <span class="sec-frames">&mdash; the problem and the tempting wrong answer</span></li>
+        <li data-for-section="2"><span class="secnum">2</span>
+          <span class="sec-title">Second section</span>
+          <span class="sec-frames">&mdash; the mechanism, worked example</span></li>
+        <li data-for-section="3"><span class="secnum">3</span>
+          <span class="sec-title">Third section</span>
+          <span class="sec-frames">&mdash; limits, tradeoffs, what to read next</span></li>
+      </ul>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <!-- ================= \sectionpage ================= -->
+  <section class="slide section" data-section="1" aria-label="Section 1">
+    <div class="section-wrap">
+      <div class="sectionpage">
+        <p class="section-kicker">Section 1</p>
+        <p class="section-title">First section</p>
+      </div>
+      <div class="block intuition">
+        <p class="blk-title">Question this section answers</p>
+        <div class="blk-body"><p>State the problem, and why failing to solve it costs the running example something.</p></div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <!-- ================= content frames ================= -->
+  <section class="slide frame" data-section="1" data-secname="First section" aria-label="Failure mode">
+    <header class="frame-head">
+      <h2 class="frametitle">Where the naive method fails
+        <span class="framesubtitle">Motivate the idea before naming it.</span></h2>
+    </header>
+    <div class="frame-body">
+      <p>One or two sentences of setup. Inline math stays inline: the step is
+        \(\boldsymbol{x}_{k+1} = \boldsymbol{x}_k - \alpha_k H_k^{-1}\boldsymbol{g}_k\).</p>
+      <ul class="item">
+        <li data-fragment>First beat of the argument &mdash; reveal one at a time.</li>
+        <li data-fragment>Second beat, which depends on the first.</li>
+        <li data-fragment>Third beat: the consequence the audience should fear.</li>
+      </ul>
+      <div class="block alert" data-fragment>
+        <p class="blk-title">Failure mode</p>
+        <div class="blk-body"><p>Name the breakdown in one sentence, with the concrete numbers that show it.</p></div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <section class="slide frame" data-section="1" data-secname="First section" aria-label="Figure and equation">
+    <header class="frame-head"><h2 class="frametitle">The mechanism, drawn</h2></header>
+    <div class="frame-body">
+      <div class="cols w46">
+        <div class="col">
+          <div class="eq">\[ H_{k+1} \;=\; V_k^{\mathsf T} H_k V_k + \rho_k\, \boldsymbol{y}_k\boldsymbol{y}_k^{\mathsf T} \]</div>
+          <div class="eq">\[ V_k \;=\; I-\rho_k\, \boldsymbol{y}_k\boldsymbol{s}_k^{\mathsf T} \]</div>
+          <ul class="item">
+            <li>\(\boldsymbol{s}_k=\boldsymbol{x}_{k+1}-\boldsymbol{x}_k\), \(\boldsymbol{y}_k=\boldsymbol{g}_{k+1}-\boldsymbol{g}_k\),
+              \(\rho_k = 1/(\boldsymbol{y}_k^{\mathsf T}\boldsymbol{s}_k)\)</li>
+            <li>Each factor is a rank-two correction &mdash; no matrix is inverted.</li>
+          </ul>
+        </div>
+        <div class="col">
+          <!-- Prefer inline SVG; keep explanatory math in the HTML layer so KaTeX can typeset it. -->
+          <figure class="figure">
+            <svg viewBox="0 0 420 240" role="img" aria-label="One sentence on what the reader should see.">
+              <!-- Theme-aware SVG colour must go through style="…"; CSS variables do not
+                   resolve inside presentation attributes such as stroke="#1f5f9c". -->
+              <line x1="30" y1="200" x2="400" y2="200" stroke-width="1.5" style="stroke:var(--rule)"/>
+              <line x1="30" y1="200" x2="30" y2="20" stroke-width="1.5" style="stroke:var(--rule)"/>
+              <path d="M40 40 Q200 230 390 60" fill="none" stroke-width="2.5" style="stroke:var(--accent)"/>
+              <circle cx="150" cy="150" r="7" style="fill:var(--ex-ink)"/>
+              <line x1="150" y1="150" x2="300" y2="120" stroke-width="2.5" stroke-dasharray="6 4" style="stroke:var(--alt-ink)"/>
+              <text x="150" y="184" font-size="15" text-anchor="middle" style="fill:var(--accent-ink)">current point</text>
+              <text x="306" y="112" font-size="15" style="fill:var(--alt-ink)">naive step</text>
+            </svg>
+            <figcaption class="figure-caption"><b>Figure 1.</b> The frame's single visual claim, stated here.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <section class="slide frame" data-section="2" data-secname="Second section" aria-label="Prediction">
+    <header class="frame-head"><h2 class="frametitle">Predict before the next line</h2></header>
+    <div class="frame-body">
+      <div class="block example">
+        <p class="blk-title">Prediction prompt</p>
+        <div class="blk-body">
+          <p>Ask the audience the tempting question. Keep it answerable from the previous frame alone.</p>
+          <p class="mono" data-fragment>Tempting answer: &#8230;</p>
+          <p data-fragment><strong>Why it fails:</strong> the answer, revealed as a later fragment, plus the reason.</p>
+        </div>
+      </div>
+      <div class="thm">
+        <span class="thm-name">Theorem (descent condition).</span>
+        <span class="thm-body">If \(B_k \succ 0\) and \(\boldsymbol{g}_k^{\mathsf T}\boldsymbol{d}_k \lt 0\), then sufficiently small \(\alpha_k \gt 0\) reduce \(f\).</span>
+      </div>
+      <div class="proof">
+        <span class="proof-name">Proof sketch.</span>
+        <span>First-order expansion in \(\alpha_k\); the quadratic term cannot rescue a positive slope.</span>
+      </div>
+      <div class="block takeaway" data-fragment>
+        <p class="blk-title">Takeaway</p>
+        <div class="blk-body"><p>One sentence the audience keeps from this section.</p></div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <section class="slide frame" data-section="2" data-secname="Second section" aria-label="Worked numbers">
+    <header class="frame-head"><h2 class="frametitle">Worked example and live demo</h2></header>
+    <div class="frame-body">
+      <div class="cols">
+        <div class="col">
+          <table>
+            <thead><tr><th>\(k\)</th><th>\(\lVert \boldsymbol{x}_k-\boldsymbol{x}^\star\rVert\)</th><th>ratio</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">0</td><td class="mono">1.00e+00</td><td class="mono">&mdash;</td></tr>
+              <tr><td class="mono">1</td><td class="mono">3.10e-01</td><td class="mono">0.31</td></tr>
+              <tr><td class="mono">2</td><td class="mono">2.80e-02</td><td class="mono">0.09</td></tr>
+            </tbody>
+          </table>
+          <p><small>Run the demo yourself and paste the real output; never present unverified numbers as fact.</small></p>
+        </div>
+        <div class="col">
+          <div class="demo">
+            <div class="demo-controls">
+              <label for="demo-slider">damping \(\theta\):
+                <input type="range" id="demo-slider" min="0" max="10" step="1" value="4"></label>
+              <output id="demo-out" for="demo-slider" class="mono">&#952; = 4</output>
+            </div>
+            <p class="mono" id="demo-note">stop when the update changes by &lt; tol</p>
+          </div>
+          <pre><code>for k in range(K):
+    g = grad(x)
+    d = -H @ g
+    a = line_search(x, d)
+    x = x + a * d</code></pre>
+        </div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <section class="slide frame" data-section="3" data-secname="Third section" aria-label="Limits and sources">
+    <header class="frame-head"><h2 class="frametitle">Limits, and what to read next</h2></header>
+    <div class="frame-body">
+      <div class="cols">
+        <div class="col">
+          <h3>Where it breaks</h3>
+          <ul class="item">
+            <li>Nonconvex \(f\): \(B_k \succ 0\) can fail &mdash; damping repairs it.</li>
+            <li>Nonsmooth \(f\): the secant equation carries no curvature information.</li>
+            <li>Memory: \(\mathcal{O}(m n)\) per iteration; \(n\) dominates.</li>
+          </ul>
+        </div>
+        <div class="col">
+          <h3>Sources</h3>
+          <ul class="item">
+            <li>Authoritative reference &mdash; one line on what it adds.</li>
+            <li>Companion notes: <a href="../quasi-newton-method/quasi-newton-method.html">quasi-Newton methods</a>.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="block takeaway">
+        <p class="blk-title">Close</p>
+        <div class="blk-body"><p>The last sentence the audience should keep.</p></div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+</main>
+
+<nav class="controls" aria-label="Slide controls">
+  <button type="button" data-nav="first" title="First frame (Home)">&laquo;</button>
+  <button type="button" data-nav="prev" title="Previous frame or fragment (Left)">&lsaquo;</button>
+  <button type="button" data-nav="next" title="Next fragment or frame (Right, Space)">&rsaquo;</button>
+  <button type="button" data-nav="last" title="Last frame (End)">&raquo;</button>
+  <button type="button" data-nav="reader" title="Reader mode: stack the frames (r)">&#9707;</button>
+  <button type="button" data-nav="full" title="Fullscreen (f)">&#x26F6;</button>
+</nav>
+<p class="sr-only" role="status" aria-live="polite" id="live"></p>
+
+<script>
+(function(){
+  'use strict';
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var deckShort = (document.title.split('\u2014')[0] || document.title).trim();
+  var bar = document.getElementById('progress-bar');
+  var live = document.getElementById('live');
+  var narrow = window.matchMedia('(max-width:700px)');
+  var idx = 0;
+  var wantReader = false;
+
+  function frags(sl){ return Array.prototype.slice.call(sl.querySelectorAll('[data-fragment]')); }
+  function setFrags(sl, on){
+    frags(sl).forEach(function(f){ f.classList.toggle('on', !!on); });
+  }
+
+  /* Fixed 1280x720 (or 4:3) canvas scaled to the window; reader mode reflows instead. */
+  function fit(){
+    var root = document.documentElement;
+    if (narrow.matches || document.body.classList.contains('reader')){ root.style.setProperty('--s','1'); return; }
+    var w = slides[0].offsetWidth || 1280, h = slides[0].offsetHeight || 720;
+    root.style.setProperty('--s', Math.max(0.2, Math.min((window.innerWidth-24)/w, (window.innerHeight-24)/h)));
+  }
+
+  /* Beamer-style warning: a frame body that no longer fits its page. */
+  function check(){
+    slides.forEach(function(sl){
+      var fb = sl.querySelector('.frame-body');
+      var tall = fb && fb.scrollHeight > fb.clientHeight + 2;
+      var wide = false;
+      Array.prototype.forEach.call(sl.querySelectorAll('.eq,.katex-display,.mono,table,pre'), function(el){
+        if (el.scrollWidth > el.clientWidth + 2) wide = true;
+      });
+      sl.classList.toggle('ov-v', !!tall);
+      sl.classList.toggle('ov-h', wide);
+    });
+  }
+
+  function footFill(sl){
+    var sec = sl.getAttribute('data-section') || '';
+    var name = sl.getAttribute('data-secname') || (sl.classList.contains('toc-frame') ? 'Outline' : '');
+    var left = sl.querySelector('.foot-left'), minis = sl.querySelector('.miniframes'),
+        right = sl.querySelector('.foot-right');
+    if (left) left.textContent = deckShort + (name ? ' \u00b7 ' + name : '');
+    if (right) right.textContent = (idx + 1) + ' / ' + slides.length;
+    if (!minis) return;
+    minis.textContent = '';
+    slides.forEach(function(s, i){
+      if (!sec || s.getAttribute('data-section') !== sec) return;
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('data-goto', i);
+      b.title = 'Go to frame ' + (i + 1);
+      b.setAttribute('aria-label', 'Go to frame ' + (i + 1));
+      b.className = i < idx ? 'done' : (i === idx ? 'present' : '');
+      minis.appendChild(b);
+    });
+  }
+
+  function render(){
+    slides.forEach(function(sl, i){
+      var cur = i === idx;
+      sl.classList.toggle('current', cur);
+      sl.setAttribute('aria-hidden', cur ? 'false' : 'true');
+      if (cur) footFill(sl);
+    });
+    var tocLi = document.querySelectorAll('.toc-list [data-for-section]');
+    var sec = slides[idx].getAttribute('data-section') || '';
+    Array.prototype.forEach.call(tocLi, function(li){
+      li.classList.toggle('current', li.getAttribute('data-for-section') === sec);
+    });
+    if (bar) bar.style.width = (slides.length > 1 ? idx / (slides.length - 1) * 100 : 0) + '%';
+    if (live){
+      var h = slides[idx].querySelector('.frametitle, .section-title, h1');
+      live.textContent = 'Frame ' + (idx + 1) + ' of ' + slides.length +
+        (h ? ': ' + h.textContent.trim().replace(/\s+/g, ' ') : '');
+    }
+    check();
+  }
+
+  function go(i, mode){
+    i = Math.max(0, Math.min(slides.length - 1, i));
+    idx = i;
+    if (mode === 'back') setFrags(slides[i], true);
+    else if (mode === 'fwd') setFrags(slides[i], false);
+    try { history.replaceState(null, '', '#/' + (i + 1)); } catch (e) {}
+    render();
+    /* In stacked mode there is no "active" frame, so bring the target into view. */
+    if (document.body.classList.contains('reader')){
+      var el = slides[i];
+      requestAnimationFrame(function(){ if (el.scrollIntoView) el.scrollIntoView({block:'start'}); });
+    }
+  }
+
+  /* One key press reveals the next overlay; only a full frame lets you advance. */
+  function step(d){
+    var f = frags(slides[idx]);
+    if (d > 0){
+      for (var i = 0; i < f.length; i++){
+        if (!f[i].classList.contains('on')){ f[i].classList.add('on'); render(); return; }
+      }
+      go(idx + 1, 'fwd');
+    } else {
+      var shown = f.filter(function(x){ return x.classList.contains('on'); });
+      if (shown.length){ shown[shown.length - 1].classList.remove('on'); render(); return; }
+      go(idx - 1, 'back');
+    }
+  }
+
+  function fullscreen(){
+    if (document.fullscreenElement){ document.exitFullscreen(); }
+    else if (document.documentElement.requestFullscreen){ document.documentElement.requestFullscreen(); }
+  }
+  /* Stacked reader layout: the author's choice, or forced below 700px, where the
+     fixed canvas would only be clipped by the viewport. */
+  function syncMode(){
+    document.body.classList.toggle('reader', wantReader || narrow.matches);
+    fit(); render();
+  }
+  function toggleReader(){ wantReader = !wantReader; syncMode(); }
+
+  document.addEventListener('keydown', function(e){
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var t = e.target;
+    if (t && (t.isContentEditable || /^(INPUT|SELECT|TEXTAREA)$/.test(t.tagName))) return;
+    switch (e.key){
+      case 'ArrowRight': case 'PageDown': case ' ': case 'Spacebar': e.preventDefault(); step(1); break;
+      case 'ArrowLeft': case 'PageUp': e.preventDefault(); step(-1); break;
+      case 'Home': e.preventDefault(); go(0, 'back'); break;
+      case 'End': e.preventDefault(); go(slides.length - 1, 'back'); break;
+      case 'f': case 'F': fullscreen(); break;
+      case 'r': case 'R': toggleReader(); break;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var nav = e.target.closest && e.target.closest('[data-nav]');
+    if (nav){
+      var a = nav.getAttribute('data-nav');
+      if (a === 'next') step(1);
+      else if (a === 'prev') step(-1);
+      else if (a === 'first') go(0, 'back');
+      else if (a === 'last') go(slides.length - 1, 'back');
+      else if (a === 'reader') toggleReader();
+      else if (a === 'full') fullscreen();
+      return;
+    }
+    var dot = e.target.closest && e.target.closest('.miniframes button[data-goto]');
+    if (dot) go(parseInt(dot.getAttribute('data-goto'), 10), 'fwd');
+  });
+
+  /* Placeholder demo wiring: echo the control, then replace with the real computation. */
+  var slider = document.getElementById('demo-slider');
+  if (slider) slider.addEventListener('input', function(){
+    document.getElementById('demo-out').textContent = '\u03b8 = ' + slider.value;
+  });
+
+  window.addEventListener('resize', function(){ fit(); check(); }, {passive:true});
+  window.addEventListener('load', function(){ fit(); check(); });
+  if (narrow.addEventListener) narrow.addEventListener('change', syncMode);
+  else if (narrow.addListener) narrow.addListener(syncMode);
+
+  var m = /^#\/(\d+)$/.exec(location.hash);
+  idx = m ? Math.max(0, Math.min(slides.length - 1, parseInt(m[1], 10) - 1)) : 0;
+  if (idx) setFrags(slides[idx], true);
+  syncMode();
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){ document.body.classList.add('ready'); });
+  });
+})();
+</script>
+</body>
+</html>
