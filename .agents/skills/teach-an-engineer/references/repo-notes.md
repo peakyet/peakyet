@@ -86,7 +86,7 @@ Math renderer: a new deck uses the template's KaTeX (auto-render from the jsDeli
 
 ## summary.md
 
-Match the existing summaries (`Algebra/francis-qr-step/summary.md`, `Algebra/generalized-schur-decomposition/summary.md`): a `# Current understanding: <topic>` title, an audience line, the prerequisite map as a table with each node marked assumed / taught briefly / taught fully / main topic, the mechanism or worked numbers, and an explicit list of which claims were verified by running code. Add the section-to-frame map (`section 2 = #/4-#/6`), so a resumed session can deep-link straight back to the frame it stopped on. This is the handoff file for the next session, so record the calibration answers rather than re-deriving them.
+Match the existing summaries (`Algebra/francis-qr-step/summary.md`, `Algebra/generalized-schur-decomposition/summary.md`): a `# Current understanding: <topic>` title, an audience line, the prerequisite map as a table with each node marked assumed / taught briefly / taught fully / main topic, the mechanism or worked numbers, and an explicit list of which claims were verified by running code. Add the section-to-frame map (`section 2 = #/4-#/6`), so a resumed session can deep-link straight back to the frame it stopped on. Add a **Sources** list of the papers the deck leans on, each with the arXiv ID or DOI it was fetched under and the claim it grounds, as covered in [sources.md](sources.md). This is the handoff file for the next session, so record the calibration answers rather than re-deriving them.
 
 ## Verify
 

@@ -90,5 +90,8 @@ still governs the repository's existing long-form notes, which have no template 
   than the lesson. It encodes the layout and style rules above. Its `references/repo-notes.md` is
   the concrete checklist for where files go and how the card is registered, and
   `templates/beamer-deck.html` is the skill's only page skeleton.
+  Its research step cites papers through the `arxiv-mcp-server` and `paper-search-mcp` MCP servers
+  rather than from memory -- see its `references/sources.md` -- records what each source grounds in
+  the note's `summary.md`, and keeps downloaded PDFs out of the repo.
 - If the rules in this file and in that skill disagree, this file wins; update the skill rather than
   working around it.

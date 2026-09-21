@@ -1,6 +1,6 @@
 ---
 name: teach-an-engineer
-description: "Explain a topic like I'm a well-educated engineer and land it in this knowledge base as a Beamer-style slide deck: a figure-driven, single-HTML artifact with small demos, filed under a category folder and linked from the landing page. Teach it one section at a time from the slides, with a deep link to the new frame rather than an explanation typed into the terminal. Use for /teach-an-engineer, picture-style explanations, or requests to understand how something works; do not use for ordinary prose-only answers."
+description: "Explain a topic like I'm a well-educated engineer and land it in this knowledge base as a Beamer-style slide deck: a figure-driven, single-HTML artifact with small demos, filed under a category folder and linked from the landing page. Ground attributed results, rates, and history in real papers via the arxiv-mcp-server and paper-search-mcp servers rather than recalled citations. Teach it one section at a time from the slides, with a deep link to the new frame rather than an explanation typed into the terminal. Use for /teach-an-engineer, picture-style explanations, or requests to understand how something works; do not use for ordinary prose-only answers."
 ---
 
 # teach-an-engineer
@@ -15,8 +15,8 @@ Governing rule: prose is the scarce resource. Spend it on the **motivation** and
 
 Before teaching the first section, establish the route and create a recoverable draft. Do not require the user to complete a global prerequisite interview before seeing the artifact.
 
-1. Read the repository instructions, [templates/README.md](templates/README.md), and [references/repo-notes.md](references/repo-notes.md).
-2. Research the topic enough to identify the central problem, a durable running example, authoritative sources, likely misconceptions, and real cross-links. Use current web research for changing facts and use the `wolfram-mcp` skill for exact mathematical checks or reference plots when appropriate. Do not invent citations, outputs, or experiments.
+1. Read the repository instructions, [templates/README.md](templates/README.md), and [references/repo-notes.md](references/repo-notes.md). Open [references/sources.md](references/sources.md) as soon as the topic needs papers, standards, or attributed results.
+2. Research the topic enough to identify the central problem, a durable running example, authoritative sources, likely misconceptions, and real cross-links, in proportion to how current, technical, or contested it is. When the topic rests on papers, standards, or attributed results, find them with the paper MCP servers instead of recalling them: `arxiv-mcp-server` for arXiv search, full text, and citation lineage, and `paper-search-mcp` for DOI and journal metadata and for fields arXiv does not carry. [references/sources.md](references/sources.md) gives the tool calls, the reading ladder, and how each source gets recorded. Use current web research for fast-changing facts and library behaviour, and the `wolfram-mcp` skill for exact mathematical checks or reference plots when appropriate. Do not invent citations, outputs, or experiments: verify an identifier or drop the attribution.
 3. Propose an initial section outline. The outline should normally move from motivation and failure mode to core mechanism, worked example, limits or tradeoffs, and broader connections. Make it adaptable: split, reorder, or revisit sections when the user's questions reveal that the route needs to change. Plan each section as three to five frames with one claim per frame, and say so in the outline the user sees.
 4. Derive a filesystem-safe slug and choose the single category folder: `Algebra`, `Control`, `Mathematics`, `Optimization`, `Robotics`, `AI-ML`, or `Tools`.
 5. Create the folder and copy [templates/beamer-deck.html](templates/beamer-deck.html) into `<Category>/<topic-slug>/<topic-slug>.html`, or into `<Category>/<slug>/<slug>-deck.html` when a page already owns that slug. Keep the valid HTML shell, CSS, KaTeX setup, metadata, outline frame, and foot bands. Mark the source as a draft with an unobtrusive HTML comment or equivalent source-level marker; do not add the page to `index.html` yet.
@@ -95,7 +95,7 @@ If a later section exposes a flaw in an earlier explanation, revisit the earlier
 - End every completed section with a one-sentence takeaway, using the template's `intuition` and `takeaway` callouts. Keep the sequence of takeaways coherent when read by itself.
 - Keep demos minimal: one idea, one short source file, and output that fits on one screen. Run every executable demo yourself and include the actual output. If a demo cannot be run, label it as unverified and do not present its output as fact.
 - Define symbols on first use and keep notation consistent. Render equations with the template's math engine at LaTeX quality: proper variables, spacing, fractions, exponents, and operators.
-- Progress from the core idea to variations, limits, and tradeoffs, then connect it to related theory. End the deck with a closing frame listing reputable resources, each with a one-line note about what it adds.
+- Progress from the core idea to variations, limits, and tradeoffs, then connect it to related theory. End the deck with a closing frame listing reputable resources, each with a one-line note about what it adds and a resolvable arXiv ID or DOI, per [references/sources.md](references/sources.md).
 
 ## 4. Land the completed deck in the repo
 
@@ -112,13 +112,22 @@ If a later section exposes a flaw in an earlier explanation, revisit the earlier
 
 - Before adding the landing-page card, render the deck frame by frame at a desktop viewport, and once at a narrow viewport, using the verification commands in [references/repo-notes.md](references/repo-notes.md). Check that math renders, figures and controls are usable, links and local assets resolve, and no content overlaps or clips. Inspect the title frame, the densest content frame, and the closing frame with every overlay revealed, and leave no `overfull` tag on any frame. If browser inspection is unavailable, perform static checks and say what was not inspected.
 - Check the wiring, not only the page: the card is in `#grid`, its `href` and filter classes are real, cross-links resolve, and no unrelated landing-page entry was disturbed.
+- Confirm the research left no residue: the deck links only public URLs, and no downloaded PDF or extracted text was committed.
 - Check that no draft marker or placeholder frame remains in the completed deck, that every section has a takeaway frame, that each section's frames cover what the conversation taught, and that `summary.md` records the final calibration, frame ranges, and verification state.
+- Re-check the attribution before the card goes in: every Sources entry is an arXiv ID or DOI that was actually fetched this session, `summary.md` says which claim each source grounds, and the central claim taken from at least one cited paper was spot-checked against its full text rather than its abstract.
 - Add the landing-page card only after these checks. Then verify that filters find it, reading time and counts update, and its link resolves.
 - Deliver the deck and `summary.md` together, name the category and slug it landed in, and invite questions. Answer a follow-up in two or three lines plus a deep link to the frame that carries the answer; where no frame carries it, add one.
 - If the user engages in a teaching follow-up, correct the misconception on the relevant frames, revise them in place, and refresh `summary.md` with the final understanding. Offer an optional short comprehension check on a frame; do not force a new quiz once the deck is complete.
 
 ## Tools
 
-For math, verification, or reference plots, use the `wolfram-mcp` skill when it is the right tool; C++, Python, JavaScript, Octave, or another suitable tool is fine for behavioral demos. Follow the relevant tool or skill instructions before using it.
+Route by the kind of question being answered, and follow the relevant tool or skill instructions before using it.
+
+- **Papers and attributed results** — the paper MCP servers, not memory and not a general web search. `arxiv-mcp-server` (`search_papers`, `get_abstract`, `download_paper`, `read_paper`, `citation_graph`, `export_citations`) for arXiv-covered material and citation lineage; `paper-search-mcp` (`search_papers`, `search_crossref`, `search_semantic`, `search_arxiv`, `read_semantic_paper`, `download_with_fallback`) for DOI and journal metadata, for fields arXiv does not carry, and for the last-resort PDF when nothing open has the paper. Their tools load through tool search when they are not already in the session. Workflow, query syntax, and citation-recording rules: [references/sources.md](references/sources.md).
+- **Exact math and reference plots** — the `wolfram-mcp` skill when it is the right tool.
+- **Behavioral demos** — C++, Python, JavaScript, Octave, or another suitable tool. Run them and paste the real output.
+- **Fast-changing web facts and library docs** — the Exa web search tools, or the `exa-search` / `exa-contents` skills for raw HTTP.
+
+Research downloads are scratch: keep PDFs and extracted text out of the repository, and link the deck at public URLs only.
 
 Topic: $ARGUMENTS

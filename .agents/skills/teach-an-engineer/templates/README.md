@@ -80,7 +80,10 @@ fit a column, shorten it or add `.eq.tight`.
    `data-secname` identical across a divider and the frames it introduces.
 5. Spend overlays where the argument branches: `data-fragment` on each beat of a
    list, and on the answer of a prediction prompt so the question lands first.
-6. Close every section with a `.block.takeaway`, and the deck with a sources frame.
+6. Close every section with a `.block.takeaway`, and the deck with a sources frame: one entry
+   per authoritative reference, each carrying a real arXiv ID or DOI link and a line on what it
+   adds. Fetch those identifiers with the paper MCP servers rather than from memory, and mirror
+   the list into `summary.md` (see [../references/sources.md](../references/sources.md)).
 7. Keep `data-theme="beamer"` unless the user wants the deck to read as part of the
    note series, then set `data-theme="paper"`. Recolor anything else only on request.
 8. Fix every `overfull \vbox` / `overfull \hbox` tag before shipping, then keep the
