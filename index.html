@@ -331,27 +331,6 @@
 
     <div class="grid" id="grid">
 
-      <a class="card" href="Algebra/generalized-schur-decomposition/generalized-schur-decomposition.html" data-category="algebra control" data-field="Numerical Linear Algebra" data-tags="linear-algebra generalized-eigen schur qz pencil eigenvalue numerics backward-stability">
-        <div class="toprow">
-          <span class="tag amber">Generalized Eigenproblems</span>
-          <span class="read"></span>
-        </div>
-        <h3>The Generalized Schur (QZ) Decomposition</h3>
-        <p>Solving \(Ax=\lambda Bx\) without inverting \(B\): matrix pencils and homogeneous eigenvalue pairs, why unitary transformations on both sides keep the answer backward-stable, the reduction to Hessenberg&ndash;triangular form, the QZ iteration, and how to read the answer off the generalized Schur form.</p>
-        <div class="tags">
-          <span class="tag-pill">linear-algebra</span>
-          <span class="tag-pill">generalized-eigen</span>
-          <span class="tag-pill">schur</span>
-          <span class="tag-pill">qz</span>
-          <span class="tag-pill">pencil</span>
-          <span class="tag-pill">eigenvalue</span>
-          <span class="tag-pill">numerics</span>
-          <span class="tag-pill">backward-stability</span>
-        </div>
-        <span class="go">Read the note</span>
-        <span class="foot"><span class="field"><i></i>Numerical Linear Algebra</span></span>
-      </a>
-
       <a class="card" href="Algebra/householder-transformations/householder-transformations.html" data-category="algebra" data-field="Numerical Linear Algebra" data-tags="linear-algebra householder reflector orthogonal qr least-squares tridiagonalization elimination numerics">
         <div class="toprow">
           <span class="tag amber">Orthogonal Elimination</span>
@@ -372,23 +351,24 @@
         <span class="foot"><span class="field"><i></i>Numerical Linear Algebra</span></span>
       </a>
 
-      <a class="card" href="Algebra/francis-qr-step/francis-qr-step.html" data-category="algebra" data-field="Numerical Linear Algebra" data-tags="linear-algebra francis qr eigenvalue schur implicit-shift bulge-chasing complex-shift numerics lapack">
+      <a class="card" href="Algebra/francis-qz-step/francis-qz-step.html" data-category="algebra optimization control" data-field="Numerical Linear Algebra" data-tags="linear-algebra generalized-eigenvalue qz francis double-shift hessenberg-triangular bulge-chase numerical-methods eigenvalues schur">
         <div class="toprow">
-          <span class="tag amber">Eigenvalue Iteration</span>
+          <span class="tag amber">Numerical Linear Algebra</span>
           <span class="read"></span>
         </div>
-        <h3>The Francis QR Step: Eigenvalues Without Complex Numbers</h3>
-        <p>How LAPACK finds complex eigenvalues of a real matrix using only real arithmetic: the double shift with a conjugate pair, the implicit \(Q\) theorem that lets you build only the first column, and how the resulting bulge is chased down a Hessenberg matrix.</p>
+        <h3>The Francis QZ Step</h3>
+        <p>How QZ takes a double-shift QR step on \(HT^{-1}\) without ever inverting \(B\): Hessenberg&ndash;triangular reduction, the three-entry bulge vector, and the alternating left/right rotations that chase it down the pencil.</p>
         <div class="tags">
           <span class="tag-pill">linear-algebra</span>
+          <span class="tag-pill">generalized-eigenvalue</span>
+          <span class="tag-pill">qz</span>
           <span class="tag-pill">francis</span>
-          <span class="tag-pill">qr</span>
-          <span class="tag-pill">eigenvalue</span>
-          <span class="tag-pill">implicit-shift</span>
-          <span class="tag-pill">bulge-chasing</span>
-          <span class="tag-pill">lapack</span>
+          <span class="tag-pill">double-shift</span>
+          <span class="tag-pill">hessenberg-triangular</span>
+          <span class="tag-pill">bulge-chase</span>
+          <span class="tag-pill">numerical-methods</span>
         </div>
-        <span class="go">Read the note</span>
+        <span class="go">Open the slides</span>
         <span class="foot"><span class="field"><i></i>Numerical Linear Algebra</span></span>
       </a>
 
@@ -569,27 +549,6 @@
         <span class="foot"><span class="field"><i></i>Control Theory</span></span>
       </a>
 
-      <a class="card" href="Control/sda-algebraic-riccati/sda-algebraic-riccati.html" data-category="control algebra" data-field="Control Theory" data-tags="control riccati lqr are doubling structure-preserving symplectic numerics quadratic-convergence">
-        <div class="toprow">
-          <span class="tag teal">Riccati Equations</span>
-          <span class="read"></span>
-        </div>
-        <h3>SDA: Solving the Riccati Equation by Never Solving It</h3>
-        <p>The structure-preserving doubling algorithm rewrites the ARE into an equivalent problem whose data shrinks doubly exponentially &mdash; about ten rewrites to machine precision. Built up from repeated squaring, through the Stein equation and DARE, to the CARE and the Kronecker \(S = M_1 \otimes M_2\) convergence test.</p>
-        <div class="tags">
-          <span class="tag-pill">control</span>
-          <span class="tag-pill">riccati</span>
-          <span class="tag-pill">lqr</span>
-          <span class="tag-pill">are</span>
-          <span class="tag-pill">doubling</span>
-          <span class="tag-pill">structure-preserving</span>
-          <span class="tag-pill">symplectic</span>
-          <span class="tag-pill">quadratic-convergence</span>
-        </div>
-        <span class="go">Read the note</span>
-        <span class="foot"><span class="field"><i></i>Control Theory</span></span>
-      </a>
-
       <a class="card" href="Control/signal-filter-design/signal-filter-design.html" data-category="control math" data-field="Control Theory" data-tags="control filter signal-processing noise lowpass notch bode loop-shaping phase-margin pid">
         <div class="toprow">
           <span class="tag teal">Loop Shaping</span>
@@ -645,6 +604,28 @@
           <span class="tag-pill">nlp</span>
           <span class="tag-pill">ipopt</span>
           <span class="tag-pill">hpipm</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Optimization</span></span>
+      </a>
+
+      <a class="card" href="Optimization/quasi-newton-method/quasi-newton-method.html" data-category="optimization" data-field="Optimization" data-tags="optimization quasi-newton bfgs l-bfgs dfp sr1 hessian line-search numerical-methods">
+        <div class="toprow">
+          <span class="tag amber">Quasi-Newton</span>
+          <span class="read"></span>
+        </div>
+        <h3>Quasi-Newton Methods</h3>
+        <p>How BFGS learns a Newton-like curvature model from gradient differences &mdash; and how limited memory makes the idea scale.</p>
+        <div class="tags">
+          <span class="tag-pill">optimization</span>
+          <span class="tag-pill">quasi-newton</span>
+          <span class="tag-pill">bfgs</span>
+          <span class="tag-pill">l-bfgs</span>
+          <span class="tag-pill">dfp</span>
+          <span class="tag-pill">sr1</span>
+          <span class="tag-pill">hessian</span>
+          <span class="tag-pill">line-search</span>
+          <span class="tag-pill">numerical-methods</span>
         </div>
         <span class="go">Read the note</span>
         <span class="foot"><span class="field"><i></i>Optimization</span></span>

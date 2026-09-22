@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Francis QZ Step — Chasing a Bulge Through a Matrix Pencil</title>
+<!--
+  beamer-deck.html — the default, and only, page skeleton of this repository's
+  teach-an-engineer skill. One <section class="slide"> per frame.
+
+  Teaching flow: write a section's frames into the deck before discussing it, then
+  hand over the deep link (this file, "#/4") for the frame that carries the
+  question. The terminal is for the link and the user's answer, not the lesson.
+
+  Frame kinds:
+    .slide.title    the \titlepage frame (first frame)
+    .slide.toc-frame the \tableofcontents frame (second frame)
+    .slide.section  a \sectionpage divider; carries data-section="N"
+    .slide.frame    a content frame; carries data-section="N" and
+                    data-secname="Section name" for the foot band
+
+  Beamer vocabulary available: \frametitle / \framesubtitle, itemize and
+  enumerate (.item, .enum), block / alertblock / exampleblock (.block,
+  .block.alert, .block.example), theorem-like environments (.thm, .defn,
+  .lem, .cor, .proof), columns (.cols), and overlays (data-fragment on any
+  element, revealed one at a time).
+
+  The long-form class names the repository's existing notes use (.eq, .callout,
+  .figure, .demo, details.predict, table, pre/code) are also styled here, so
+  content lifted from a note keeps its look inside a frame. See
+  templates/README.md for the class mapping and for how a deck is filed and
+  registered on the landing page.
+
+  Keyboard: Right/Space/PageDown next frame (or next fragment), Left/PageUp
+  back, Home/End first/last, f fullscreen, r reader mode (stacked frames).
+  Print to PDF with "Background graphics" on: one frame per landscape page.
+-->
+<style>
+  /* ---------- reset & theme tokens ---------- */
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{font-size:16px;overflow-x:clip}
+  body{background:#d7dade;color:#1a1a1a;font-family:var(--font-body);
+      -webkit-font-smoothing:antialiased}
+
+  body[data-theme="beamer"]{
+    --font-body:"Helvetica Neue",Helvetica,Arial,"Liberation Sans",sans-serif;
+    --font-head:var(--font-body);
+    --frame-w:1280px; --frame-h:720px; --slide-fs:26px;
+    --paper:#fff; --ink:#1a1a1a; --muted:#5c6169;
+    --accent:#1f5f9c; --accent-ink:#123c63;
+    --band:#eaf0f7; --rule:#bacfe4; --link:#1f5f9c;
+    --blk-bg:#f4f8fc; --blk-title:#dbe7f3; --blk-border:#b9cee3; --blk-ink:#123c63;
+    --alt-bg:#fdf4f4; --alt-title:#f3d9d9; --alt-border:#dfb3b3; --alt-ink:#8f2323;
+    --ex-bg:#f7faee; --ex-title:#e3ecc9; --ex-border:#c9d8a5; --ex-ink:#4f6218;
+    --intuition:#4a7bb5; --intuition-bg:#eef4fb; --takeaway:#3a7d44; --takeaway-bg:#edf5ec;
+    --eq-bg:#f3f7fb; --tint:#f7f9fc; --code-bg:#f4f4f2;
+  }
+  /* Repo-paper variant: same layout, the knowledge base's serif/gold palette. */
+  body[data-theme="paper"]{
+    --font-body:"Source Serif Pro",Georgia,"Times New Roman",serif;
+    --font-head:var(--font-body);
+    --frame-w:1280px; --frame-h:720px; --slide-fs:26px;
+    --paper:#fffdf7; --ink:#1a1a1a; --muted:#5c574a;
+    --accent:#9a5b00; --accent-ink:#7a4a00;
+    --band:#f7f4ec; --rule:#d4a72c; --link:#9a5b00;
+    --blk-bg:#f7f4ec; --blk-title:#efe7d3; --blk-border:#e2d9bd; --blk-ink:#7a5a00;
+    --alt-bg:#fbf1ee; --alt-title:#f0dcd5; --alt-border:#e0c0b6; --alt-ink:#8f3b23;
+    --ex-bg:#f2f6ee; --ex-title:#e2ebd8; --ex-border:#cbd9ba; --ex-ink:#3a6b3f;
+    --intuition:#4a7bb5; --intuition-bg:#eef4fb; --takeaway:#3a7d44; --takeaway-bg:#edf5ec;
+    --eq-bg:#f7f4ec; --tint:#faf8f2; --code-bg:#f4f0e4;
+  }
+
+  /* ---------- stage & frame geometry ---------- */
+  .stage{position:fixed; inset:0; overflow:hidden}
+  body.reader{background:var(--paper)}
+  body.reader .stage{position:static; inset:auto; overflow:visible;
+    padding:0.75rem 0.5rem 3rem}
+  .slide{
+    position:absolute; left:50%; top:50%; width:var(--frame-w); height:var(--frame-h);
+    transform:translate(-50%,-50%) scale(var(--s,1));
+    transform-origin:center center;
+    background:var(--paper); color:var(--ink); font-size:var(--slide-fs);
+    line-height:1.45; overflow:hidden;
+    box-shadow:0 6px 24px rgba(20,30,45,.28);
+    display:flex; flex-direction:column;
+    opacity:0; visibility:hidden;
+  }
+  /* Keep the opening frame instant: animate only after the deck has painted once. */
+  .slide{transition:none}
+  .deck.ready .slide{transition:opacity .16s ease}
+  .slide.current{opacity:1; visibility:visible}
+  body.reader .slide{position:relative; left:auto; top:auto; width:min(1100px,100%);
+    height:auto; min-height:0; margin:0 auto 1rem; transform:none; opacity:1;
+    visibility:visible; box-shadow:0 1px 6px rgba(20,30,45,.14); font-size:17px}
+  body.reader [data-fragment]{opacity:1; transform:none}
+  body.reader .slide.ov-v::after,body.reader .slide.ov-h::after{display:none}
+  body.reader .controls,body.reader .progress{display:none}
+  /* Stacked reading needs no foot band: the frametitle already names the frame. */
+  body.reader .frame-foot{display:none}
+
+  /* Beamer's overfull-box warning, for the two ways a frame can fail to fit. */
+  .slide.ov-v::after,.slide.ov-h::after{position:absolute; right:0; top:0;
+    font:500 11px/1 ui-monospace,Menlo,Consolas,monospace; letter-spacing:0;
+    color:#fff; background:#b3352e; padding:0.35em 0.5em; border-radius:0 0 0 6px}
+  .slide.ov-v::after{content:"overfull \\vbox"}
+  .slide.ov-h::after{content:"overfull \\hbox"}
+  .slide.ov-v.ov-h::after{content:"overfull \\vbox + \\hbox"}
+  /* Keep the badge clear of a long frametitle. */
+  .slide.ov-v .frametitle,.slide.ov-h .frametitle{padding-right:8em}
+
+  /* ---------- head & foot bands ---------- */
+  .frame-head{background:var(--band); border-bottom:2px solid var(--rule);
+    padding:0.5em 1.1em 0.42em; flex:0 0 auto}
+  .frametitle{font-family:var(--font-head); font-size:1.3em; font-weight:700;
+    line-height:1.2; color:var(--accent-ink); letter-spacing:0}
+  .framesubtitle{display:block; font-size:0.78em; font-weight:400; color:var(--muted);
+    margin-top:0.12em}
+  .frame-body{flex:1 1 auto; padding:0.6em 1.1em 0.5em; min-height:0; overflow:hidden}
+  .frame-foot{flex:0 0 auto; display:grid; grid-template-columns:1fr auto 1fr;
+    align-items:center; gap:0.8em; background:var(--band); border-top:1px solid var(--rule);
+    color:var(--accent-ink); font-size:0.62em; padding:0.5em 1.1em}
+  .foot-left{text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .foot-right{text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap}
+  .miniframes{display:flex; gap:0.45em; align-items:center; justify-content:center}
+  .miniframes button{width:0.72em; height:0.72em; padding:0; border-radius:50%;
+    border:1px solid var(--accent); background:transparent; cursor:pointer}
+  .miniframes button.done{background:var(--accent)}
+  .miniframes button.present{background:var(--accent); box-shadow:0 0 0 2px var(--paper),
+    0 0 0 3px var(--accent)}
+  .miniframes button:hover{border-color:var(--accent-ink)}
+
+  /* ---------- typography ---------- */
+  .frame-body p{margin:0.42em 0}
+  .frame-body p.lead{font-size:1.06em; color:var(--muted)}
+  h1,h2,h3,h4{font-family:var(--font-head); letter-spacing:0}
+  .frame-body h3{font-size:1.05em; color:var(--accent-ink); margin:0.7em 0 0.2em}
+  a{color:var(--link); text-decoration:none; border-bottom:1px solid var(--rule)}
+  a:hover{color:var(--accent-ink)}
+  strong{color:var(--ink); font-weight:700}
+  em{color:var(--ink)}
+  .frame-body small{font-size:0.78em; color:var(--muted)}
+  .frame-body>ol,.frame-body>ul{margin:0.3em 0 0.3em 1.15em}
+  li{margin:0.18em 0}
+  /* Beamer bullets: filled triangles, smaller for nested levels. */
+  ul.item{list-style:none; margin-left:0.1em}
+  ul.item>li{position:relative; padding-left:0.95em}
+  ul.item>li::before{content:""; position:absolute; left:0; top:0.52em;
+    border-left:0.42em solid var(--accent); border-top:0.26em solid transparent;
+    border-bottom:0.26em solid transparent}
+  ul.item ul.item{list-style:none; margin:0.1em 0 0.1em 1.1em}
+  ul.item ul.item>li::before{border-left-width:0.3em; border-top-width:0.19em;
+    border-bottom-width:0.19em; opacity:.75}
+  ol.enum{margin-left:1.5em}
+  ol.enum>li::marker{color:var(--accent); font-weight:700}
+
+  /* ---------- overlays / fragments ---------- */
+  [data-fragment]{opacity:0; transform:translateY(0.14em)}
+  .deck.ready [data-fragment]{transition:opacity .18s ease, transform .18s ease}
+  [data-fragment].on{opacity:1; transform:none}
+
+  /* ---------- beamer blocks ---------- */
+  .block{border:1px solid var(--blk-border); border-radius:0.28em; background:var(--blk-bg);
+    margin:0.5em 0; overflow:hidden}
+  .block>.blk-title{background:var(--blk-title); color:var(--blk-ink); font-weight:700;
+    font-size:0.88em; padding:0.26em 0.6em; border-bottom:1px solid var(--blk-border)}
+  .block>.blk-body{padding:0.36em 0.6em 0.44em}
+  .block.alert{border-color:var(--alt-border); background:var(--alt-bg)}
+  .block.alert>.blk-title{background:var(--alt-title); color:var(--alt-ink);
+    border-bottom-color:var(--alt-border)}
+  .block.example{border-color:var(--ex-border); background:var(--ex-bg)}
+  .block.example>.blk-title{background:var(--ex-title); color:var(--ex-ink);
+    border-bottom-color:var(--ex-border)}
+  /* block variants carrying the note template's teaching roles */
+  .block.intuition{border-color:#b9cee3; background:var(--intuition-bg)}
+  .block.intuition>.blk-title{background:var(--intuition-bg); color:#1f4f7a;
+    border-bottom-color:#cfdff0}
+  .block.takeaway{border-color:#bcd6bf; background:var(--takeaway-bg)}
+  .block.takeaway>.blk-title{background:var(--takeaway-bg); color:#1d5e2a;
+    border-bottom-color:#cbe0cd}
+
+  /* ---------- theorem-like environments ---------- */
+  .thm,.defn,.lem,.cor{margin:0.55em 0; padding:0.42em 0.6em; border-left:3px solid var(--rule);
+    background:var(--tint)}
+  .thm>.thm-name,.defn>.thm-name,.lem>.thm-name,.cor>.thm-name{display:inline;
+    font-weight:700; color:var(--accent-ink)}
+  .thm,.lem,.cor{font-style:italic}
+  .thm .thm-body,.lem .thm-body,.cor .thm-body,.defn .thm-body{display:inline}
+  .proof{margin:0.55em 0; padding-left:0.6em; border-left:3px solid var(--rule)}
+  .proof>.proof-name{font-weight:700; font-style:italic; color:var(--accent-ink)}
+  .proof::after{content:"\25FD"; float:right; color:var(--accent); font-size:0.9em}
+
+  /* ---------- equations ---------- */
+  .eq{display:block; text-align:center; margin:0.5em 0; padding:0.4em 0.5rem;
+    background:var(--eq-bg); border-left:3px solid var(--rule); border-radius:0.2em;
+    overflow-x:auto; line-height:1.8}
+  .eq.tight{font-size:0.82em}
+
+  /* ---------- figures ---------- */
+  .figure{margin:0.5em auto; padding:0.45em; background:var(--paper);
+    border:1px solid var(--rule); border-radius:0.28em; max-width:100%}
+  .figure svg{width:100%; height:auto; display:block}
+  .figure img{max-width:100%; margin:0 auto; display:block}
+  .figure-caption{font-size:0.72em; color:var(--muted); text-align:center;
+    margin-top:0.28em; line-height:1.35}
+  .figure-caption b{color:var(--accent-ink)}
+
+  /* ---------- callouts lifted from the note template ---------- */
+  .callout{background:var(--blk-bg); border-left:4px solid var(--rule);
+    border-radius:0 .3em .3em 0; padding:0.4em 0.6em; margin:0.5em 0; font-size:0.94em}
+  .callout.intuition{border-left-color:var(--intuition); background:var(--intuition-bg)}
+  .callout.intuition strong{color:#1f4f7a}
+  .callout.takeaway{border-left-color:var(--takeaway); background:var(--takeaway-bg)}
+  .callout.takeaway strong{color:#1d5e2a}
+  details.predict{background:var(--tint); border:1px solid var(--rule); border-radius:0.3em;
+    padding:0.4em 0.6em; margin:0.5em 0}
+  details.predict summary{cursor:pointer; font-weight:700; color:var(--accent-ink)}
+
+  /* ---------- tables, code, demos ---------- */
+  table{border-collapse:collapse; margin:0.4em 0; font-size:0.84em}
+  th,td{border:1px solid var(--rule); padding:0.22em 0.5em; text-align:left}
+  th{background:var(--band); color:var(--accent-ink); font-weight:700}
+  tr:nth-child(even) td{background:var(--tint)}
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:0.86em}
+  pre{background:var(--code-bg); border:1px solid var(--rule); border-radius:0.25em;
+    padding:0.4em 0.6em; overflow-x:auto; font-size:0.72em; line-height:1.45}
+  code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:0.88em;
+    background:var(--code-bg); padding:0.05em 0.3em; border-radius:0.2em}
+  pre code{background:none; padding:0}
+  .demo{border:1px solid var(--rule); border-radius:0.3em; padding:0.5em 0.7em;
+    margin:0.5em 0; background:var(--tint)}
+  .demo-controls{display:flex; flex-wrap:wrap; gap:0.8em; align-items:center; margin:0.2em 0 0.5em}
+  .demo-controls input[type=range]{width:min(16em,100%); vertical-align:middle}
+  button,.demo select,.demo input{font:inherit; color:inherit}
+  .btn{border:1px solid var(--accent); background:var(--band); color:var(--accent-ink);
+    border-radius:0.25em; padding:0.16em 0.6em; cursor:pointer}
+  .btn:hover{background:var(--blk-title)}
+
+  /* ---------- columns ---------- */
+  .cols{display:grid; grid-template-columns:1fr 1fr; gap:0.8em; align-items:start}
+  .cols.c3{grid-template-columns:1fr 1fr 1fr}
+  .cols.w64{grid-template-columns:3fr 2fr}
+  .cols.w46{grid-template-columns:2fr 3fr}
+  .col{min-width:0}
+
+  /* ---------- title page ---------- */
+  .slide.title .titlepage{flex:1; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; gap:1.1em; padding:1.2em 2em; text-align:center;
+    background:linear-gradient(180deg,var(--paper) 0%,var(--band) 100%)}
+  .titlebox,.authorbox{background:var(--paper); border:1px solid var(--rule);
+    border-radius:0.3em; box-shadow:0 3px 10px rgba(20,30,45,.14); padding:0.7em 1.4em}
+  .titlebox h1{font-size:2.25em; line-height:1.15; color:var(--accent); font-weight:700}
+  .titlebox .subtitle{display:block; font-size:1.05em; color:var(--muted); margin-top:0.35em}
+  .authorbox{font-size:0.92em; color:var(--accent-ink)}
+  .authorbox .author{font-weight:700}
+  .authorbox .institute,.authorbox .date{color:var(--muted); margin-top:0.12em}
+
+  /* ---------- toc & section frames ---------- */
+  .toc-list{list-style:none; margin:0.3em 0}
+  .toc-list>li{margin:0.3em 0; padding:0.14em 0.3em; display:flex;
+    gap:0.5em; align-items:baseline}
+  .secnum{flex:0 0 auto; display:inline-grid; place-items:center; min-width:1.5em; height:1.5em;
+    padding:0 0.22em; border-radius:50%; background:var(--band); border:1px solid var(--rule);
+    color:var(--accent-ink); font-size:0.74em; font-weight:700}
+  .toc-list .sec-title{font-size:1.02em; font-weight:600}
+  .toc-list li.current{background:var(--band); border-radius:0.25em}
+  .toc-list li.current .secnum{background:var(--accent); color:#fff; border-color:var(--accent)}
+  .toc-list .sec-frames{color:var(--muted); font-size:0.84em}
+
+  .slide.section .sectionpage{flex:0 0 auto; padding:0.9em 1.1em;
+    background:var(--band); border-left:0.32em solid var(--accent); border-radius:0.2em}
+  .section-kicker{font-size:0.8em; color:var(--muted); text-transform:uppercase}
+  .section-title{font-size:1.7em; font-weight:700; color:var(--accent); line-height:1.2;
+    margin-top:0.12em}
+  .section-wrap{flex:1; display:flex; flex-direction:column; justify-content:center;
+    padding:0 1.4em; gap:0.9em}
+
+  /* ---------- deck chrome ---------- */
+  .progress{position:fixed; left:0; top:0; height:3px; width:100%; z-index:70}
+  .progress i{display:block; height:100%; width:0; background:var(--accent);
+    transition:width .18s ease}
+  .controls{position:fixed; right:0.9rem; bottom:0.9rem; z-index:70; display:flex;
+    gap:0.3rem; background:rgba(255,255,255,.92); border:1px solid #bacfe4;
+    border-radius:0.6rem; padding:0.28rem; backdrop-filter:blur(6px);
+    box-shadow:0 2px 10px rgba(20,30,45,.18)}
+  .controls button{border:0; background:transparent; color:#123c63;
+    cursor:pointer; font-size:1rem; line-height:1; padding:0.3rem 0.5rem; border-radius:0.35rem}
+  .controls button:hover{background:#eaf0f7}
+  .sr-only{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);
+    white-space:nowrap}
+
+  @media (max-width:700px){
+    .controls,.progress{display:none}
+    [data-fragment]{opacity:1; transform:none}
+    .cols,.cols.c3,.cols.w64,.cols.w46{grid-template-columns:1fr}
+    .slide.ov-v::after,.slide.ov-h::after{display:none}
+    .titlebox h1{font-size:1.75em}
+    .frame-head{padding:0.45em 0.7em 0.4em}
+    .frame-body{padding:0.5em 0.7em}
+    .frame-foot{padding:0.45em 0.7em; font-size:0.68em}
+  }
+
+  /* ---------- print: one frame per landscape page ---------- */
+  @media print{
+    @page{size:1280px 720px; margin:0}
+    html,body{background:#fff}
+    .stage{position:static; padding:0}
+    .slide{position:relative; left:auto; top:auto; width:var(--frame-w);
+      height:var(--frame-h); transform:none; opacity:1; visibility:visible;
+      box-shadow:none; break-after:page; font-size:var(--slide-fs)}
+    .slide:last-of-type{break-after:auto}
+    [data-fragment]{opacity:1; transform:none}
+    .controls,.progress,.slide.ov-v::after,.slide.ov-h::after{display:none}
+  }
+</style>
+<!-- KaTeX is loaded from a CDN; inline it only if an offline copy is wanted. -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[
+    {left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}]});"></script>
+<style>
+  /* QZ interactive demo */
+  .qz-matrix{border-collapse:collapse; margin:0.2em 0; font-size:0.55em; width:100%; table-layout:fixed}
+  .qz-matrix td{border:1px solid var(--rule); padding:0.12em 0.25em; text-align:right;
+    font-family:ui-monospace,Menlo,Consolas,monospace; color:var(--ink); overflow:hidden}
+  .qz-matrix td.zero{color:var(--muted)}
+  .qz-matrix td.chg{background:var(--alt-bg); color:var(--alt-ink); font-weight:700}
+  .qz-btn{border:1px solid var(--rule); background:var(--paper); color:var(--accent-ink);
+    border-radius:0.35em; padding:0.25em 0.6em; font:inherit; font-size:0.78em; cursor:pointer}
+  .qz-btn:hover{background:var(--band)}
+  .qz-btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+</style>
+</head>
+
+<body data-theme="paper" class="deck">
+<div class="progress" aria-hidden="true"><i id="progress-bar"></i></div>
+
+<main class="stage" id="stage">
+
+  <!-- ================= \titlepage ================= -->
+  <section class="slide title" aria-label="Title">
+    <div class="titlepage">
+      <div class="titlebox">
+        <h1>The Francis QZ Step</h1>
+        <span class="subtitle">Chasing a double shift through a matrix pencil &mdash; without ever inverting \(B\).</span>
+      </div>
+      <div class="authorbox">
+        <p class="author">PeakYet knowledge base</p>
+        <p class="institute"><a href="../../index.html">knowledge base home</a> &middot; companion note: <a href="../householder-transformations/householder-transformations.html">Householder transformations</a></p>
+        <p class="date">Numerical linear algebra &middot; September 2026</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= \tableofcontents ================= -->
+  <section class="slide toc-frame" aria-label="Outline">
+    <header class="frame-head"><h2 class="frametitle">Outline</h2></header>
+    <div class="frame-body">
+      <p class="lead">Motivation first, then the mechanism, then the numbers and the limits.</p>
+      <ul class="toc-list">
+        <li data-for-section="1"><span class="secnum">1</span>
+          <span class="sec-title">The pencil problem</span>
+          <span class="sec-frames">&mdash; why \(B^{-1}A\) is the wrong object</span></li>
+        <li data-for-section="2"><span class="secnum">2</span>
+          <span class="sec-title">Hessenberg&ndash;triangular form</span>
+          <span class="sec-frames">&mdash; the shape the iteration needs</span></li>
+        <li data-for-section="3"><span class="secnum">3</span>
+          <span class="sec-title">The Francis QZ step</span>
+          <span class="sec-frames">&mdash; a double shift, computed without an inverse</span></li>
+        <li data-for-section="4"><span class="secnum">4</span>
+          <span class="sec-title">Chasing the bulge</span>
+          <span class="sec-frames">&mdash; left and right rotations, alternating</span></li>
+        <li data-for-section="5"><span class="secnum">5</span>
+          <span class="sec-title">Shifts, deflation, convergence</span>
+          <span class="sec-frames">&mdash; what makes the iteration finish</span></li>
+        <li data-for-section="6"><span class="secnum">6</span>
+          <span class="sec-title">Worked example and limits</span>
+          <span class="sec-frames">&mdash; real numbers, modern variants, sources</span></li>
+      </ul>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <!-- ================= Section 1 ================= -->
+  <section class="slide section" data-section="1" aria-label="Section 1">
+    <div class="section-wrap">
+      <div class="sectionpage">
+        <p class="section-kicker">Section 1</p>
+        <p class="section-title">The pencil problem</p>
+      </div>
+      <div class="block intuition">
+        <p class="blk-title">Question this section answers</p>
+        <div class="blk-body"><p>Why is \(Ax=\lambda Bx\) not just an eigenvalue problem for \(B^{-1}A\)?</p></div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+    <section class="slide frame" data-section="1" data-secname="The pencil problem" aria-label="Two matrices, one equation">
+    <header class="frame-head">
+      <h2 class="frametitle">Two matrices, one equation
+        <span class="framesubtitle">The pair \((A,B)\) is the object; the inverse is only one way to look at it.</span></h2>
+    </header>
+    <div class="frame-body">
+      <p>A <strong>generalized eigenvalue problem</strong> asks for a scalar \(\lambda\) and a nonzero vector \(x\) with</p>
+      <div class="eq">\[ A x = \lambda B x, \qquad (A-\lambda B)x=0, \qquad \det(A-\lambda B)=0. \]</div>
+      <p>The pair \((A,B)\) is a <strong>matrix pencil</strong>. If \(B\) is singular, some eigenvalues are infinite, and \(B^{-1}A\) does not exist.</p>
+      <div class="block example">
+        <p class="blk-title">Prediction prompt</p>
+        <div class="blk-body">
+          <p>If \(B\) is invertible, is forming \(B^{-1}A\) a safe way to compute the eigenvalues?</p>
+          <p class="mono" data-fragment>Tempting: yes &mdash; the eigenvalues are the same.</p>
+          <p data-fragment><strong>Why it fails:</strong> \(B^{-1}A\) can amplify the condition number of \(B\), and it is unavailable when \(B\) is singular.</p>
+        </div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+    <section class="slide frame" data-section="1" data-secname="The pencil problem" aria-label="The failure mode">
+    <header class="frame-head">
+      <h2 class="frametitle">The failure mode: inversion</h2>
+    </header>
+    <div class="frame-body">
+      <div class="cols w46">
+        <div class="col">
+          <p>Take the smallest example with an infinite eigenvalue:</p>
+          <div class="eq tight">\[ A=I_2,\qquad B=\begin{bmatrix}1&0\\0&0\end{bmatrix}. \]</div>
+          <div class="eq tight">\[ \det(A-\lambda B)=(1-\lambda)\cdot 1. \]</div>
+          <p>The pencil has eigenvalues \(\lambda=1\) and \(\lambda=\infty\). But \(B\) is singular, so \(B^{-1}A\) does not exist.</p>
+        </div>
+        <div class="col">
+          <figure class="figure" style="max-width:350px;margin-left:auto;margin-right:auto">
+            <svg viewBox="0 0 420 250" role="img" aria-label="A finite eigenvalue at one and an infinite eigenvalue, with the singular matrix B having a zero diagonal entry.">
+              <rect x="18" y="28" width="150" height="150" rx="10" fill="none" stroke-width="2" style="stroke:var(--rule)"/>
+              <text x="93" y="18" font-size="15" text-anchor="middle" style="fill:var(--accent-ink)">B = diag(1, 0)</text>
+              <rect x="34" y="52" width="54" height="46" rx="6" style="fill:var(--ex-bg);stroke:var(--ex-border)"/>
+              <rect x="98" y="108" width="54" height="46" rx="6" style="fill:var(--alt-bg);stroke:var(--alt-border)"/>
+              <text x="61" y="82" font-size="17" text-anchor="middle" style="fill:var(--ex-ink)">1</text>
+              <text x="125" y="138" font-size="17" text-anchor="middle" style="fill:var(--alt-ink)">0</text>
+              <text x="270" y="62" font-size="16" style="fill:var(--accent-ink)">finite eigenvalue</text>
+              <circle cx="270" cy="82" r="6" style="fill:var(--accent)"/>
+              <text x="284" y="87" font-size="15" class="mono" style="fill:var(--ink)">&lambda; = 1</text>
+              <text x="270" y="142" font-size="16" style="fill:var(--alt-ink)">infinite eigenvalue</text>
+              <text x="270" y="170" font-size="15" class="mono" style="fill:var(--ink)">&lambda; = &infin;</text>
+              <path d="M244 82 C 220 82, 210 100, 210 140" fill="none" stroke-width="2" stroke-dasharray="5 4" style="stroke:var(--rule)"/>
+            </svg>
+            <figcaption class="figure-caption"><b>Figure 1.</b> A singular \(B\) is not a nuisance: the pencil still has a perfectly good eigenvalue, and it is infinite.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <section class="slide frame" data-section="1" data-secname="The pencil problem" aria-label="The QZ promise">
+    <header class="frame-head">
+      <h2 class="frametitle">The QZ promise</h2>
+    </header>
+    <div class="frame-body">
+      <p>QZ replaces inversion with two phases of <strong>orthogonal transformations</strong>:</p>
+      <ul class="item">
+        <li data-fragment><strong>Phase 1.</strong> Reduce \((A,B)\) to Hessenberg&ndash;triangular form \((H,T)\): \(H\) is upper Hessenberg, \(T\) is upper triangular.</li>
+        <li data-fragment><strong>Phase 2.</strong> Iterate with implicit double-shift steps until \((H,T)\) is quasi-triangular; read the eigenvalues from the diagonal blocks.</li>
+      </ul>
+      <p data-fragment>Every step is a two-sided orthogonal equivalence \(H\leftarrow Q^{\mathsf T}HZ,\; T\leftarrow Q^{\mathsf T}TZ\). No inverse of \(B\) or of a submatrix of \(B\) is ever formed.</p>
+      <div class="block takeaway" data-fragment>
+        <p class="blk-title">Takeaway</p>
+        <div class="blk-body"><p>The pair \((A,B)\) is the right object; QZ works on it directly and handles singular \(B\) and infinite eigenvalues without a special case.</p></div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <!-- ================= Section 2 ================= -->
+  <section class="slide section" data-section="2" aria-label="Section 2">
+    <div class="section-wrap">
+      <div class="sectionpage">
+        <p class="section-kicker">Section 2</p>
+        <p class="section-title">Hessenberg&ndash;triangular form</p>
+      </div>
+      <div class="block intuition">
+        <p class="blk-title">Question this section answers</p>
+        <div class="blk-body"><p>What shape should the pencil have before the iteration begins?</p></div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+    <section class="slide frame" data-section="2" data-secname="Hessenberg&ndash;triangular form" aria-label="Reduce the pair">
+    <header class="frame-head">
+      <h2 class="frametitle">Reduce the pair, preserve the eigenvalues
+        <span class="framesubtitle">Phase 1 is a direct, one-time reduction.</span></h2>
+    </header>
+    <div class="frame-body">
+      <div class="cols w46">
+        <div class="col">
+          <p>Find orthogonal \(Q,Z\) with</p>
+          <div class="eq tight">\[ Q^{\mathsf T} A Z = H \quad\text{upper Hessenberg}, \]</div>
+          <div class="eq tight">\[ Q^{\mathsf T} B Z = T \quad\text{upper triangular}. \]</div>
+          <p>Eigenvalues are unchanged because</p>
+          <div class="eq tight">\[ \det(\beta H-\alpha T)=c\,\det(\beta A-\alpha B), \]</div>
+          <p>with \(c=\det(Q^{\mathsf T})\det(Z)\neq0\).</p>
+        </div>
+        <div class="col">
+          <figure class="figure">
+            <svg viewBox="0 0 420 230" role="img" aria-label="Sparsity patterns: H has nonzeros on the diagonal, superdiagonals, and one subdiagonal; T has nonzeros on and above the diagonal.">
+              <g font-size="14" style="fill:var(--accent-ink)">
+                <text x="55" y="18" text-anchor="middle">H (Hessenberg)</text>
+                <text x="300" y="18" text-anchor="middle">T (triangular)</text>
+              </g>
+              <g>
+                <g transform="translate(20,32)">
+                  <rect width="150" height="150" fill="none" stroke-width="1.5" style="stroke:var(--rule)"/>
+                  <g style="fill:var(--accent)">
+                    <circle cx="15" cy="15" r="4"/><circle cx="45" cy="15" r="4"/><circle cx="75" cy="15" r="4"/><circle cx="105" cy="15" r="4"/><circle cx="135" cy="15" r="4"/>
+                    <circle cx="15" cy="45" r="4"/><circle cx="45" cy="45" r="4"/><circle cx="75" cy="45" r="4"/><circle cx="105" cy="45" r="4"/><circle cx="135" cy="45" r="4"/>
+                    <circle cx="45" cy="75" r="4"/><circle cx="75" cy="75" r="4"/><circle cx="105" cy="75" r="4"/><circle cx="135" cy="75" r="4"/>
+                    <circle cx="75" cy="105" r="4"/><circle cx="105" cy="105" r="4"/><circle cx="135" cy="105" r="4"/>
+                    <circle cx="105" cy="135" r="4"/><circle cx="135" cy="135" r="4"/>
+                  </g>
+                  <g stroke-width="0.6" style="stroke:var(--rule)">
+                    <line x1="30" y1="0" x2="30" y2="150"/><line x1="60" y1="0" x2="60" y2="150"/><line x1="90" y1="0" x2="90" y2="150"/><line x1="120" y1="0" x2="120" y2="150"/>
+                    <line x1="0" y1="30" x2="150" y2="30"/><line x1="0" y1="60" x2="150" y2="60"/><line x1="0" y1="90" x2="150" y2="90"/><line x1="0" y1="120" x2="150" y2="120"/>
+                  </g>
+                </g>
+                <g transform="translate(240,32)">
+                  <rect width="150" height="150" fill="none" stroke-width="1.5" style="stroke:var(--rule)"/>
+                  <g style="fill:var(--ex-ink)">
+                    <circle cx="15" cy="15" r="4"/><circle cx="45" cy="15" r="4"/><circle cx="75" cy="15" r="4"/><circle cx="105" cy="15" r="4"/><circle cx="135" cy="15" r="4"/>
+                    <circle cx="45" cy="45" r="4"/><circle cx="75" cy="45" r="4"/><circle cx="105" cy="45" r="4"/><circle cx="135" cy="45" r="4"/>
+                    <circle cx="75" cy="75" r="4"/><circle cx="105" cy="75" r="4"/><circle cx="135" cy="75" r="4"/>
+                    <circle cx="105" cy="105" r="4"/><circle cx="135" cy="105" r="4"/>
+                    <circle cx="135" cy="135" r="4"/>
+                  </g>
+                  <g stroke-width="0.6" style="stroke:var(--rule)">
+                    <line x1="30" y1="0" x2="30" y2="150"/><line x1="60" y1="0" x2="60" y2="150"/><line x1="90" y1="0" x2="90" y2="150"/><line x1="120" y1="0" x2="120" y2="150"/>
+                    <line x1="0" y1="30" x2="150" y2="30"/><line x1="0" y1="60" x2="150" y2="60"/><line x1="0" y1="90" x2="150" y2="90"/><line x1="0" y1="120" x2="150" y2="120"/>
+                  </g>
+                </g>
+              </g>
+            </svg>
+            <figcaption class="figure-caption"><b>Figure 2.</b> The two structures the QZ step must preserve: one subdiagonal in \(H\), none in \(T\).</figcaption>
+          </figure>
+        </div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <section class="slide frame" data-section="2" data-secname="Hessenberg&ndash;triangular form" aria-label="Why this shape">
+    <header class="frame-head">
+      <h2 class="frametitle">Why this is the right shape</h2>
+    </header>
+    <div class="frame-body">
+      <ul class="item">
+        <li data-fragment><strong>Cheap iteration.</strong> A QZ step on \((H,T)\) touches a narrow band and costs \(O(n^2)\), not \(O(n^3)\).</li>
+        <li data-fragment><strong>A bulge can move.</strong> Hessenberg \(H\) and triangular \(T\) are exactly the structures a left&ndash;right rotation pair can restore one step at a time.</li>
+        <li data-fragment><strong>The step is determined by its shifts.</strong> The implicit \(Q\) theorem says the whole sweep is essentially unique once the first rotation is chosen &mdash; so the shifts control everything.</li>
+        <li data-fragment><strong>It is the pencil analogue of Hessenberg reduction.</strong> The QR algorithm reduces one matrix to Hessenberg form first; QZ reduces the pair to Hessenberg&ndash;triangular form first.</li>
+      </ul>
+      <p data-fragment>The reduction is a sequence of Householder reflectors and Givens rotations. Its construction is the companion note on <a href="../householder-transformations/householder-transformations.html">Householder transformations</a>.</p>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+    <section class="slide frame" data-section="2" data-secname="Hessenberg&ndash;triangular form" aria-label="Running example">
+    <header class="frame-head">
+      <h2 class="frametitle">The running example</h2>
+    </header>
+    <div class="frame-body">
+      <p>We will use a \(4\times 4\) pencil already in HT form:</p>
+      <div class="cols w46">
+        <div class="col">
+          <div class="eq tight">\[ H_0=\begin{bmatrix} 8.5 & 3.7 & 0.8 & 0.4\\ 1.5 & 4.8 & 1.9 & 0.7\\ 0 & 1.0 & 1.6 & 1.8\\ 0 & 0 & -0.5 & 1.0 \end{bmatrix} \]</div>
+        </div>
+        <div class="col">
+          <div class="eq tight">\[ T_0=\begin{bmatrix} 2 & 0.5 & 0.2 & 0.1\\ 0 & 1.5 & 0.3 & 0.2\\ 0 & 0 & 1 & 0.4\\ 0 & 0 & 0 & 0.5 \end{bmatrix} \]</div>
+        </div>
+      </div>
+      <p>The trailing \(2\times2\) pencil has shifts \(2\pm i\). The four generalized eigenvalues are approximately \(1.790987787\pm0.6940270197i\), \(2.700416827\), and \(4.7176076\).</p>
+      <div class="block takeaway">
+        <p class="blk-title">Takeaway</p>
+        <div class="blk-body"><p>HT form is the starting line: the eigenvalue problem is unchanged, and the iteration now has a narrow band to chase.</p></div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <!-- ================= Section 3 ================= -->
+  <section class="slide section" data-section="3" aria-label="Section 3">
+    <div class="section-wrap">
+      <div class="sectionpage">
+        <p class="section-kicker">Section 3</p>
+        <p class="section-title">The Francis QZ step</p>
+      </div>
+      <div class="block intuition">
+        <p class="blk-title">Question this section answers</p>
+        <div class="blk-body"><p>How do you take a double-shift QR step on \(HT^{-1}\) without forming \(HT^{-1}\) or inverting \(T\)?</p></div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+    <section class="slide frame" data-section="3" data-secname="The Francis QZ step" aria-label="The QR step in one breath">
+    <header class="frame-head">
+      <h2 class="frametitle">The QR step, in one breath
+        <span class="framesubtitle">Everything starts from a three-entry vector.</span></h2>
+    </header>
+    <div class="frame-body">
+      <div class="cols w46">
+        <div class="col">
+          <p>For a single upper Hessenberg matrix \(A\), an implicit double-shift QR step chooses shifts \(\mu_1,\mu_2\) and forms the first column of</p>
+          <div class="eq tight">\[ p(A)=(A-\mu_1 I)(A-\mu_2 I). \]</div>
+          <p>Because \(A\) is Hessenberg, \(p(A)e_1\) has only three nonzeros. That little vector starts the bulge.</p>
+        </div>
+        <div class="col">
+          <figure class="figure">
+            <svg viewBox="0 0 400 240" role="img" aria-label="A Hessenberg matrix and the first column of the shift polynomial, which has three nonzeros.">
+              <text x="90" y="18" font-size="15" text-anchor="middle" style="fill:var(--accent-ink)">Hessenberg A</text>
+              <g transform="translate(20,32)">
+                <rect width="140" height="160" fill="none" stroke-width="1.5" style="stroke:var(--rule)"/>
+                <g style="fill:var(--accent)">
+                  <circle cx="14" cy="16" r="4"/><circle cx="42" cy="16" r="4"/><circle cx="70" cy="16" r="4"/><circle cx="98" cy="16" r="4"/><circle cx="126" cy="16" r="4"/>
+                  <circle cx="14" cy="48" r="4"/><circle cx="42" cy="48" r="4"/><circle cx="70" cy="48" r="4"/><circle cx="98" cy="48" r="4"/><circle cx="126" cy="48" r="4"/>
+                  <circle cx="42" cy="80" r="4"/><circle cx="70" cy="80" r="4"/><circle cx="98" cy="80" r="4"/><circle cx="126" cy="80" r="4"/>
+                  <circle cx="70" cy="112" r="4"/><circle cx="98" cy="112" r="4"/><circle cx="126" cy="112" r="4"/>
+                  <circle cx="98" cy="144" r="4"/><circle cx="126" cy="144" r="4"/>
+                </g>
+                <g stroke-width="0.6" style="stroke:var(--rule)">
+                  <line x1="28" y1="0" x2="28" y2="160"/><line x1="56" y1="0" x2="56" y2="160"/><line x1="84" y1="0" x2="84" y2="160"/><line x1="112" y1="0" x2="112" y2="160"/>
+                  <line x1="0" y1="32" x2="140" y2="32"/><line x1="0" y1="64" x2="140" y2="64"/><line x1="0" y1="96" x2="140" y2="96"/><line x1="0" y1="128" x2="140" y2="128"/>
+                </g>
+              </g>
+              <line x1="180" y1="112" x2="225" y2="112" stroke-width="2" marker-end="url(#qz-arr)" style="stroke:var(--accent)"/>
+              <defs><marker id="qz-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--accent)"/></marker></defs>
+              <text x="318" y="18" font-size="15" text-anchor="middle" style="fill:var(--ex-ink)">first column of p(A)</text>
+              <g transform="translate(285,32)">
+                <rect width="66" height="160" fill="none" stroke-width="1.5" style="stroke:var(--rule)"/>
+                <text x="33" y="22" font-size="17" text-anchor="middle" class="mono" style="fill:var(--ex-ink)">x</text>
+                <text x="33" y="54" font-size="17" text-anchor="middle" class="mono" style="fill:var(--ex-ink)">y</text>
+                <text x="33" y="86" font-size="17" text-anchor="middle" class="mono" style="fill:var(--ex-ink)">z</text>
+                <text x="33" y="118" font-size="17" text-anchor="middle" class="mono" style="fill:var(--muted)">0</text>
+                <text x="33" y="150" font-size="17" text-anchor="middle" class="mono" style="fill:var(--muted)">0</text>
+                <g stroke-width="0.6" style="stroke:var(--rule)">
+                  <line x1="0" y1="32" x2="66" y2="32"/><line x1="0" y1="64" x2="66" y2="64"/><line x1="0" y1="96" x2="66" y2="96"/><line x1="0" y1="128" x2="66" y2="128"/>
+                </g>
+              </g>
+            </svg>
+            <figcaption class="figure-caption"><b>Figure 3.</b> Hessenberg structure confines the shift polynomial to three entries.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+    <section class="slide frame" data-section="3" data-secname="The Francis QZ step" aria-label="The pencil version">
+    <header class="frame-head">
+      <h2 class="frametitle">The pencil version</h2>
+    </header>
+    <div class="frame-body">
+      <p>For the pencil \((H,T)\), the mental object is \(M=HT^{-1}\). A double shift applies \(p(M)=(M-\mu_1 I)(M-\mu_2 I)\).</p>
+      <div class="eq tight">\[ p(M)e_1=(H-\mu_1T)\,T^{-1}(H-\mu_2T)\,T^{-1}e_1. \]</div>
+      <p>Compute it with two triangular solves and two matrix&ndash;vector products:</p>
+      <div class="eq tight">\[ Tw=e_1,\qquad u=(H-\mu_2T)w,\qquad Ty=u,\qquad v=(H-\mu_1T)y. \]</div>
+      <p>The vector \(v\) is the <strong>bulge vector</strong>. It determines the first Householder reflection. \(T\) is never inverted.</p>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <section class="slide frame" data-section="3" data-secname="The Francis QZ step" aria-label="Why a double shift">
+    <header class="frame-head">
+      <h2 class="frametitle">Why a double shift?</h2>
+    </header>
+    <div class="frame-body">
+      <p>A real pencil can have complex eigenvalues, and they arrive in conjugate pairs. A single complex shift would force complex arithmetic through the whole sweep.</p>
+      <div class="eq">\[ (M-\mu I)(M-\bar\mu I)=M^2-2\operatorname{Re}(\mu)M+|\mu|^2I. \]</div>
+      <p>The product is <strong>real</strong> even when \(\mu\) is not. That is why Francis's double shift is the natural step for real matrices: one real sweep handles a conjugate pair.</p>
+      <p>The shifts come from the trailing \(2\times2\) pencil. If its eigenvalues are real, the same double shift is simply two real shifts.</p>
+      <div class="block takeaway">
+        <p class="blk-title">Takeaway</p>
+        <div class="blk-body"><p>A double shift keeps a real pencil real while chasing a complex-conjugate pair.</p></div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <!-- ================= Section 4 ================= -->
+  <section class="slide section" data-section="4" aria-label="Section 4">
+    <div class="section-wrap">
+      <div class="sectionpage">
+        <p class="section-kicker">Section 4</p>
+        <p class="section-title">Chasing the bulge</p>
+      </div>
+      <div class="block intuition">
+        <p class="blk-title">Question this section answers</p>
+        <div class="blk-body"><p>How does a small dense bulge move down the pencil while both structures are restored?</p></div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+    <section class="slide frame" data-section="4" data-secname="Chasing the bulge" aria-label="The bulge has two sides">
+    <header class="frame-head">
+      <h2 class="frametitle">The bulge has two sides</h2>
+    </header>
+    <div class="frame-body">
+      <div class="cols w46">
+        <div class="col">
+          <p>The initial left Householder knocks \(H\) out of Hessenberg form and \(T\) out of triangular form.</p>
+          <p>A right rotation restores \(T\) but creates a bulge in \(H\); a left rotation restores \(H\) but creates a bulge in \(T\). They must alternate.</p>
+        </div>
+        <div class="col">
+          <figure class="figure" style="max-width:330px;margin-left:auto;margin-right:auto">
+            <svg viewBox="0 0 420 220" role="img" aria-label="Sparsity pattern after the initial left transformation: H has a bulge below its subdiagonal, T has a bulge below its diagonal.">
+              <text x="90" y="18" font-size="14" text-anchor="middle" style="fill:var(--accent-ink)">H after initial left</text>
+              <text x="310" y="18" font-size="14" text-anchor="middle" style="fill:var(--ex-ink)">T after initial left</text>
+              <g transform="translate(25,32)">
+                <rect width="130" height="150" fill="none" stroke-width="1.5" style="stroke:var(--rule)"/>
+                <g style="fill:var(--accent)">
+                  <circle cx="13" cy="15" r="4"/><circle cx="39" cy="15" r="4"/><circle cx="65" cy="15" r="4"/><circle cx="91" cy="15" r="4"/><circle cx="117" cy="15" r="4"/>
+                  <circle cx="13" cy="45" r="4"/><circle cx="39" cy="45" r="4"/><circle cx="65" cy="45" r="4"/><circle cx="91" cy="45" r="4"/><circle cx="117" cy="45" r="4"/>
+                  <circle cx="39" cy="75" r="4"/><circle cx="65" cy="75" r="4"/><circle cx="91" cy="75" r="4"/><circle cx="117" cy="75" r="4"/>
+                  <circle cx="65" cy="105" r="4"/><circle cx="91" cy="105" r="4"/><circle cx="117" cy="105" r="4"/>
+                  <circle cx="91" cy="135" r="4"/><circle cx="117" cy="135" r="4"/>
+                </g>
+                <circle cx="39" cy="105" r="7" style="fill:var(--alt-ink)"/>
+                <g stroke-width="0.6" style="stroke:var(--rule)">
+                  <line x1="26" y1="0" x2="26" y2="150"/><line x1="52" y1="0" x2="52" y2="150"/><line x1="78" y1="0" x2="78" y2="150"/><line x1="104" y1="0" x2="104" y2="150"/>
+                  <line x1="0" y1="30" x2="130" y2="30"/><line x1="0" y1="60" x2="130" y2="60"/><line x1="0" y1="90" x2="130" y2="90"/><line x1="0" y1="120" x2="130" y2="120"/>
+                </g>
+              </g>
+              <g transform="translate(245,32)">
+                <rect width="130" height="150" fill="none" stroke-width="1.5" style="stroke:var(--rule)"/>
+                <g style="fill:var(--ex-ink)">
+                  <circle cx="13" cy="15" r="4"/><circle cx="39" cy="15" r="4"/><circle cx="65" cy="15" r="4"/><circle cx="91" cy="15" r="4"/><circle cx="117" cy="15" r="4"/>
+                  <circle cx="39" cy="45" r="4"/><circle cx="65" cy="45" r="4"/><circle cx="91" cy="45" r="4"/><circle cx="117" cy="45" r="4"/>
+                  <circle cx="65" cy="75" r="4"/><circle cx="91" cy="75" r="4"/><circle cx="117" cy="75" r="4"/>
+                  <circle cx="91" cy="105" r="4"/><circle cx="117" cy="105" r="4"/>
+                  <circle cx="117" cy="135" r="4"/>
+                </g>
+                <circle cx="39" cy="75" r="7" style="fill:var(--alt-ink)"/>
+                <circle cx="39" cy="105" r="7" style="fill:var(--alt-ink)"/>
+                <circle cx="65" cy="105" r="7" style="fill:var(--alt-ink)"/>
+                <g stroke-width="0.6" style="stroke:var(--rule)">
+                  <line x1="26" y1="0" x2="26" y2="150"/><line x1="52" y1="0" x2="52" y2="150"/><line x1="78" y1="0" x2="78" y2="150"/><line x1="104" y1="0" x2="104" y2="150"/>
+                  <line x1="0" y1="30" x2="130" y2="30"/><line x1="0" y1="60" x2="130" y2="60"/><line x1="0" y1="90" x2="130" y2="90"/><line x1="0" y1="120" x2="130" y2="120"/>
+                </g>
+              </g>
+            </svg>
+            <figcaption class="figure-caption"><b>Figure 4.</b> One left rotation leaves a two-sided bulge: the orange entries in \(H\) and \(T\) must be removed.</figcaption>
+          </figure>
+        </div>
+      </div>
+      <div class="block example">
+        <p class="blk-title">Prediction prompt</p>
+        <div class="blk-body">
+          <p>Can you restore both structures with rotations on only one side?</p>
+          <p class="mono" data-fragment>Tempting: yes &mdash; apply the same rotation to both.</p>
+          <p data-fragment><strong>Why it fails:</strong> the transformation is \(Q^{\mathsf T}HZ\), not a similarity. Left rotations belong to \(H\); right rotations belong to \(T\).</p>
+        </div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <section class="slide frame" data-section="4" data-secname="Chasing the bulge" aria-label="The chase drawn">
+    <header class="frame-head">
+      <h2 class="frametitle">The chase, drawn</h2>
+    </header>
+    <div class="frame-body">
+      <figure class="figure">
+        <svg viewBox="0 0 980 250" role="img" aria-label="Three panels showing the bulge moving down the diagonal of a matrix, one row at a time.">
+          <g font-size="13" style="fill:var(--muted)">
+            <text x="120" y="18" text-anchor="middle">initial bulge</text>
+            <text x="490" y="18" text-anchor="middle">after a right rotation</text>
+            <text x="860" y="18" text-anchor="middle">after a left rotation</text>
+          </g>
+          <g transform="translate(30,36)">
+            <rect width="180" height="180" fill="none" stroke-width="1.5" style="stroke:var(--rule)"/>
+            <rect x="45" y="45" width="90" height="90" rx="8" style="fill:var(--alt-bg);stroke:var(--alt-border)"/>
+            <g style="fill:var(--accent)">
+              <circle cx="18" cy="18" r="4"/><circle cx="54" cy="18" r="4"/><circle cx="90" cy="18" r="4"/><circle cx="126" cy="18" r="4"/><circle cx="162" cy="18" r="4"/>
+              <circle cx="18" cy="54" r="4"/><circle cx="54" cy="54" r="4"/><circle cx="90" cy="54" r="4"/><circle cx="126" cy="54" r="4"/><circle cx="162" cy="54" r="4"/>
+              <circle cx="54" cy="90" r="4"/><circle cx="90" cy="90" r="4"/><circle cx="126" cy="90" r="4"/><circle cx="162" cy="90" r="4"/>
+              <circle cx="90" cy="126" r="4"/><circle cx="126" cy="126" r="4"/><circle cx="162" cy="126" r="4"/>
+              <circle cx="126" cy="162" r="4"/><circle cx="162" cy="162" r="4"/>
+            </g>
+            <circle cx="54" cy="126" r="7" style="fill:var(--alt-ink)"/>
+          </g>
+          <g transform="translate(400,36)">
+            <rect width="180" height="180" fill="none" stroke-width="1.5" style="stroke:var(--rule)"/>
+            <rect x="90" y="90" width="90" height="90" rx="8" style="fill:var(--alt-bg);stroke:var(--alt-border)"/>
+            <g style="fill:var(--accent)">
+              <circle cx="18" cy="18" r="4"/><circle cx="54" cy="18" r="4"/><circle cx="90" cy="18" r="4"/><circle cx="126" cy="18" r="4"/><circle cx="162" cy="18" r="4"/>
+              <circle cx="18" cy="54" r="4"/><circle cx="54" cy="54" r="4"/><circle cx="90" cy="54" r="4"/><circle cx="126" cy="54" r="4"/><circle cx="162" cy="54" r="4"/>
+              <circle cx="54" cy="90" r="4"/><circle cx="90" cy="90" r="4"/><circle cx="126" cy="90" r="4"/><circle cx="162" cy="90" r="4"/>
+              <circle cx="90" cy="126" r="4"/><circle cx="126" cy="126" r="4"/><circle cx="162" cy="126" r="4"/>
+              <circle cx="126" cy="162" r="4"/><circle cx="162" cy="162" r="4"/>
+            </g>
+            <circle cx="126" cy="126" r="7" style="fill:var(--alt-ink)"/>
+          </g>
+          <g transform="translate(770,36)">
+            <rect width="180" height="180" fill="none" stroke-width="1.5" style="stroke:var(--rule)"/>
+            <rect x="135" y="135" width="45" height="45" rx="8" style="fill:var(--alt-bg);stroke:var(--alt-border)"/>
+            <g style="fill:var(--accent)">
+              <circle cx="18" cy="18" r="4"/><circle cx="54" cy="18" r="4"/><circle cx="90" cy="18" r="4"/><circle cx="126" cy="18" r="4"/><circle cx="162" cy="18" r="4"/>
+              <circle cx="18" cy="54" r="4"/><circle cx="54" cy="54" r="4"/><circle cx="90" cy="54" r="4"/><circle cx="126" cy="54" r="4"/><circle cx="162" cy="54" r="4"/>
+              <circle cx="54" cy="90" r="4"/><circle cx="90" cy="90" r="4"/><circle cx="126" cy="90" r="4"/><circle cx="162" cy="90" r="4"/>
+              <circle cx="90" cy="126" r="4"/><circle cx="126" cy="126" r="4"/><circle cx="162" cy="126" r="4"/>
+              <circle cx="126" cy="162" r="4"/><circle cx="162" cy="162" r="4"/>
+            </g>
+            <circle cx="162" cy="162" r="7" style="fill:var(--alt-ink)"/>
+          </g>
+          <g stroke-width="2" marker-end="url(#chase-arr)" style="stroke:var(--rule)">
+            <line x1="225" y1="126" x2="380" y2="126"/>
+            <line x1="595" y1="126" x2="750" y2="126"/>
+          </g>
+          <defs><marker id="chase-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--rule)"/></marker></defs>
+        </svg>
+        <figcaption class="figure-caption"><b>Figure 5.</b> A left rotation removes \(H\)'s bulge, a right rotation removes \(T\)'s, and the pair of rotations moves the bulge one position down the diagonal.</figcaption>
+      </figure>
+      <ul class="item">
+        <li>A <strong>left \(3\times3\) Householder</strong> zeros the bulge in \(H\).</li>
+        <li>A <strong>right \(3\times3\) Householder</strong> zeros the bulge in \(T\).</li>
+        <li>At the bottom, two <strong>Givens rotations</strong> finish the sweep.</li>
+      </ul>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <section class="slide frame" data-section="4" data-secname="Chasing the bulge" aria-label="What the step preserves">
+    <header class="frame-head">
+      <h2 class="frametitle">What one step preserves</h2>
+    </header>
+    <div class="frame-body">
+      <div class="cols w46">
+        <div class="col">
+          <ul class="item">
+            <li data-fragment>\(H\) remains upper Hessenberg.</li>
+            <li data-fragment>\(T\) remains upper triangular.</li>
+            <li data-fragment>\(Q\) and \(Z\) are orthogonal.</li>
+            <li data-fragment>The pencil is unchanged up to orthogonal equivalence.</li>
+          </ul>
+          <div class="eq tight">\[ H_1=Q^{\mathsf T}H_0Z,\qquad T_1=Q^{\mathsf T}T_0Z. \]</div>
+        </div>
+        <div class="col">
+          <div class="block takeaway">
+            <p class="blk-title">Takeaway</p>
+            <div class="blk-body"><p>One QZ step is a double-shift QR step on \(HT^{-1}\), realized as a two-sided orthogonal equivalence that preserves the Hessenberg&ndash;triangular structure.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <!-- ================= Section 5 ================= -->
+  <section class="slide section" data-section="5" aria-label="Section 5">
+    <div class="section-wrap">
+      <div class="sectionpage">
+        <p class="section-kicker">Section 5</p>
+        <p class="section-title">Shifts, deflation, convergence</p>
+      </div>
+      <div class="block intuition">
+        <p class="blk-title">Question this section answers</p>
+        <div class="blk-body"><p>What turns a correct QZ step into an algorithm that actually finishes?</p></div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <section class="slide frame" data-section="5" data-secname="Shifts, deflation, convergence" aria-label="Where the shifts come from">
+    <header class="frame-head">
+      <h2 class="frametitle">Where the shifts come from</h2>
+    </header>
+    <div class="frame-body">
+      <div class="cols w46">
+        <div class="col">
+          <p>The shifts are the generalized eigenvalues of the trailing \(2\times2\) pencil:</p>
+          <div class="eq tight">\[ \det(H_{22}-\mu T_{22})=0. \]</div>
+          <p>In the real case, take the pair whose roots are closest to the bottom-right ratio \(H_{nn}/T_{nn}\) &mdash; the <strong>Wilkinson shift</strong>. If the pair is complex, use it as a double shift.</p>
+          <p>An <strong>exceptional shift</strong> (a fixed real shift every ten iterations, say) breaks cycles when the ordinary shifts stall.</p>
+        </div>
+        <div class="col">
+          <figure class="figure">
+            <svg viewBox="0 0 360 220" role="img" aria-label="The trailing two by two block of the pencil supplies the shifts.">
+              <g transform="translate(60,30)">
+                <rect width="220" height="160" fill="none" stroke-width="1.5" style="stroke:var(--rule)"/>
+                <rect x="110" y="80" width="110" height="80" rx="8" style="fill:var(--ex-bg);stroke:var(--ex-border)"/>
+                <g style="fill:var(--accent)">
+                  <circle cx="22" cy="16" r="4"/><circle cx="66" cy="16" r="4"/><circle cx="110" cy="16" r="4"/><circle cx="154" cy="16" r="4"/><circle cx="198" cy="16" r="4"/>
+                  <circle cx="22" cy="48" r="4"/><circle cx="66" cy="48" r="4"/><circle cx="110" cy="48" r="4"/><circle cx="154" cy="48" r="4"/><circle cx="198" cy="48" r="4"/>
+                  <circle cx="66" cy="80" r="4"/><circle cx="110" cy="80" r="4"/><circle cx="154" cy="80" r="4"/><circle cx="198" cy="80" r="4"/>
+                  <circle cx="110" cy="112" r="4"/><circle cx="154" cy="112" r="4"/><circle cx="198" cy="112" r="4"/>
+                  <circle cx="154" cy="144" r="4"/><circle cx="198" cy="144" r="4"/>
+                </g>
+                <g stroke-width="0.6" style="stroke:var(--rule)">
+                  <line x1="44" y1="0" x2="44" y2="160"/><line x1="88" y1="0" x2="88" y2="160"/><line x1="132" y1="0" x2="132" y2="160"/><line x1="176" y1="0" x2="176" y2="160"/>
+                  <line x1="0" y1="32" x2="220" y2="32"/><line x1="0" y1="64" x2="220" y2="64"/><line x1="0" y1="96" x2="220" y2="96"/><line x1="0" y1="128" x2="220" y2="128"/>
+                </g>
+              </g>
+              <text x="180" y="20" font-size="14" text-anchor="middle" style="fill:var(--accent-ink)">trailing 2&times;2 pencil</text>
+            </svg>
+            <figcaption class="figure-caption"><b>Figure 6.</b> The shifts come from the bottom-right corner, where convergence is expected first.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+    <section class="slide frame" data-section="5" data-secname="Shifts, deflation, convergence" aria-label="Deflation">
+    <header class="frame-head">
+      <h2 class="frametitle">Deflation: when to stop chasing</h2>
+    </header>
+    <div class="frame-body">
+      <div class="cols w46">
+        <div class="col">
+          <p>A subdiagonal entry is negligible when</p>
+          <div class="eq tight">\[ |H_{i+1,i}|\le \varepsilon\,(|H_{i,i}|+|H_{i+1,i+1}|). \]</div>
+          <p>Then the pencil splits into two independent subproblems. A negligible diagonal entry of \(T\) means an <strong>infinite eigenvalue</strong> that can be deflated, and later steps only touch the remaining window.</p>
+        </div>
+        <div class="col">
+          <figure class="figure" style="max-width:300px;margin-left:auto;margin-right:auto">
+            <svg viewBox="0 0 360 230" role="img" aria-label="A deflated pencil splits into two smaller pencils.">
+              <g transform="translate(30,30)">
+                <rect width="180" height="150" fill="none" stroke-width="1.5" style="stroke:var(--rule)"/>
+                <line x1="0" y1="75" x2="180" y2="75" stroke-width="3" stroke-dasharray="8 5" style="stroke:var(--takeaway)"/>
+                <text x="90" y="70" font-size="14" text-anchor="middle" style="fill:var(--takeaway)">deflate here</text>
+                <text x="90" y="110" font-size="14" text-anchor="middle" style="fill:var(--muted)">smaller subproblem</text>
+              </g>
+              <path d="M230 80 L280 60" stroke-width="2" marker-end="url(#split-arr)" style="stroke:var(--rule)"/>
+              <path d="M230 130 L280 150" stroke-width="2" marker-end="url(#split-arr)" style="stroke:var(--rule)"/>
+              <defs><marker id="split-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--rule)"/></marker></defs>
+              <text x="320" y="62" font-size="14" text-anchor="middle" style="fill:var(--accent-ink)">block 1</text>
+              <text x="320" y="152" font-size="14" text-anchor="middle" style="fill:var(--accent-ink)">block 2</text>
+            </svg>
+            <figcaption class="figure-caption"><b>Figure 7.</b> Deflation turns one coupled pencil into two smaller ones.</figcaption>
+          </figure>
+        </div>
+      </div>
+      <div class="block takeaway">
+        <p class="blk-title">Takeaway</p>
+        <div class="blk-body"><p>Shifts steer the step; deflation decides when a piece is finished.</p></div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+    <section class="slide frame" data-section="5" data-secname="Shifts, deflation, convergence" aria-label="Cost and convergence">
+    <header class="frame-head">
+      <h2 class="frametitle">Cost and convergence</h2>
+    </header>
+    <div class="frame-body">
+      <div class="cols w46">
+        <div class="col">
+          <p>One QZ step costs \(O(n^2)\); the whole iteration costs \(O(n^3)\), the same order as the initial reduction. For well-separated eigenvalues, convergence is locally <strong>quadratic</strong>.</p>
+          <table>
+            <thead><tr><th>step \(k\)</th><th>\(|H_{2,1}|\)</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">0</td><td class="mono">1.000000e+00</td></tr>
+              <tr><td class="mono">1</td><td class="mono">3.271229e-01</td></tr>
+              <tr><td class="mono">3</td><td class="mono">6.665401e-04</td></tr>
+              <tr><td class="mono">5</td><td class="mono">1.105472e-12</td></tr>
+            </tbody>
+          </table>
+          <p><small>Running example; <span class="mono">scripts/verify_qz_step.py</span> reproduces these values.</small></p>
+        </div>
+        <div class="col">
+          <figure class="figure">
+            <svg viewBox="0 0 420 230" role="img" aria-label="Log-scale plot of the subdiagonal entry falling from one to about one times ten to the minus twelve over five QZ steps.">
+              <line x1="45" y1="190" x2="400" y2="190" stroke-width="1.5" style="stroke:var(--rule)"/>
+              <line x1="45" y1="20" x2="45" y2="190" stroke-width="1.5" style="stroke:var(--rule)"/>
+              <text x="18" y="24" font-size="12" style="fill:var(--muted)">10&#8304;</text>
+              <text x="12" y="108" font-size="12" style="fill:var(--muted)">10&#8315;&#8309;</text>
+              <text x="8" y="194" font-size="12" style="fill:var(--muted)">10&#8315;&#185;&#178;</text>
+              <polyline points="45,28 116,58 187,86 258,125 329,160 400,185" fill="none" stroke-width="3" style="stroke:var(--accent)"/>
+              <g style="fill:var(--alt-ink)">
+                <circle cx="45" cy="28" r="4"/><circle cx="116" cy="58" r="4"/><circle cx="187" cy="86" r="4"/><circle cx="258" cy="125" r="4"/><circle cx="329" cy="160" r="4"/><circle cx="400" cy="185" r="4"/>
+              </g>
+              <g font-size="12" text-anchor="middle" style="fill:var(--muted)">
+                <text x="45" y="210">0</text><text x="116" y="210">1</text><text x="187" y="210">2</text><text x="258" y="210">3</text><text x="329" y="210">4</text><text x="400" y="210">5</text>
+              </g>
+              <text x="225" y="228" font-size="12" text-anchor="middle" style="fill:var(--muted)">QZ step</text>
+            </svg>
+            <figcaption class="figure-caption"><b>Figure 8.</b> The trailing subdiagonal falls to machine precision in five steps.</figcaption>
+          </figure>
+          <p>Practical implementations add <strong>multishift</strong> and <strong>aggressive early deflation</strong> to reduce the constant and use level-3 BLAS.</p>
+        </div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <!-- ================= Section 6 ================= -->
+  <section class="slide section" data-section="6" aria-label="Section 6">
+    <div class="section-wrap">
+      <div class="sectionpage">
+        <p class="section-kicker">Section 6</p>
+        <p class="section-title">Worked example, limits, sources</p>
+      </div>
+      <div class="block intuition">
+        <p class="blk-title">Question this section answers</p>
+        <div class="blk-body"><p>What do the numbers look like, and where does this fit in the wider toolbox?</p></div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <section class="slide frame" data-section="6" data-secname="Worked example and limits" aria-label="One step with real numbers">
+    <header class="frame-head">
+      <h2 class="frametitle">One step, with real numbers</h2>
+    </header>
+    <div class="frame-body">
+      <div class="cols w46">
+        <div class="col">
+          <p>Running example, one QZ step with the shifts \(2\pm i\):</p>
+          <table>
+            <thead><tr><th>quantity</th><th>value</th></tr></thead>
+            <tbody>
+              <tr><td>\(|H_{i+1,i}|\) before</td><td class="mono">1.5, 1.0, 0.5</td></tr>
+              <tr><td>\(|H_{i+1,i}|\) after</td><td class="mono">0.460, 0.327, 0.272</td></tr>
+              <tr><td>backward error \(H\)</td><td class="mono">2.109e-15</td></tr>
+              <tr><td>backward error \(T\)</td><td class="mono">4.441e-16</td></tr>
+              <tr><td>orthogonality \(Q\)</td><td class="mono">7.772e-16</td></tr>
+              <tr><td>orthogonality \(Z\)</td><td class="mono">6.661e-16</td></tr>
+            </tbody>
+          </table>
+          <p>The step preserves the pencil to machine precision; the eigenvalues before and after agree to ten digits.</p>
+        </div>
+        <div class="col">
+          <div class="block intuition">
+            <p class="blk-title">Read the table</p>
+            <div class="blk-body">
+              <p>The subdiagonals shrink; the pencil is unchanged up to orthogonal equivalence; the trailing \(2\times2\) block is beginning to separate.</p>
+            </div>
+          </div>
+          <div class="block takeaway">
+            <p class="blk-title">Takeaway</p>
+            <div class="blk-body"><p>The QZ step is backward stable: the computed pair is an orthogonal equivalence of a nearby pencil, and the eigenvalues are preserved to machine precision.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <section class="slide frame" data-section="6" data-secname="Worked example and limits" aria-label="Step through the chase">
+    <header class="frame-head">
+      <h2 class="frametitle">Step through the chase</h2>
+    </header>
+    <div class="frame-body">
+      <div class="demo" id="qz-demo">
+        <div class="demo-controls">
+          <button type="button" id="qz-prev" class="qz-btn">&larr; Previous</button>
+          <button type="button" id="qz-next" class="qz-btn">Next &rarr;</button>
+          <span class="mono">step <output id="qz-step">0 / 6</output></span>
+          <span class="mono" id="qz-label">start</span>
+        </div>
+        <div class="cols w46">
+          <div class="col">
+            <p class="mono">H</p>
+            <div id="qz-H"></div>
+          </div>
+          <div class="col">
+            <p class="mono">T</p>
+            <div id="qz-T"></div>
+          </div>
+        </div>
+        <p><small>Highlighted entries changed in this operation. Values are the real output of <span class="mono">scripts/verify_qz_step.py</span>.</small></p>
+      </div>
+      <script id="qz-data" type="application/json">{"snapshots":[{"label":"start","H":[[8.5,3.7,0.8,0.4],[1.5,4.8,1.9,0.7],[0.0,1.0,1.6,1.8],[0.0,0.0,-0.5,1.0]],"T":[[2.0,0.5,0.2,0.1],[0.0,1.5,0.3,0.2],[0.0,0.0,1.0,0.4],[0.0,0.0,0.0,0.5]]},{"label":"initial-left","H":[[-8.497729880414155,-5.135748920043267,-1.489937596501245,-0.7312239864747808],[-1.388013249290987,3.298754826202019,1.5109262727862565,0.5077984599214413],[-0.6016694269356222,0.6872405887920874,1.518942973497137,1.7599580124836336],[0.0,0.0,-0.5,1.0]],"T":[[-1.8830392132903189,-0.9655730272528826,-0.3559906249943012,-0.18761668074023982],[-0.6597509652404037,1.2509906116706275,0.20553395643053984,0.15113225174545078],[-0.13744811775841742,-0.05187695590195258,0.9803195742563625,0.3898192191136356],[0.0,0.0,0.0,0.5]]},{"label":"right-0","H":[[10.008885413716705,-0.7922649108143007,-0.04210959342492315,-0.7312239864747808],[-0.4539901867510654,3.5179691002286595,1.5839976974618033,0.5077984599214413],[0.004327690014104824,0.8294675030752596,1.566351944924861,1.7599580124836336],[0.07372097807744853,0.017302239460592565,-0.49423258684646915,1.0]],"T":[[2.1454197927110954,-0.02009774739710668,-0.04083219837570923,-0.18761668074023982],[1.1102230246251565e-16,1.4058335001216489,0.25714825258088025,0.15113225174545078],[0.0,-0.019618020807989814,0.9910725526210168,0.3898192191136356],[0.0,0.0,0.0,0.5]]},{"label":"left-1","H":[[10.008885413716705,-0.7922649108143007,-0.04210959342492315,-0.7312239864747808],[0.45995717319748475,-3.46175323559438,-1.6279255507814312,-0.32437364944466673],[8.673617379884035e-19,0.8625176282549704,1.5815609260726111,1.763898483330798],[1.3877787807814457e-17,0.5803017948560525,-0.23515188510505114,1.0671248088453327]],"T":[[2.1454197927110954,-0.02009774739710668,-0.04083219837570923,-0.18761668074023982],[-1.0958201929563116e-16,-1.3877803221036253,-0.2444873892082775,-0.06536489735432208],[1.0445974923488412e-18,-0.006389803110211119,0.9934478793113989,0.3908443684726687],[1.7794423487407698e-17,0.22533895536031776,0.04046301983222221,0.5174631300248111]]},{"label":"right-1","H":[[10.008885413716705,0.4237293511400808,0.06349512318229603,-0.990235947376455],[0.45995717319748475,3.251126847492102,-1.0449361231395522,-1.7542457204061763],[8.673617379884035e-19,-0.3230552149566096,1.47859819997936,2.0164305523707133],[1.3877787807814457e-17,-0.05142662605503656,-0.2900152203611055,1.2016856552053445]],"T":[[2.1454197927110954,-0.05109608133050457,-0.04352429189354463,-0.18101390348381596],[-1.0958201929563116e-16,1.2621822486404448,-0.014347696070758309,-0.6298182202353907],[1.0445974923488412e-18,4.336808689942018e-18,0.9940028106690068,0.38948331317402657],[1.7794423487407698e-17,5.551115123125783e-17,0.020893144162623115,0.5654612880108563]]},{"label":"last-left","H":[[10.008885413716705,0.4237293511400808,0.06349512318229603,-0.990235947376455],[0.45995717319748475,3.251126847492102,-1.0449361231395522,-1.7542457204061763],[-3.038288174259787e-18,0.327122866486074,-1.4146194058883026,-2.180272666440165],[-1.3568865678213599e-17,0.0,0.5188577854359802,-0.8697423103622424]],"T":[[2.1454197927110954,-0.05109608133050457,-0.04352429189354463,-0.18101390348381596],[-1.0958201929563116e-16,1.2621822486404448,-0.014347696070758309,-0.6298182202353907],[-3.8290500552308194e-18,-1.3009729113481472e-17,-0.9849273425642086,-0.4735357797837582],[-1.740893640762597e-17,-5.41391057279908e-17,0.13563274295055583,-0.49719974330695443]]},{"label":"last-right","H":[[10.008885413716705,0.4237293511400808,0.19935022430795554,0.9720382452418466],[0.45995717319748475,3.251126847492102,1.469776217667329,1.41740164349588],[-3.038288174259787e-18,0.327122866486074,1.9385476501172678,1.7311181276177257],[-1.3568865678213599e-17,0.0,-0.27167095103396993,0.9756331187009177]],"T":[[2.1454197927110954,-0.05109608133050457,0.08962859434219611,0.16317816127020418],[-1.0958201929563116e-16,1.2621822486404448,0.1795953658536422,0.6038396736609067],[-3.8290500552308194e-18,-1.3009729113481472e-17,1.0748299143063051,0.19763263945590231],[-1.740893640762597e-17,-5.41391057279908e-17,2.7755575615628914e-17,0.5153676607091222]]}],"shifts":[4.0,5.0]}</script>
+      <script>
+      (function(){
+        var data = JSON.parse(document.getElementById('qz-data').textContent);
+        var snaps = data.snapshots;
+        var i = 0;
+        var labels = {start:'start', 'initial-left':'initial left Householder', 'right-0':'right Householder, column 1', 'left-1':'left Householder, column 2', 'right-1':'right Householder, column 2', 'last-left':'final left Givens', 'last-right':'final right Givens'};
+        var stepOut = document.getElementById('qz-step');
+        var labelOut = document.getElementById('qz-label');
+        var hOut = document.getElementById('qz-H');
+        var tOut = document.getElementById('qz-T');
+        function fmt(x){
+          if (Math.abs(x) < 5e-4) return '0';
+          return x.toFixed(3);
+        }
+        function table(M, prev){
+          var html = '<table class="qz-matrix"><tbody>';
+          for (var r = 0; r < M.length; r++){
+            html += '<tr>';
+            for (var c = 0; c < M[r].length; c++){
+              var v = M[r][c];
+              var changed = prev && Math.abs(v - prev[r][c]) > 1e-9;
+              var zero = Math.abs(v) < 5e-4;
+              html += '<td class="' + (changed ? 'chg ' : '') + (zero ? 'zero' : '') + '">' + fmt(v) + '</td>';
+            }
+            html += '</tr>';
+          }
+          return html + '</tbody></table>';
+        }
+        function render(){
+          stepOut.textContent = i + ' / ' + (snaps.length - 1);
+          labelOut.textContent = labels[snaps[i].label] || snaps[i].label;
+          var prev = i > 0 ? snaps[i - 1] : null;
+          hOut.innerHTML = table(snaps[i].H, prev && prev.H);
+          tOut.innerHTML = table(snaps[i].T, prev && prev.T);
+        }
+        document.getElementById('qz-next').addEventListener('click', function(){ if (i < snaps.length - 1){ i++; render(); } });
+        document.getElementById('qz-prev').addEventListener('click', function(){ if (i > 0){ i--; render(); } });
+        render();
+      })();
+      </script>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+    <section class="slide frame" data-section="6" data-secname="Worked example and limits" aria-label="Limits and variants">
+    <header class="frame-head">
+      <h2 class="frametitle">Limits and modern variants</h2>
+    </header>
+    <div class="frame-body">
+      <div class="cols w46">
+        <div class="col">
+          <ul class="item">
+            <li><strong>Dense, direct, small-to-medium.</strong> QZ computes the whole spectrum of a dense pencil.</li>
+            <li><strong>Not for very large sparse pencils.</strong> There, use Arnoldi, Lanczos, or rational Krylov methods that target part of the spectrum.</li>
+            <li><strong>Multishift + aggressive early deflation.</strong> Chase several bulges at once and deflate converged eigenvalues early.</li>
+            <li><strong>Rational QZ and pole swapping.</strong> Generalize the step beyond Hessenberg&ndash;triangular form and allow rational filters.</li>
+          </ul>
+        </div>
+        <div class="col">
+          <div class="block intuition">
+            <p class="blk-title">The trade</p>
+            <div class="blk-body"><p>Classical QZ is simple and backward stable. Modern variants keep the same step but change the <em>schedule</em>: more shifts, earlier deflation, better memory behaviour.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <section class="slide frame" data-section="6" data-secname="Worked example and limits" aria-label="Connections">
+    <header class="frame-head">
+      <h2 class="frametitle">Where this sits in the knowledge base</h2>
+    </header>
+    <div class="frame-body">
+      <div class="cols w46">
+        <div class="col">
+          <ul class="item">
+            <li><a href="../householder-transformations/householder-transformations.html">Householder transformations</a> &mdash; the reflectors that build the HT reduction and the left/right rotations.</li>
+            <li><a href="../../Optimization/lmi/lmi.html">Linear matrix inequalities</a> &mdash; generalized eigenvalues decide feasibility and stability.</li>
+            <li><a href="../../Control/h2-control/h2-control.html">\(H_2\) control</a> &mdash; Riccati equations and Hamiltonian pencils.</li>
+            <li><a href="../../Optimization/interior-point-method/interior-point-method.html">Interior-point methods</a> &mdash; KKT systems whose generalized eigenvalues govern conditioning.</li>
+          </ul>
+        </div>
+        <div class="col">
+          <div class="block intuition">
+            <p class="blk-title">The thread</p>
+            <div class="blk-body"><p>Householder transformations build the structure; QZ iterates on it; generalized eigenvalues then answer questions in control, optimization, and stability analysis.</p></div>
+          </div>
+          <p>The sources behind the historical and algorithmic claims are on the next frame.</p>
+        </div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <section class="slide frame" data-section="6" data-secname="Worked example and limits" aria-label="Sources">
+    <header class="frame-head">
+      <h2 class="frametitle">Sources</h2>
+    </header>
+    <div class="frame-body">
+      <div class="cols w46" style="font-size:0.86em">
+        <div class="col">
+          <ul class="item">
+            <li>J. G. F. Francis, <a href="https://doi.org/10.1093/comjnl/4.3.265">10.1093/comjnl/4.3.265</a> and <a href="https://doi.org/10.1093/comjnl/4.4.332">10.1093/comjnl/4.4.332</a> &mdash; the implicit double-shift QR step.</li>
+            <li>C. B. Moler &amp; G. W. Stewart, <a href="https://doi.org/10.1137/0710024">10.1137/0710024</a> &mdash; QZ, singular \(B\), no inversions.</li>
+            <li>R. C. Ward, <a href="https://doi.org/10.1137/0712062">10.1137/0712062</a> &mdash; combination shifts, infinite eigenvalues.</li>
+            <li>B. K&aring;gstr&ouml;m &amp; D. Kressner, <a href="https://doi.org/10.1137/05064521x">10.1137/05064521x</a> &mdash; multishift QZ with AED.</li>
+          </ul>
+        </div>
+        <div class="col">
+          <ul class="item">
+            <li>Z. Bujanovi&#263;, L. Karlsson &amp; D. Kressner, <a href="https://arxiv.org/abs/1710.08538">arXiv:1710.08538</a> &mdash; Hessenberg&ndash;triangular reduction.</li>
+            <li>D. Camps, K. Meerbergen &amp; R. Vandebril, <a href="https://arxiv.org/abs/1802.04094">arXiv:1802.04094</a> &mdash; classical QZ and rational QZ.</li>
+            <li>M. Myllykoski, <a href="https://doi.org/10.1145/3495005">10.1145/3495005</a> &mdash; task-based multi-shift QR/QZ.</li>
+            <li>LAPACK <span class="mono">DHGEQZ</span>, <a href="https://github.com/Reference-LAPACK/lapack/blob/master/SRC/dhgeqz.f">source</a> &mdash; the production double-shift QZ sweep.</li>
+          </ul>
+        </div>
+      </div>
+      <p><small>Every identifier above was resolved during research for this deck; the QZ description and deflation criterion were checked against the full text of <a href="https://arxiv.org/abs/1802.04094">arXiv:1802.04094</a>.</small></p>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <section class="slide frame" data-section="6" data-secname="Worked example and limits" aria-label="Closing takeaway">
+    <header class="frame-head">
+      <h2 class="frametitle">The one-sentence version</h2>
+    </header>
+    <div class="frame-body">
+      <div class="block takeaway">
+        <p class="blk-title">Takeaway</p>
+        <div class="blk-body"><p>A Francis QZ step is a double-shift QR step on \(HT^{-1}\), computed implicitly: two triangular solves produce a three-entry bulge vector, and alternating left/right orthogonal rotations chase that bulge down the pencil while preserving its Hessenberg&ndash;triangular structure.</p></div>
+      </div>
+      <p class="lead">If you remember one picture, remember the two-sided bulge: left rotation for \(H\), right rotation for \(T\), one step down at a time.</p>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+</main>
+
+<nav class="controls" aria-label="Slide controls">
+  <button type="button" data-nav="first" title="First frame (Home)">&laquo;</button>
+  <button type="button" data-nav="prev" title="Previous frame or fragment (Left)">&lsaquo;</button>
+  <button type="button" data-nav="next" title="Next fragment or frame (Right, Space)">&rsaquo;</button>
+  <button type="button" data-nav="last" title="Last frame (End)">&raquo;</button>
+  <button type="button" data-nav="reader" title="Reader mode: stack the frames (r)">&#9707;</button>
+  <button type="button" data-nav="full" title="Fullscreen (f)">&#x26F6;</button>
+</nav>
+<p class="sr-only" role="status" aria-live="polite" id="live"></p>
+
+<script>
+(function(){
+  'use strict';
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var deckShort = (document.title.split('\u2014')[0] || document.title).trim();
+  var bar = document.getElementById('progress-bar');
+  var live = document.getElementById('live');
+  var narrow = window.matchMedia('(max-width:700px)');
+  var idx = 0;
+  var wantReader = false;
+
+  function frags(sl){ return Array.prototype.slice.call(sl.querySelectorAll('[data-fragment]')); }
+  function setFrags(sl, on){
+    frags(sl).forEach(function(f){ f.classList.toggle('on', !!on); });
+  }
+
+  /* Fixed 1280x720 (or 4:3) canvas scaled to the window; reader mode reflows instead. */
+  function fit(){
+    var root = document.documentElement;
+    if (narrow.matches || document.body.classList.contains('reader')){ root.style.setProperty('--s','1'); return; }
+    var w = slides[0].offsetWidth || 1280, h = slides[0].offsetHeight || 720;
+    root.style.setProperty('--s', Math.max(0.2, Math.min((window.innerWidth-24)/w, (window.innerHeight-24)/h)));
+  }
+
+  /* Beamer-style warning: a frame body that no longer fits its page. */
+  function check(){
+    slides.forEach(function(sl){
+      var fb = sl.querySelector('.frame-body');
+      var tall = fb && fb.scrollHeight > fb.clientHeight + 2;
+      var wide = false;
+      Array.prototype.forEach.call(sl.querySelectorAll('.eq,.katex-display,.mono,table,pre'), function(el){
+        if (el.scrollWidth > el.clientWidth + 2) wide = true;
+      });
+      sl.classList.toggle('ov-v', !!tall);
+      sl.classList.toggle('ov-h', wide);
+    });
+  }
+
+  function footFill(sl){
+    var sec = sl.getAttribute('data-section') || '';
+    var name = sl.getAttribute('data-secname') || (sl.classList.contains('toc-frame') ? 'Outline' : '');
+    var left = sl.querySelector('.foot-left'), minis = sl.querySelector('.miniframes'),
+        right = sl.querySelector('.foot-right');
+    if (left) left.textContent = deckShort + (name ? ' \u00b7 ' + name : '');
+    if (right) right.textContent = (idx + 1) + ' / ' + slides.length;
+    if (!minis) return;
+    minis.textContent = '';
+    slides.forEach(function(s, i){
+      if (!sec || s.getAttribute('data-section') !== sec) return;
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('data-goto', i);
+      b.title = 'Go to frame ' + (i + 1);
+      b.setAttribute('aria-label', 'Go to frame ' + (i + 1));
+      b.className = i < idx ? 'done' : (i === idx ? 'present' : '');
+      minis.appendChild(b);
+    });
+  }
+
+  function render(){
+    slides.forEach(function(sl, i){
+      var cur = i === idx;
+      sl.classList.toggle('current', cur);
+      sl.setAttribute('aria-hidden', cur ? 'false' : 'true');
+      if (cur) footFill(sl);
+    });
+    var tocLi = document.querySelectorAll('.toc-list [data-for-section]');
+    var sec = slides[idx].getAttribute('data-section') || '';
+    Array.prototype.forEach.call(tocLi, function(li){
+      li.classList.toggle('current', li.getAttribute('data-for-section') === sec);
+    });
+    if (bar) bar.style.width = (slides.length > 1 ? idx / (slides.length - 1) * 100 : 0) + '%';
+    if (live){
+      var h = slides[idx].querySelector('.frametitle, .section-title, h1');
+      live.textContent = 'Frame ' + (idx + 1) + ' of ' + slides.length +
+        (h ? ': ' + h.textContent.trim().replace(/\s+/g, ' ') : '');
+    }
+    check();
+  }
+
+  function go(i, mode){
+    i = Math.max(0, Math.min(slides.length - 1, i));
+    idx = i;
+    if (mode === 'back') setFrags(slides[i], true);
+    else if (mode === 'fwd') setFrags(slides[i], false);
+    try { history.replaceState(null, '', '#/' + (i + 1)); } catch (e) {}
+    render();
+    /* In stacked mode there is no "active" frame, so bring the target into view. */
+    if (document.body.classList.contains('reader')){
+      var el = slides[i];
+      requestAnimationFrame(function(){ if (el.scrollIntoView) el.scrollIntoView({block:'start'}); });
+    }
+  }
+
+  /* One key press reveals the next overlay; only a full frame lets you advance. */
+  function step(d){
+    var f = frags(slides[idx]);
+    if (d > 0){
+      for (var i = 0; i < f.length; i++){
+        if (!f[i].classList.contains('on')){ f[i].classList.add('on'); render(); return; }
+      }
+      go(idx + 1, 'fwd');
+    } else {
+      var shown = f.filter(function(x){ return x.classList.contains('on'); });
+      if (shown.length){ shown[shown.length - 1].classList.remove('on'); render(); return; }
+      go(idx - 1, 'back');
+    }
+  }
+
+  function fullscreen(){
+    if (document.fullscreenElement){ document.exitFullscreen(); }
+    else if (document.documentElement.requestFullscreen){ document.documentElement.requestFullscreen(); }
+  }
+  /* Stacked reader layout: the author's choice, or forced below 700px, where the
+     fixed canvas would only be clipped by the viewport. */
+  function syncMode(){
+    document.body.classList.toggle('reader', wantReader || narrow.matches);
+    fit(); render();
+  }
+  function toggleReader(){ wantReader = !wantReader; syncMode(); }
+
+  document.addEventListener('keydown', function(e){
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var t = e.target;
+    if (t && (t.isContentEditable || /^(INPUT|SELECT|TEXTAREA)$/.test(t.tagName))) return;
+    switch (e.key){
+      case 'ArrowRight': case 'PageDown': case ' ': case 'Spacebar': e.preventDefault(); step(1); break;
+      case 'ArrowLeft': case 'PageUp': e.preventDefault(); step(-1); break;
+      case 'Home': e.preventDefault(); go(0, 'back'); break;
+      case 'End': e.preventDefault(); go(slides.length - 1, 'back'); break;
+      case 'f': case 'F': fullscreen(); break;
+      case 'r': case 'R': toggleReader(); break;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var nav = e.target.closest && e.target.closest('[data-nav]');
+    if (nav){
+      var a = nav.getAttribute('data-nav');
+      if (a === 'next') step(1);
+      else if (a === 'prev') step(-1);
+      else if (a === 'first') go(0, 'back');
+      else if (a === 'last') go(slides.length - 1, 'back');
+      else if (a === 'reader') toggleReader();
+      else if (a === 'full') fullscreen();
+      return;
+    }
+    var dot = e.target.closest && e.target.closest('.miniframes button[data-goto]');
+    if (dot) go(parseInt(dot.getAttribute('data-goto'), 10), 'fwd');
+  });
+
+  /* Placeholder demo wiring: echo the control, then replace with the real computation. */
+  var slider = document.getElementById('demo-slider');
+  if (slider) slider.addEventListener('input', function(){
+    document.getElementById('demo-out').textContent = '\u03b8 = ' + slider.value;
+  });
+
+  window.addEventListener('resize', function(){ fit(); check(); }, {passive:true});
+  window.addEventListener('load', function(){ fit(); check(); });
+  if (narrow.addEventListener) narrow.addEventListener('change', syncMode);
+  else if (narrow.addListener) narrow.addListener(syncMode);
+
+  var m = /^#\/(\d+)$/.exec(location.hash);
+  idx = m ? Math.max(0, Math.min(slides.length - 1, parseInt(m[1], 10) - 1)) : 0;
+  if (idx) setFrags(slides[idx], true);
+  syncMode();
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){ document.body.classList.add('ready'); });
+  });
+})();
+</script>
+</body>
+</html>

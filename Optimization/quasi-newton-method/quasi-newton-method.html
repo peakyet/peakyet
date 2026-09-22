@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quasi-Newton Methods — Learning Curvature from Gradients</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{font-size:17px;scroll-behavior:smooth;overflow-x:clip}
+  body{font-family:"Source Serif Pro",Georgia,"Times New Roman",serif;color:#1a1a1a;background:#fdfcf8;line-height:1.7;max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+  img{max-width:100%;display:block}
+  h1{font-weight:700;font-size:2.1rem;line-height:1.2;margin:2.5rem 0 .4rem;color:#111;border-bottom:2px solid #d4a72c;padding-bottom:.3rem}
+  h2{font-weight:600;font-size:1.45rem;color:#222;margin:2.2rem 0 .6rem}
+  h3{font-size:1.12rem;color:#333;margin:1.4rem 0 .4rem}
+  p{margin:.75rem 0}
+  a{color:#9a5b00;text-decoration:none;border-bottom:1px solid #d4a72c}
+  a:hover{color:#7a4a00}
+  strong{color:#111} em{color:#444}
+  ul,ol{margin:.6rem 0 .6rem 1.4rem} li{margin:.3rem 0}
+  .eq{display:block;text-align:center;margin:1.1rem 0;padding:.75rem .5rem;background:#f7f4ec;border-left:3px solid #d4a72c;border-radius:4px;overflow-x:auto;line-height:1.9}
+  .callout{background:#f7f4ec;border-left:4px solid #d4a72c;border-radius:0 6px 6px 0;padding:.75rem 1rem;margin:1rem 0;font-size:.97rem}
+  .callout.takeaway{border-left-color:#3a7d44;background:#edf5ec}.callout.takeaway strong{color:#1d5e2a}
+  .callout.intuition{border-left-color:#4a7bb5;background:#eef4fb}.callout.intuition strong{color:#1f4f7a}
+  .figure{margin:1.4rem 0;padding:1rem;background:#fff;border:1px solid #e8e4d8;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .figure svg{width:100%;height:auto;display:block}.figure-caption{font-size:.88rem;color:#555;text-align:center;margin-top:.6rem;line-height:1.5}.figure-caption b{color:#333}
+  .figure-side-by-side{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}
+  table{border-collapse:collapse;margin:.8rem 0;font-size:.92rem;width:100%}th,td{border:1px solid #ddd;padding:.45rem .7rem;text-align:left;vertical-align:top}th{background:#f0ebe0;color:#333}tr:nth-child(even) td{background:#fafaf5}
+  details.predict{background:#fbf7ec;border:1px solid #e2d9bd;border-radius:8px;padding:.7rem 1rem;margin:1.1rem 0}details.predict summary{cursor:pointer;font-weight:600;color:#7a5a00}details.predict p.answer{margin-top:.6rem}
+  .demo{background:#fff;border:1px solid #e8e4d8;border-radius:8px;padding:1rem;margin:1.3rem 0}
+  .demo-controls{display:flex;flex-wrap:wrap;gap:1rem;align-items:center;margin:.4rem 0 .8rem}.demo-controls label{font-size:.95rem}.demo-controls input[type=range]{vertical-align:middle;width:min(300px,58vw)}
+  .demo canvas{width:100%;max-width:760px;height:auto;display:block;margin:.6rem auto 0;border:1px solid #eee9dc;border-radius:6px;background:#fffdf8}
+  .demo-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(230px,.75fr);gap:1rem;align-items:start}
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:.86em}
+  .metrics{display:grid;grid-template-columns:auto 1fr;gap:.28rem .75rem;font-size:.88rem;padding:.7rem;background:#f7f4ec;border-radius:6px}.metrics dt{font-weight:700;color:#555}.metrics dd{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;text-align:right}
+  .legend{display:flex;flex-wrap:wrap;gap:.5rem 1rem;font-size:.86rem;margin:.4rem 0}.swatch{display:inline-block;width:.85rem;height:.18rem;margin-right:.3rem;vertical-align:middle;border-radius:2px}
+  pre{background:#f7f4ec;border:1px solid #e8e4d8;border-radius:6px;padding:.8rem 1rem;overflow-x:auto;font-size:.82rem;line-height:1.5}code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:.9em;background:#f4f0e4;padding:.05em .3em;border-radius:3px}pre code{background:none;padding:0}
+  .formula-label{font-weight:700;color:#7a5a00;margin-bottom:-.6rem;text-align:center;font-size:.92rem}
+  hr{border:none;border-top:1px solid #e0dcd0;margin:2.5rem 0}
+  .toc{position:sticky;bottom:0;z-index:50;display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;justify-content:center;background:rgba(253,252,248,.96);backdrop-filter:blur(6px);border:1px solid #e8e4d8;border-radius:10px 10px 0 0;padding:.6rem .9rem;margin:1.4rem calc(50% - 50vw) 0}
+  .toc a{color:#6b5a29;text-decoration:none;font-size:.82rem;padding:.2rem .62rem;border-radius:999px;border:1px solid transparent;white-space:nowrap}.toc a:hover{background:#f7f4ec;border-color:#d4a72c;color:#9a5b00}.toc a.active{background:#d4a72c;color:#fff;border-color:#d4a72c}
+  .hero{font-size:1.1rem;color:#333;margin-bottom:1.5rem;padding:.8rem 1rem;background:#f7f4ec;border-radius:6px}.hero strong{color:#111}
+  .small{font-size:.88rem;color:#555}
+  @media(max-width:700px){
+    body{font-size:16px;padding:1.2rem .9rem 3rem}h1{font-size:1.7rem}h2{font-size:1.25rem}
+    .figure-side-by-side,.demo-grid{grid-template-columns:1fr}.demo table{font-size:.78rem}.toc{justify-content:flex-start;overflow-x:auto;flex-wrap:nowrap}.metrics dd{text-align:left}
+    table.compare,table.compare tbody,table.compare tr,table.compare td{display:block;width:100%}
+    table.compare thead{display:none}
+    table.compare tr{margin:0 0 .85rem;border:1px solid #ddd;border-radius:6px;overflow:hidden;background:#fff}
+    table.compare td{border:0;border-bottom:1px solid #e4e0d6;padding:.48rem .65rem .48rem 7.2rem;position:relative;min-height:2.25rem}
+    table.compare td:last-child{border-bottom:0}
+    table.compare td::before{content:attr(data-label);position:absolute;left:.65rem;top:.48rem;width:6.1rem;font-weight:700;color:#555}
+  }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}]});"></script>
+</head>
+<body>
+
+<h1>Quasi-Newton Methods</h1>
+<p class="hero"><strong>Newton's method knows how the landscape bends, but measuring the full Hessian can cost more than taking the step.</strong> Quasi-Newton methods replace that measurement with a running experiment: move, observe how the gradient changed, and update a curvature model that agrees with what was just seen. BFGS is the most successful version of that idea.</p>
+
+<h2 id="s1">1. The expensive question: which way is really downhill?</h2>
+<p>Suppose we minimize a smooth function in a long, tilted valley. The negative gradient points downhill, but it ignores the valley's shape. It repeatedly crosses the narrow direction and makes slow progress along the floor. Newton's method fixes this by rescaling and rotating the gradient with the inverse Hessian:</p>
+<div class="eq">\[p_k^{\text{Newton}}=-\nabla^2 f(x_k)^{-1}\nabla f(x_k).\]</div>
+<p>That direction is excellent when the Hessian is available and cheap. In a problem with millions of variables, however, a dense Hessian contains roughly half a trillion distinct entries. Even for moderate dimensions, deriving, assembling, factoring, and debugging second derivatives may dominate the optimization.</p>
+
+<figure class="figure">
+<svg viewBox="0 0 760 330" role="img" aria-label="Elongated tilted contours with a zigzagging gradient path, a direct Newton step, and a two-step BFGS path.">
+  <defs><marker id="arrGold" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#b07b00"/></marker><marker id="arrBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#356fa8"/></marker></defs>
+  <g transform="translate(380 165) rotate(-24)" fill="none" stroke="#d9d3c3"><ellipse rx="300" ry="72"/><ellipse rx="235" ry="56"/><ellipse rx="170" ry="40"/><ellipse rx="105" ry="25"/><ellipse rx="43" ry="10"/></g>
+  <circle cx="380" cy="165" r="6" fill="#1d5e2a"/><text x="390" y="155" font-size="14" fill="#1d5e2a">minimum</text>
+  <polyline points="660,83 365,267 550,128 378,207 475,145 384,181" fill="none" stroke="#a95d52" stroke-width="2.5" stroke-dasharray="6 5"/>
+  <circle cx="660" cy="83" r="5" fill="#333"/><text x="668" y="76" font-size="14">start</text>
+  <line x1="660" y1="83" x2="380" y2="165" stroke="#356fa8" stroke-width="3" marker-end="url(#arrBlue)"/>
+  <polyline points="660,83 333,250 380,165" fill="none" stroke="#b07b00" stroke-width="3" marker-mid="url(#arrGold)" marker-end="url(#arrGold)"/>
+  <g font-size="13"><text x="520" y="118" fill="#356fa8">Newton: curvature known</text><text x="470" y="276" fill="#b07b00">BFGS: curvature learned</text><text x="486" y="184" fill="#8a453d">gradient descent</text></g>
+</svg>
+<figcaption class="figure-caption"><b>Figure 1.</b> The gradient sees slope but not scale. Newton knows the valley's geometry immediately; BFGS begins naïvely and learns it from successive gradient changes.</figcaption>
+</figure>
+
+<div class="callout intuition"><strong>Intuition:</strong> a Hessian is a local gearbox. It says how to convert “the gradient is this large” into “move this far in this direction.” Quasi-Newton methods learn the gearbox while driving.</div>
+<div class="callout takeaway"><strong>Takeaway:</strong> quasi-Newton methods aim for Newton-like directions using gradients, not explicit second derivatives.</div>
+
+<hr>
+<h2 id="s2">2. A curvature measurement hidden in two gradients</h2>
+<p>Take a step from \(x_k\) to \(x_{k+1}\). Record the displacement and the gradient change:</p>
+<div class="eq">\[s_k=x_{k+1}-x_k,\qquad y_k=\nabla f(x_{k+1})-\nabla f(x_k).\]</div>
+<p>For a quadratic function with Hessian \(A\), gradients are affine, so this measurement is exact:</p>
+<div class="eq">\[y_k=A s_k.\]</div>
+<p>For a general smooth function, the fundamental theorem of calculus gives the precise version:</p>
+<div class="eq">\[y_k=\left(\int_0^1 \nabla^2 f(x_k+t s_k)\,dt\right)s_k.\]</div>
+<p>The gradient difference is therefore the action of the <em>average Hessian along the step</em>. We did not measure every entry of that matrix, but we learned exactly what it does to one vector.</p>
+
+<figure class="figure">
+<svg viewBox="0 0 760 275" role="img" aria-label="Two points joined by a step vector s, with gradients g k and g k plus one; their difference is y.">
+  <defs><marker id="arr2b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#356fa8"/></marker><marker id="arr2g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#b07b00"/></marker></defs>
+  <path d="M70 225 C210 60, 500 35, 700 205" fill="none" stroke="#ddd6c4" stroke-width="2"/>
+  <circle cx="175" cy="145" r="6" fill="#333"/><circle cx="565" cy="112" r="6" fill="#333"/>
+  <line x1="182" y1="143" x2="556" y2="113" stroke="#356fa8" stroke-width="3" marker-end="url(#arr2b)"/>
+  <line x1="175" y1="145" x2="100" y2="76" stroke="#b07b00" stroke-width="3" marker-end="url(#arr2g)"/>
+  <line x1="565" y1="112" x2="664" y2="40" stroke="#b07b00" stroke-width="3" marker-end="url(#arr2g)"/>
+  <line x1="100" y1="76" x2="664" y2="40" stroke="#888" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arr2g)"/>
+  <g font-size="15"><text x="150" y="171">xₖ</text><text x="554" y="139">xₖ₊₁</text><text x="356" y="119" fill="#356fa8">sₖ</text><text x="96" y="64" fill="#8a6200">gₖ</text><text x="656" y="31" fill="#8a6200">gₖ₊₁</text><text x="370" y="48" fill="#555">yₖ = gₖ₊₁ − gₖ</text></g>
+</svg>
+<figcaption class="figure-caption"><b>Figure 2.</b> One step supplies one matrix–vector observation: the unknown curvature maps the displacement \(s_k\) to the gradient change \(y_k\).</figcaption>
+</figure>
+
+<p>If \(B_{k+1}\) approximates the Hessian, consistency with this experiment requires the <strong>secant equation</strong> \(B_{k+1}s_k=y_k\). If \(H_{k+1}\approx B_{k+1}^{-1}\), the same requirement is</p>
+<div class="eq">\[H_{k+1}y_k=s_k.\]</div>
+<div class="callout intuition"><strong>Why “secant”?</strong> In one dimension, Newton uses the tangent slope \(f''(x)\). Replacing it with the change in \(f'\) divided by the change in \(x\) gives a secant slope. The matrix equation above is the multidimensional version.</div>
+<div class="callout takeaway"><strong>Takeaway:</strong> every accepted step yields a free directional curvature measurement, \(s_k\mapsto y_k\).</div>
+
+<hr>
+<h2 id="s3">3. One observation is not a whole Hessian</h2>
+<p>A symmetric \(n\times n\) matrix has \(n(n+1)/2\) independent entries. The secant equation provides only \(n\) scalar constraints. Infinitely many symmetric matrices can satisfy it, so an update needs design principles beyond mere consistency.</p>
+<ol>
+  <li><strong>Keep symmetry.</strong> True Hessians of smooth scalar functions are symmetric.</li>
+  <li><strong>Preserve positive definiteness when the evidence supports it.</strong> Then \(-H_k g_k\) remains a descent direction.</li>
+  <li><strong>Change the old model as little as possible.</strong> The newest observation should correct the model, not erase all previous information.</li>
+</ol>
+<p>BFGS is the rank-two update obtained from an appropriate weighted minimum-change problem subject to symmetry and the inverse secant equation.</p>
+
+<details class="predict">
+<summary>Predict: after one step in a 100-variable problem, has BFGS “learned the Hessian”?</summary>
+<p class="answer"><strong>No.</strong> It has learned the Hessian's action along the latest displacement and retained its prior model elsewhere. The accumulation of informative directions—not one magical update—is what makes the model useful.</p>
+</details>
+
+<figure class="figure">
+<svg viewBox="0 0 760 270" role="img" aria-label="Before and after curvature ellipses, with the updated ellipse changed mainly along the measured secant direction.">
+  <defs><marker id="arr3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#b07b00"/></marker></defs>
+  <g transform="translate(190 135)"><ellipse rx="95" ry="60" fill="#eef4fb" stroke="#4a7bb5" stroke-width="2"/><line x1="-120" y1="0" x2="120" y2="0" stroke="#ccc"/><line x1="0" y1="-95" x2="0" y2="95" stroke="#ccc"/><text x="-49" y="-78" font-size="15" fill="#1f4f7a">old model Hₖ</text></g>
+  <line x1="325" y1="135" x2="425" y2="135" stroke="#b07b00" stroke-width="3" marker-end="url(#arr3)"/><text x="337" y="116" font-size="14" fill="#7a5a00">secant evidence</text>
+  <g transform="translate(575 135) rotate(-26)"><ellipse rx="120" ry="40" fill="#edf5ec" stroke="#3a7d44" stroke-width="2"/><line x1="-135" y1="0" x2="135" y2="0" stroke="#cfd9cd"/><line x1="0" y1="-72" x2="0" y2="72" stroke="#cfd9cd"/></g><text x="515" y="38" font-size="15" fill="#1d5e2a">updated Hₖ₊₁</text>
+  <line x1="497" y1="188" x2="650" y2="81" stroke="#b07b00" stroke-width="3" marker-end="url(#arr3)"/><text x="625" y="73" font-size="14" fill="#7a5a00">sₖ</text>
+</svg>
+<figcaption class="figure-caption"><b>Figure 3.</b> Think of a positive-definite inverse Hessian as an ellipse. BFGS deforms the old ellipse just enough to honor the newest measured direction.</figcaption>
+</figure>
+
+<div class="callout takeaway"><strong>Takeaway:</strong> the secant equation narrows the choices; symmetry, positive definiteness, and minimum change select a useful update.</div>
+
+<hr>
+<h2 id="s4">4. The BFGS update, read as two corrections</h2>
+<p>Let \(H_k\) be the current approximation to the inverse Hessian and define \(\rho_k=(y_k^\top s_k)^{-1}\). The inverse-BFGS update is</p>
+<div class="eq">\[H_{k+1}=\left(I-\rho_k s_k y_k^\top\right)H_k\left(I-\rho_k y_k s_k^\top\right)+\rho_k s_k s_k^\top.\]</div>
+<p>The formula looks elaborate, but its jobs are simple:</p>
+<ul>
+  <li>It removes the part of the old model that conflicts with the new secant observation.</li>
+  <li>It adds the observed inverse-curvature action along \(y_k\).</li>
+  <li>It changes the matrix by rank two, so the update costs \(O(n^2)\), not a new Hessian factorization.</li>
+</ul>
+<p>Multiplying the formula by \(y_k\) immediately gives \(H_{k+1}y_k=s_k\). More importantly, if \(H_k\) is positive definite and</p>
+<div class="eq">\[s_k^\top y_k>0,\]</div>
+<p>then \(H_{k+1}\) is positive definite too. This scalar is the <strong>curvature condition</strong>. A Wolfe line search is valuable not merely because it decreases the objective; its curvature condition also makes \(s_k^\top y_k>0\) for a descent direction.</p>
+
+<details class="predict">
+<summary>Predict: is “the objective decreased” enough to guarantee a safe BFGS update?</summary>
+<p class="answer"><strong>No.</strong> Sufficient decrease controls function values, but positive definiteness depends on the change in directional derivative. A curvature-aware line search supplies the missing condition.</p>
+</details>
+
+<p>The equivalent direct-Hessian update is useful when a solver needs \(B_k\) itself:</p>
+<div class="eq">\[B_{k+1}=B_k-\frac{B_k s_k s_k^\top B_k}{s_k^\top B_k s_k}+\frac{y_k y_k^\top}{y_k^\top s_k}.\]</div>
+<div class="callout intuition"><strong>Notation warning:</strong> books disagree about whether \(H\) names the Hessian or its inverse. This note always uses \(B\approx\nabla^2 f\) and \(H\approx(\nabla^2 f)^{-1}\). Check the secant equation to see which convention a source uses.</div>
+<div class="callout takeaway"><strong>Takeaway:</strong> BFGS is a cheap rank-two correction that enforces the latest curvature measurement while preserving a usable descent geometry.</div>
+
+<hr>
+<h2 id="s5">5. Worked example: learning a tilted quadratic in two steps</h2>
+<p>Use the positive-definite quadratic</p>
+<div class="eq">\[f(x)=\tfrac12x^\top\!\begin{bmatrix}4&1\\1&2\end{bmatrix}x-\begin{bmatrix}1\\1\end{bmatrix}^{\!\top}x,\qquad x_0=\begin{bmatrix}2\\-1\end{bmatrix}.\]</div>
+<p>Its true Hessian is \(A\), but pretend we do not know that. Start with \(H_0=I\), so the first direction is simply steepest descent:</p>
+<div class="eq">\[g_0=Ax_0-b=\begin{bmatrix}6\\-1\end{bmatrix},\qquad p_0=-H_0g_0=\begin{bmatrix}-6\\1\end{bmatrix}.\]</div>
+<p>An exact line search gives \(\alpha_0=37/134\), followed by</p>
+<div class="eq">\[x_1=\begin{bmatrix}23/67\\-97/134\end{bmatrix}\approx\begin{bmatrix}0.3433\\-0.7239\end{bmatrix}.\]</div>
+<p>The measured pair is</p>
+<div class="eq">\[s_0=\begin{bmatrix}-111/67\\37/134\end{bmatrix},\qquad y_0=\begin{bmatrix}-851/134\\-74/67\end{bmatrix},\qquad s_0^\top y_0=\frac{1369}{134}>0.\]</div>
+<p>After the BFGS update, \(H_1y_0=s_0\) exactly. The second BFGS direction is no longer the negative gradient: it has been rotated and rescaled by the curvature learned on the first step. The second exact line search uses \(\alpha_1=134/259\) and lands at</p>
+<div class="eq">\[x_2=\begin{bmatrix}1/7\\3/7\end{bmatrix}=x^\star,\qquad f(x_2)=-\frac27.\]</div>
+<p>After that second independent curvature observation,</p>
+<div class="eq">\[H_2=\begin{bmatrix}2/7&-1/7\\-1/7&4/7\end{bmatrix}=A^{-1}.\]</div>
+
+<table>
+<thead><tr><th>iteration</th><th>point</th><th>objective</th><th>what the model knows</th></tr></thead>
+<tbody>
+<tr><td>0</td><td class="mono">(2, −1)</td><td class="mono">6</td><td>Only the prior \(H_0=I\)</td></tr>
+<tr><td>1</td><td class="mono">(0.3433, −0.7239)</td><td class="mono">0.8918</td><td>Exact curvature action along \(s_0\)</td></tr>
+<tr><td>2</td><td class="mono">(0.1429, 0.4286)</td><td class="mono">−0.2857</td><td>In 2D, two independent observations recover \(A^{-1}\)</td></tr>
+</tbody>
+</table>
+
+<details class="predict">
+<summary>Predict: does BFGS always solve an \(n\)-variable problem in at most \(n\) steps?</summary>
+<p class="answer"><strong>Only in the ideal quadratic story</strong> (with exact arithmetic and exact line searches). On a nonlinear objective, the Hessian changes as we move; with inexact searches, noisy gradients, or rounding, the clean finite-termination argument no longer applies.</p>
+</details>
+<div class="callout takeaway"><strong>Takeaway:</strong> on a quadratic, each independent step teaches one exact curvature direction; in two dimensions, two such lessons can recover the entire inverse Hessian.</div>
+
+<hr>
+<h2 id="s6">6. Interactive lab: watch the curvature model learn</h2>
+<p>Move the iteration slider and switch algorithms. Gradient descent repeatedly reacts to the slope. Newton uses the true inverse Hessian from the start. BFGS begins with the identity and changes its ellipse after each observed \((s_k,y_k)\) pair.</p>
+
+<div class="demo">
+  <div class="demo-controls">
+    <label for="alg">algorithm:
+      <select id="alg"><option value="bfgs">BFGS</option><option value="gd">gradient descent</option><option value="newton">Newton</option></select>
+    </label>
+    <label for="iter">iteration:
+      <input type="range" id="iter" min="0" max="8" step="1" value="2">
+    </label>
+    <output id="iter-out" for="iter" class="mono" style="font-weight:700">k = 2</output>
+  </div>
+  <div class="legend" aria-label="Plot legend"><span><i class="swatch" style="background:#a95d52"></i>gradient descent</span><span><i class="swatch" style="background:#356fa8"></i>Newton</span><span><i class="swatch" style="background:#b07b00"></i>BFGS</span><span><i class="swatch" style="background:#3a7d44"></i>selected point</span></div>
+  <div class="demo-grid">
+    <canvas id="qn-canvas" width="760" height="500" role="img" aria-label="Contour plot of the quadratic showing gradient descent, Newton, and BFGS iterates up to the selected iteration."></canvas>
+    <dl class="metrics" aria-live="polite">
+      <dt>point</dt><dd id="m-x">—</dd>
+      <dt>f(x)</dt><dd id="m-f">—</dd>
+      <dt>||gradient||</dt><dd id="m-g">—</dd>
+      <dt>direction</dt><dd id="m-p">—</dd>
+      <dt>step α</dt><dd id="m-a">—</dd>
+      <dt>inverse model H</dt><dd id="m-h">—</dd>
+    </dl>
+  </div>
+  <p class="small">All three paths use exact line searches on this quadratic. The small green ellipse is proportional to the selected method's inverse-curvature model; it is a geometric cue, not another contour.</p>
+</div>
+
+<div class="callout takeaway"><strong>Takeaway:</strong> BFGS earns its Newton-like scaling from data gathered along the path, rather than receiving the curvature matrix in advance.</div>
+
+<hr>
+<h2 id="s7">7. The practical algorithm: the line search is part of BFGS</h2>
+<pre><code>given x, gradient tolerance ε, and H = I
+while ||g(x)|| &gt; ε:
+    p = -H g(x)
+    choose α satisfying strong Wolfe conditions
+    s = α p
+    y = g(x + s) - g(x)
+    if sᵀy is safely positive:
+        ρ = 1 / (sᵀy)
+        H = (I - ρ s yᵀ) H (I - ρ y sᵀ) + ρ s sᵀ
+    else:
+        skip or damp the update
+    x = x + s</code></pre>
+
+<h3>What robust implementations pay attention to</h3>
+<ul>
+  <li><strong>Line search:</strong> Armijo decrease alone is not enough; a Wolfe curvature condition protects the update.</li>
+  <li><strong>Initial scale:</strong> after the first pair, a common scalar model is \(H_0=\gamma I\) with \(\gamma=(s^\top y)/(y^\top y)\).</li>
+  <li><strong>Curvature safeguard:</strong> if \(s^\top y\) is nonpositive or tiny relative to \(\lVert s\rVert\lVert y\rVert\), skip or damp rather than divide by an unreliable number.</li>
+  <li><strong>Stopping:</strong> use a gradient norm, and often also limits on iterations, function evaluations, or step size.</li>
+  <li><strong>Gradient quality:</strong> finite-difference noise can corrupt \(y_k\), precisely the quantity carrying the curvature information.</li>
+</ul>
+
+<div class="callout intuition"><strong>Debugging rule:</strong> log \(f_k\), \(\lVert g_k\rVert\), \(\alpha_k\), and \(s_k^\top y_k\). A stalled line search or repeatedly rejected curvature pairs usually explains a BFGS run long before inspecting the full matrix does.</div>
+<div class="callout takeaway"><strong>Takeaway:</strong> BFGS is not just a matrix formula; it is the update, a curvature-aware line search, and numerical safeguards working together.</div>
+
+<hr>
+<h2 id="s8">8. The family: DFP, SR1, and L-BFGS</h2>
+<table class="compare">
+<thead><tr><th>method</th><th>central choice</th><th>strength</th><th>main caution</th></tr></thead>
+<tbody>
+<tr><td data-label="method"><strong>BFGS</strong></td><td data-label="central choice">Rank-two update, usually maintained as inverse \(H_k\)</td><td data-label="strength">Strong default for smooth unconstrained problems; preserves positive definiteness under the curvature condition</td><td data-label="main caution">Dense \(O(n^2)\) memory and work</td></tr>
+<tr><td data-label="method"><strong>DFP</strong></td><td data-label="central choice">The dual minimum-change construction</td><td data-label="strength">Historically important and mathematically close to BFGS</td><td data-label="main caution">Usually less robust in practice than BFGS</td></tr>
+<tr><td data-label="method"><strong>SR1</strong></td><td data-label="central choice">Symmetric rank-one correction</td><td data-label="strength">Can represent indefinite curvature, useful in trust-region and constrained settings</td><td data-label="main caution">Its denominator can be tiny; the update must be skipped when unsafe</td></tr>
+<tr><td data-label="method"><strong>L-BFGS</strong></td><td data-label="central choice">Store only the last \(m\) pairs \((s_i,y_i)\)</td><td data-label="strength">Two-loop recursion computes \(-H_kg_k\) in \(O(nm)\) work and memory</td><td data-label="main caution">Forgets older curvature and depends on scaling and pair quality</td></tr>
+</tbody>
+</table>
+
+<p>L-BFGS does not store a truncated matrix. It stores a short history of curvature observations and replays their algebra when a direction is needed. With \(m\) typically much smaller than \(n\), that is the difference between a method for thousands of variables and one for millions.</p>
+
+<div class="figure-side-by-side">
+<div class="callout"><strong>Dense BFGS</strong><br>Stores \(n^2\) numbers and applies a dense matrix to each gradient. Best when dimensions are moderate and rich curvature memory is valuable.</div>
+<div class="callout"><strong>L-BFGS</strong><br>Stores about \(2mn\) numbers for the last \(m\) pairs. Best when the dimension makes a dense matrix impossible.</div>
+</div>
+<div class="callout takeaway"><strong>Takeaway:</strong> BFGS is the robust dense default; L-BFGS keeps the same secant logic while replacing the matrix with a short memory of observations.</div>
+
+<hr>
+<h2 id="s9">9. Guarantees, failure modes, and where to go next</h2>
+<h3>What the theory really promises</h3>
+<ul>
+  <li>On a strictly convex quadratic with exact line searches, BFGS directions match conjugate-gradient structure and terminate in at most \(n\) steps in exact arithmetic.</li>
+  <li>Near a smooth minimizer, suitable line searches and regularity conditions can give superlinear convergence: the error shrinks faster than any fixed linear ratio.</li>
+  <li>Superlinear convergence does <em>not</em> require every entry of \(B_k\) to converge to the exact Hessian; the approximation must become accurate in the directions that matter to the steps.</li>
+</ul>
+
+<h3>When the mental model breaks</h3>
+<ul>
+  <li><strong>Nonconvex curvature:</strong> standard BFGS deliberately preserves a positive-definite model, so it does not directly represent negative curvature.</li>
+  <li><strong>Noisy or nonsmooth gradients:</strong> the difference \(y_k\) may reflect noise or a kink rather than stable curvature.</li>
+  <li><strong>Poor scaling:</strong> variables measured in wildly different units can waste many iterations before the model adapts.</li>
+  <li><strong>Weak line searches:</strong> tiny steps give weak curvature information; failed curvature conditions force skipped or damped updates.</li>
+</ul>
+
+<h3>Sources and companion notes</h3>
+<ul>
+  <li>C. G. Broyden, <a href="https://doi.org/10.1093/imamat/6.1.76">“The Convergence of a Class of Double-rank Minimization Algorithms”</a> — the broader update family from which BFGS emerged.</li>
+  <li>R. Fletcher, <a href="https://doi.org/10.1093/comjnl/13.3.317">“A New Approach to Variable Metric Algorithms”</a>; D. Goldfarb, <a href="https://doi.org/10.1090/S0025-5718-1970-0258249-6">“A Family of Variable Metric Methods Derived by Variational Means”</a>; and D. F. Shanno, <a href="https://doi.org/10.1090/S0025-5718-1970-0274029-X">“Conditioning of Quasi-Newton Methods for Function Minimization”</a> — the original BFGS line of work.</li>
+  <li>J. Nocedal, <a href="https://www.ams.org/journals/mcom/1980-35-151/S0025-5718-1980-0572855-7/">“Updating Quasi-Newton Matrices with Limited Storage”</a> — the limited-memory construction.</li>
+  <li>J. E. Dennis and J. J. Moré, <a href="https://doi.org/10.1090/S0025-5718-1974-0343581-1">“A Characterization of Superlinear Convergence and Its Application to Quasi-Newton Methods”</a> — what “becoming Newton-like” actually requires.</li>
+  <li><a href="https://docs.scipy.org/doc/scipy/reference/optimize.minimize-bfgs.html">SciPy's BFGS documentation</a> — a practical interface showing gradient tolerances, Wolfe parameters, and an initial inverse-Hessian option.</li>
+  <li>In this knowledge base: <a href="../snopt/snopt.html#hessian">SNOPT</a> uses quasi-Newton curvature inside SQP, while <a href="../zero-order-optimization/zero-order-optimization.html">zeroth-order optimization</a> studies the harder case where gradients themselves are unavailable.</li>
+</ul>
+
+<div class="callout takeaway"><strong>Takeaway:</strong> quasi-Newton methods are best understood as disciplined online system identification for curvature: every step is both progress and an experiment.</div>
+
+<nav class="toc" aria-label="Sections">
+<a href="#s1">1. Motivation</a><a href="#s2">2. Curvature pair</a><a href="#s3">3. Choosing a matrix</a><a href="#s4">4. BFGS</a><a href="#s5">5. Example</a><a href="#s6">6. Lab</a><a href="#s7">7. Practice</a><a href="#s8">8. Family</a><a href="#s9">9. Limits</a>
+</nav>
+
+<script>
+(function(){
+  var A=[[4,1],[1,2]], b=[1,1], xStar=[1/7,3/7], Ainv=[[2/7,-1/7],[-1/7,4/7]];
+  function add(a,b){return [a[0]+b[0],a[1]+b[1]]}
+  function sub(a,b){return [a[0]-b[0],a[1]-b[1]]}
+  function mul(c,a){return [c*a[0],c*a[1]]}
+  function dot(a,b){return a[0]*b[0]+a[1]*b[1]}
+  function mv(M,a){return [M[0][0]*a[0]+M[0][1]*a[1],M[1][0]*a[0]+M[1][1]*a[1]]}
+  function mm(X,Y){return [[X[0][0]*Y[0][0]+X[0][1]*Y[1][0],X[0][0]*Y[0][1]+X[0][1]*Y[1][1]],[X[1][0]*Y[0][0]+X[1][1]*Y[1][0],X[1][0]*Y[0][1]+X[1][1]*Y[1][1]]]}
+  function outer(a,c){return [[a[0]*c[0],a[0]*c[1]],[a[1]*c[0],a[1]*c[1]]]}
+  function madd(X,Y){return [[X[0][0]+Y[0][0],X[0][1]+Y[0][1]],[X[1][0]+Y[1][0],X[1][1]+Y[1][1]]]}
+  function mscale(c,X){return [[c*X[0][0],c*X[0][1]],[c*X[1][0],c*X[1][1]]]}
+  function grad(x){return sub(mv(A,x),b)}
+  function f(x){return .5*dot(x,mv(A,x))-dot(b,x)}
+  function exactAlpha(x,p){return -dot(grad(x),p)/dot(p,mv(A,p))}
+  function bfgsUpdate(H,s,y){
+    var rho=1/dot(s,y), I=[[1,0],[0,1]], sy=mscale(-rho,outer(s,y)), ys=mscale(-rho,outer(y,s));
+    return madd(mm(mm(madd(I,sy),H),madd(I,ys)),mscale(rho,outer(s,s)));
+  }
+  function build(kind,n){
+    var states=[{x:[2,-1],H:kind==='newton'?Ainv:[[1,0],[0,1]],p:null,a:null}];
+    for(var k=0;k<n;k++){
+      var cur=states[states.length-1], g=grad(cur.x), H=cur.H, p;
+      if(Math.hypot(g[0],g[1])<1e-11){states.push({x:cur.x.slice(),H:H,p:[0,0],a:0});continue}
+      if(kind==='gd') p=mul(-1,g); else p=mul(-1,mv(H,g));
+      var alpha=kind==='newton'?1:exactAlpha(cur.x,p), next=add(cur.x,mul(alpha,p)), nextH=H;
+      if(kind==='bfgs') nextH=bfgsUpdate(H,sub(next,cur.x),sub(grad(next),g));
+      states[states.length-1].p=p; states[states.length-1].a=alpha;
+      states.push({x:next,H:nextH,p:null,a:null});
+    }
+    return states;
+  }
+  var paths={gd:build('gd',8),newton:build('newton',8),bfgs:build('bfgs',8)};
+  var canvas=document.getElementById('qn-canvas'),ctx=canvas.getContext('2d'),alg=document.getElementById('alg'),slider=document.getElementById('iter'),out=document.getElementById('iter-out');
+  var colors={gd:'#a95d52',newton:'#356fa8',bfgs:'#b07b00'};
+  function world(x){var xmin=-.75,xmax=2.2,ymin=-1.35,ymax=1.35,pad=48;return [pad+(x[0]-xmin)/(xmax-xmin)*(canvas.width-2*pad),canvas.height-pad-(x[1]-ymin)/(ymax-ymin)*(canvas.height-2*pad)]}
+  function eigen(M){var tr=M[0][0]+M[1][1],d=Math.sqrt((M[0][0]-M[1][1])**2+4*M[0][1]**2),l1=(tr+d)/2,l2=(tr-d)/2,theta=.5*Math.atan2(2*M[0][1],M[0][0]-M[1][1]);return [l1,l2,theta]}
+  function contour(level){var eig=eigen(A),l1=eig[0],l2=eig[1],th=eig[2],ct=Math.cos(th),st=Math.sin(th),r1=Math.sqrt(2*level/l1),r2=Math.sqrt(2*level/l2);ctx.beginPath();for(var i=0;i<=120;i++){var t=i/120*Math.PI*2,u=r1*Math.cos(t),v=r2*Math.sin(t),q=[xStar[0]+ct*u-st*v,xStar[1]+st*u+ct*v],p=world(q);if(i===0)ctx.moveTo(p[0],p[1]);else ctx.lineTo(p[0],p[1])}ctx.stroke()}
+  function drawPath(name,k){var ps=paths[name],limit=Math.min(k,ps.length-1);ctx.strokeStyle=colors[name];ctx.lineWidth=name===alg.value?3.2:1.7;ctx.setLineDash(name==='gd'?[6,4]:[]);ctx.beginPath();for(var i=0;i<=limit;i++){var p=world(ps[i].x);if(i===0)ctx.moveTo(p[0],p[1]);else ctx.lineTo(p[0],p[1])}ctx.stroke();ctx.setLineDash([]);for(var j=0;j<=limit;j++){var q=world(ps[j].x);ctx.beginPath();ctx.arc(q[0],q[1],name===alg.value?4.5:3,0,Math.PI*2);ctx.fillStyle=colors[name];ctx.fill()}}
+  function modelEllipse(x,H){var eig=eigen(H),l1=Math.max(eig[0],0),l2=Math.max(eig[1],0),th=eig[2],c=Math.cos(th),s=Math.sin(th),scale=.32;ctx.beginPath();for(var i=0;i<=80;i++){var t=i/80*Math.PI*2,u=scale*Math.sqrt(l1)*Math.cos(t),v=scale*Math.sqrt(l2)*Math.sin(t),q=[x[0]+c*u-s*v,x[1]+s*u+c*v],p=world(q);if(i===0)ctx.moveTo(p[0],p[1]);else ctx.lineTo(p[0],p[1])}ctx.strokeStyle='#3a7d44';ctx.lineWidth=2;ctx.stroke()}
+  function fmt(v){return Number.isFinite(v)?(Math.abs(v)<1e-10?'0':v.toFixed(4)):'—'}
+  function pair(v){return '('+fmt(v[0])+', '+fmt(v[1])+')'}
+  function render(){
+    var k=+slider.value,name=alg.value,state=paths[name][Math.min(k,paths[name].length-1)];out.textContent='k = '+k;ctx.clearRect(0,0,canvas.width,canvas.height);ctx.strokeStyle='#ddd6c4';ctx.lineWidth=1.2;[.08,.25,.65,1.4,2.8,5.2,8.5].forEach(contour);
+    ctx.strokeStyle='#c9c2ae';ctx.lineWidth=1;var xaxis=world([0,0]),x0=world([-.75,0]),x1=world([2.2,0]),y0=world([0,-1.35]),y1=world([0,1.35]);ctx.beginPath();ctx.moveTo(x0[0],x0[1]);ctx.lineTo(x1[0],x1[1]);ctx.moveTo(y0[0],y0[1]);ctx.lineTo(y1[0],y1[1]);ctx.stroke();
+    drawPath('gd',k);drawPath('newton',k);drawPath('bfgs',k);modelEllipse(state.x,state.H);var xs=world(xStar);ctx.beginPath();ctx.arc(xs[0],xs[1],6,0,Math.PI*2);ctx.fillStyle='#1d5e2a';ctx.fill();
+    var g=grad(state.x),p=state.p||[0,0];document.getElementById('m-x').textContent=pair(state.x);document.getElementById('m-f').textContent=fmt(f(state.x));document.getElementById('m-g').textContent=fmt(Math.hypot(g[0],g[1]));document.getElementById('m-p').textContent=pair(p);document.getElementById('m-a').textContent=state.a==null?'—':fmt(state.a);document.getElementById('m-h').innerHTML='['+fmt(state.H[0][0])+', '+fmt(state.H[0][1])+']<br>['+fmt(state.H[1][0])+', '+fmt(state.H[1][1])+']';
+  }
+  alg.addEventListener('change',render);slider.addEventListener('input',render);render();
+
+  var links=Array.prototype.slice.call(document.querySelectorAll('nav a[href^="#"]'));
+  var items=links.map(function(a){var el=document.querySelector(a.getAttribute('href'));return el?{a:a,el:el}:null}).filter(Boolean);
+  function updateToc(){var ref=window.innerHeight*.35,cur=null,top=-Infinity;items.forEach(function(it){var r=it.el.getBoundingClientRect();if(r.top<=ref&&r.top>top){top=r.top;cur=it}});items.forEach(function(it){it.a.classList.toggle('active',it===cur)})}
+  window.addEventListener('scroll',updateToc,{passive:true});window.addEventListener('resize',updateToc);updateToc();
+})();
+</script>
+</body>
+</html>

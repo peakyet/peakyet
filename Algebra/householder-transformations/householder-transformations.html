@@ -729,11 +729,10 @@ T = [ 4.0000  -3.0000   0.        0.     ]      ← subdiagonal |−3| = ‖(1,2
     [  0.       0.7115  1.6125    0.5122 ]
     [  0.       0.      0.5122    1.6098 ]      ← T symmetric, tridiagonal, eigenvalues unchanged</pre>
   <p>Non-symmetric \(A\)? Same loop, one fewer zero per column (a mirror can't kill the entry it reflects
-  <em>into</em>), gives the \(\mathcal{O}(n^3)\) Hessenberg reduction — \(10n^3/3\) flops for the Francis
-  QR algorithm's starting point. And the SVD (bidiagonalization) is the mirror applied to two
-  rectangular blocks at once. If your solver's name ends in <em>-ev, -svd, -qz</em>, Householder is its
-  preprocessing backbone (see the sibling notes on the <a href="../francis-qr-step/francis-qr-step.html">Francis
-  QR step</a> and <a href="../generalized-schur-decomposition/generalized-schur-decomposition.html">QZ/Schur</a>).</p>
+  <em>into</em>), gives the \(\mathcal{O}(n^3)\) Hessenberg reduction — \(10n^3/3\) flops for QR eigenvalue
+  algorithms' starting point. And the SVD (bidiagonalization) is the mirror applied to two
+  rectangular blocks at once. If your solver's name ends in <em>-ev</em> or <em>-svd</em>, Householder is its
+  preprocessing backbone.</p>
   <div class="callout takeaway"><strong>Takeaway:</strong> \(H=H^{\mathsf T}=H^{-1}\) makes the similarity
   \(HAH\) symmetric and eigenvalue-preserving for free, so \(n-2\) mirrors turn any symmetric eigenproblem into a
   tridiagonal one in \(\tfrac43n^3\) flops — the front door of every real symmetric eigensolver.</div>

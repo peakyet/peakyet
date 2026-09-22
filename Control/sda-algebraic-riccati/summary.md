@@ -1,58 +1,68 @@
-# SDA (Structure-Preserving Doubling Algorithm) for the Algebraic Riccati Equation — summary
+# Current understanding: SDA for the algebraic Riccati equation
 
-**Deliverable:** `sda-algebraic-riccati.html` (self-contained page, KaTeX from CDN, two interactive demos, all
-numbers machine-verified). **Demos:** `demos/sda_verify.py`, `demos/diag_sda.py` (numpy/scipy;
-run with `uv run --with numpy --with scipy python demos/sda_verify.py`).
+**Artifact:** `Control/sda-algebraic-riccati/sda-algebraic-riccati-deck.html` (draft deck, KaTeX CDN).
+The deck is filed with `-deck.html` because the slug has a tracked long-form page in `HEAD`
+(`sda-algebraic-riccati.html`). No landing-page card has been added yet; the deck is not discoverable
+until all planned sections pass the understanding gate and verification is complete.
 
-## Reader calibration (asked before writing)
-- LQR/ARE origin: can derive it → page does not re-derive the Riccati equation.
-- Matrix tools: all except Schur complements → §2 is a dedicated primer (Schur complement as
-  block Gaussian elimination).
-- Hamiltonian/invariant-subspace method: comfortable → compared against, not taught.
-- Repeated squaring & quadratic convergence: teach both → §3 builds them from scratch
-  (Fibonacci by squaring, digit-count definition of quadratic convergence).
+**Current section:** 1, `What problem is SDA solving?`, awaiting the user's explain-back and prediction
+answer.
 
-## The mental model delivered
-1. **Rewrite, don't solve.** Each SDA step replaces the Riccati equation by an equivalent one
-   (same stabilizing solution) whose data is closer to trivial. ~10 rewrites → machine precision.
-2. **Baby case (Stein: X = AᵀXA + Q):** self-substitution gives X = (A^{2^k})ᵀXA^{2^k} +
-   Σ_{i<2^k}(Aᵀ)^iQA^i. Squared Smith: A_{k+1}=A_k², Q_{k+1}=Q_k+A_kᵀQ_kA_k. Verified:
-   Q_k is *identically* the 2^k-term partial sum (8.5e-15).
-3. **DARE (X = Q + AᵀX(I+GX)⁻¹A):** the fixed-point iteration is (inverse) subspace iteration on
-   the symplectic matrix S = [[I,G],[0,Aᵀ]]⁻¹[[A,0],[−Q,I]], whose inside-disk invariant
-   subspace is im[I;X★], with closed-loop E = (I+GX★)⁻¹A. SDA maintains the factored form
-   S^{−2^k} = [[A_k,0],[−Q_k,I]]⁻¹[[I,G_k],[0,A_kᵀ]]; squaring it = one block elimination
-   (Schur complement) ⇒ the updates, with T_k = (I+G_kQ_k)⁻¹ shared:
-   **A' = A·T·A, G' = G + A·T·G·Aᵀ, Q' = Q + Aᵀ·Q·T·A** (Q *before* T — this placement is what
-   keeps Q' symmetric; pinned down numerically against the explicit S⁻² in diag_sda.py).
-4. **Structure preserved:** doubling lemma (DARE(A_k,G_k,Q_k) has the same X★; residuals ~1e-14);
-   G_k,Q_k symmetric PSD forever; spectrum of I+G_kQ_k real in [1,∞) (verified: min Re 1.0000,
-   max|Im| = 0); A_k→0, G_k→C★ (dual, quadratic), Q_k↑X★ monotone; Q_k = X_{2^k} exactly
-   (3e-15); nothing overflows unlike raw S^{−2^k}.
-5. **CARE via Cayley (Chu–Fan–Lin 2005):** pencil (𝓗+τI, 𝓗−τI), μ ↦ (μ+τ)/(τ−μ) maps the LHP
-   (the [I;X★] half) into the unit disk; block elimination of the pencil gives
-   A₀ = I + 2τ(A_τ+GA_τ^{-ᵀ}Q)⁻¹, G₀ = 2τA_τ⁻¹G(A_τᵀ+QA_τ⁻¹G)⁻¹, Q₀ = 2τ(A_τᵀ+QA_τ⁻¹G)⁻¹QA_τ⁻¹
-   (A_τ = A−τI), symmetric, PSD; then the same 3-line SDA. Verified: DARE residual of X★ 1.2e-13,
-   closed-loop ρ = max Cayley image (0.6328), pencil spectrum equivalence 2.6e-13.
-   τ: U-shaped optimum (verified 10/9/7/6/6/8/10 steps for τ=0.05…30), singular at τ∈spec(A).
-6. **Numerics:** one inverse per step, spectrally trapped in [1,∞); warm-startable; low-rank
-   Woodbury variants reach O(n)/step (Li–Chu–Lin–Weng: n=20,209, 204M unknowns, 45 s).
-   Failure modes: imaginary-axis eigenvalues (rate degrades to linear ½), τ singularities,
-   unimodular DARE eigenvalues, dense fill-in of A_k.
-7. **Connection:** SDA = matrix-sign iteration with structure-preserving bookkeeping
-   (verified |Cay(𝓗₁) − S²| = 1.7e-10).
+## Audience calibration
 
-## Verified headline numbers (all from sda_verify.py, float64)
-- DARE n=4, ρ(A)=0.85, ρ(E)=0.719: SDA digits −0.9, −0.5, −0.0, 1.1, 3.4, 8.0, 13.7 (k=0..6);
-  fixed point at j=k: −0.9 … 0.8 (linear, ≈0.28 digits/step).
-- Stein n=4, ρ(A)=0.93: doubling digits reach 6.3 at k=7 while plain Smith has −1.2 at j=8.
-- CARE n=4, τ=1: SDA digits −1.4 … 12.7 (k=6), final CARE residual 4.7e-13.
-- Scalar worked example a=g=q=1, τ=2: triple (−1,2,2) → Q_k = 2, 2.4, 2.4142012, 2.4142135624,
-  machine — x★ = 1+√2. Digits 0.4, 1.9, 4.9, 11.0, 16.
-- Fibonacci by squaring: 5 squarings → F₃₂ = 2,178,309; 20 vs 1,048,575 products for F₁₀₄₈₅₇₆.
+| Node | Status | Notes |
+|---|---|---|
+| Basic linear algebra and matrix multiplication | assumed | Needed for block updates and Schur complements. |
+| State-space control / LQR | assumed | The deck states the scalar LQR example rather than deriving LQR from scratch. |
+| Algebraic Riccati equation as a stabilizing matrix quadratic | main topic | Section 1 teaches the stability-selection role with the scalar example. |
+| Schur complement | taught briefly | Planned for section 3, where the SDA inverse appears. |
+| Repeated squaring and quadratic convergence | taught briefly | Planned for section 2, using the doubling idea before Riccati updates. |
+| Hamiltonian invariant-subspace view | assumed / linked | Section 1 only names it as an alternative route; section 6 connects it back. |
 
-## Sources used
-Poloni 2020 (arXiv:2005.08903) comparative introduction (main structural reference);
-Chu–Fan–Lin, LAA 396 (2005) 55–80 (CARE bridge + τ heuristics); Lin–Xu, SIMA 28 (2006)
-(convergence theory); Chu–Fan–Lin–Wang, IJC 77 (2004) (modern SDA); Anderson, IJC 28 (1978)
-295–306 (origin); Li–Chu–Lin–Weng (large-scale low-rank SDA); Lancaster–Rodman (theory).
+## Outline and frame map
+
+| Section | Planned frames | Status |
+|---|---|---|
+| 1. What problem is SDA solving? | `#/3` divider, `#/4`-`#/7` content | draft; awaiting gate |
+| 2. Repeated squaring | not built | planned, 3-4 frames |
+| 3. The discrete Riccati rewrite | not built | planned, 4 frames |
+| 4. From CARE to DARE | not built | planned, 4 frames |
+| 5. What is preserved, and when it fails | not built | planned, 3-4 frames |
+| 6. Connections and sources | not built | planned, 3 frames |
+
+## Running example
+
+Scalar unstable plant:
+\[
+\dot x=x+u,\qquad J=\int_0^\infty (x^2+u^2)\,dt.
+\]
+The CARE is
+\[
+1+2X-X^2=0,\qquad X=1\pm\sqrt2.
+\]
+The stabilizing solution is \(X_+=1+\sqrt2\). It gives closed loop \(A-GX_+=-\sqrt2<0\); the other root gives \(+\sqrt2\). This example will recur as the smallest CARE and as the target for the Cayley-to-DARE bridge.
+
+Verified by `scripts/scalar_riccati.py`:
+```text
+X=-0.414213562373095 residual=-2.776e-16 closed_loop=1.414213562373095 stable=False
+X=2.414213562373095 residual=0.000e+00 closed_loop=-1.414213562373095 stable=True
+selected X=1+sqrt(2)=2.414213562373095
+```
+
+## Claims on current frames
+
+- CARE form \(Q+A^*X+XA-XGX=0\) and the invariant-subspace relation are grounded in Poloni, §5.1, equations (37)-(38).
+- The scalar example, root selection, and closed-loop stability check were verified by `scripts/scalar_riccati.py`.
+- The statement that doubling constructs \(Q_k=X_{2^k}\) from a base fixed-point iteration and gives quadratic convergence is grounded in Poloni, abstract and §2/§4.
+
+## Sources
+
+- Federico Poloni, *Iterative and doubling algorithms for Riccati-type matrix equations: a comparative introduction*, arXiv:2005.08903v1, fetched and read this session. Grounds: CARE definition, Hamiltonian invariant-subspace relation, doubling/SDA lineage, and quadratic-convergence statement.
+- E. K.-W. Chu, H.-Y. Fan, W.-W. Lin, *A structure-preserving doubling algorithm for continuous-time algebraic Riccati equations*, Linear Algebra and its Applications 396 (2005) 55-80, DOI `10.1016/j.laa.2004.10.010`; Crossref metadata fetched this session. Planned for section 4's CARE-to-DARE bridge; no frame claim yet.
+- B. D. O. Anderson, *Second-order convergent algorithms for the steady-state Riccati equation*, International Journal of Control 28(2) (1978) 295-306, DOI `10.1080/00207177808922455`; Crossref metadata fetched this session. Planned for the historical lineage of doubling algorithms; no frame claim yet.
+- T.-M. Huang, R.-C. Li, W.-W. Lin, *Structure-Preserving Doubling Algorithms for Nonlinear Matrix Equations*, SIAM, 2018, DOI `10.1137/1.9781611975369.ch1`; Crossref metadata fetched this session. Planned as the modern book-level reference.
+
+## Verification state
+
+- Scalar CARE numbers run with `python3 Control/sda-algebraic-riccati/scripts/scalar_riccati.py`.
+- Headless Firefox screenshots checked frames `#/3`-`#/7` at 1440x900 and the deck at 420x1600. Frame 5 had an overfull box and was shortened; the corrected screenshot has no visible overfull tag. The draft is not ready for the landing-page card.
