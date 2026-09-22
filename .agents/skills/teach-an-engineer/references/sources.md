@@ -44,7 +44,7 @@ For journal-only papers, older classics, and fields arXiv does not carry, go mul
 
 ```text
 mcp__paper_search_mcp__search_papers          # one fan-out over many platforms
-  query='bulge chasing Francis QR step', sources='crossref,semantic,openalex,arxiv',
+  query='eigenvalue iteration algorithm', sources='crossref,semantic,openalex,arxiv',
   max_results_per_source=5
 mcp__paper_search_mcp__search_crossref        # DOI, journal, volume, pages
 mcp__paper_search_mcp__search_semantic        # year filters, citation counts, related work
