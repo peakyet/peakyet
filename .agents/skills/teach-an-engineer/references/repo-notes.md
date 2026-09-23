@@ -7,7 +7,7 @@ How a `teach-an-engineer` artifact lands in this repository. The repo's `AGENTS.
 ```text
 index.html                                     landing page: every note is a card in #grid
 <Category>/<topic-slug>/<topic-slug>.html      the page (file name repeats the folder name)
-<Category>/<topic-slug>/summary.md             audience calibration, verified claims, running example
+<Category>/<topic-slug>/summary.md             short teaching handoff, sources, current discussion point
 <Category>/<topic-slug>/assets/                generated figures (png/svg) only when inline SVG will not do
 <Category>/<topic-slug>/scripts/               runnable helpers (.mjs, .py, .json) that produced numbers on the page
 ```
@@ -73,6 +73,20 @@ palette, but a deck is a different artifact and does not inherit it, so do not s
 deck to `paper` because a neighbouring page or an earlier deck looks that way. Only the
 user's explicit request changes it, and `summary.md` records that they asked.
 
+### Three rules that save the most time
+
+1. **Budget the frame before writing it.** A `.frame-body` holds ~20 em (less ~1 em with a
+   `.framesubtitle`). Count 1.45 em per text line, 3 em per `.eq`, 1.7 em per `.block`,
+   0.9 em per table row. **`.cols` gives each column the same budget, not half the text** —
+   the most common way a frame overflows is a two-column frame written at full-width length.
+   Over 20 em → split the frame or cut content.
+2. **One concrete object beats notation.** A frame stated over subspaces or operators reads as
+   complexity even when the idea is simple; the same content around one vector or one number
+   lands immediately. Introduce a symbol only if the frame uses it twice.
+3. **Compute when it helps.** Use scripts for demos, illustrations, or difficult calculations,
+   not as a prerequisite for every claim. Reason through routine derivations; ground specialized
+   claims in authoritative sources. Report only real demo output, and do not treat examples as proofs.
+
 The contract below is the repository's long-form note style, which every newer note under
 `<Category>/<slug>/` already follows. No template ships for it: read these bullets when
 editing an existing note, and keep that note's renderer and class names. For anything new,
@@ -92,26 +106,61 @@ Math renderer: a new deck uses the template's KaTeX (auto-render from the jsDeli
 
 ## summary.md
 
-Match the summary structure described below: a `# Current understanding: <topic>` title, an audience line, the prerequisite map as a table with each node marked assumed / taught briefly / taught fully / main topic, the mechanism or worked numbers, and an explicit list of which claims were verified by running code. Add the section-to-frame map (`section 2 = #/4-#/6`), so a resumed session can deep-link straight back to the frame it stopped on. Add a **Sources** list of the papers the deck leans on, each with the arXiv ID or DOI it was fetched under and the claim it grounds, as covered in [sources.md](sources.md). This is the handoff file for the next session, so record the calibration answers rather than re-deriving them.
+Keep a short handoff: audience assumptions, section-to-frame links, current discussion
+point, the running example, unresolved gaps, sources with the claims they support, and
+checks actually performed or unavailable. Record useful learning evidence without a
+transcript, mandatory explain-back, or prerequisite-status table. Follow [sources.md](sources.md)
+for papers, books, and blogs.
+
+The first HTML draft covers the complete reasoning chain; teaching progress is separate
+from artifact readiness. Add the landing card after the complete draft is usable and
+checked, not after the reader passes each section. Revise the deck and handoff during teaching.
 
 ## Verify
 
+**Use Chrome, not Firefox.** Chrome renders a frame in ~3 s; headless Firefox takes 30–120 s,
+has hung and left a stale process that blocks every later run, and caches `file://` pages so
+a re-render can silently serve the previous frame.
+
+### Layout audit — the whole deck in one screenshot
+
+The template's `?fit` mode renders a panel listing every frame's fill and status. This is the
+loop to use while *writing* frames:
+
 ```sh
-cd /home/chun/work/peakyet
-P="$PWD/<Category>/<slug>/<slug>.html"          # a new topic's deck
-firefox --headless --screenshot=/tmp/<slug>-f1.png    --window-size=1440,900 "file://$P#/1"
-firefox --headless --screenshot=/tmp/<slug>-dense.png --window-size=1440,900 "file://$P#/4"
-firefox --headless --screenshot=/tmp/<slug>-last.png  --window-size=1440,900 "file://$P#/<N>"
-firefox --headless --screenshot=/tmp/<slug>-narrow.png --window-size=420,1600 "file://$P"
+P=/home/chun/work/peakyet/<Category>/<slug>/<slug>.html          # ABSOLUTE path
+google-chrome-stable --headless --disable-gpu --no-sandbox \
+  --user-data-dir=/tmp/chrome-deck \
+  --screenshot=/tmp/<slug>-fit.png --window-size=1440,900 "file://$P?fit#/1"
 ```
 
-The default deck is checked frame by frame, because one shot can only show one frame:
-`#/N` deep-links to frame N and reveals every overlay inside it, which is what the
-printed deck shows. Shoot the title frame, the densest content frame, and the last one,
-and leave no `overfull` tag in any of them. For a long-form note, shoot the document
-instead at `1440,2600` and `420,2600`.
+Read `frame fill status`. **`fill` is the number that matters, not the badge** — a frame at
+94% passes today and overflows after one more sentence, so trim anything above ~90% and never
+leave a frame above 95%. Chrome and Firefox break lines differently, so the Chrome audit is
+the authority; a Firefox shot alone does not clear a frame.
 
-Then look at the shots: math rendered, figures placed and labelled, nothing clipped or overlapping, TOC anchors present. For relative cross-links, serve the repo (`python3 -m http.server 8000`) and open `http://localhost:8000/index.html`, then confirm the new card appears, filters find it, and its link resolves. Note any check you could not run instead of implying it passed.
+### Visual check — a few frames, once the audit is clean
+
+```sh
+google-chrome-stable --headless --disable-gpu --no-sandbox --user-data-dir=/tmp/chrome-deck \
+  --screenshot=/tmp/<slug>-f1.png --window-size=1440,900 "file://$P#/1"     # then #/4, #/<N>
+google-chrome-stable --headless --disable-gpu --no-sandbox --user-data-dir=/tmp/chrome-deck \
+  --screenshot=/tmp/<slug>-narrow.png --window-size=420,3200 "file://$P"
+```
+
+`#/N` deep-links to frame N and reveals every overlay inside it, which is what the printed
+deck shows. For a long-form note, shoot the document instead at `1440,2600` and `420,2600`.
+
+Then look: math rendered, figures placed and labelled, nothing clipped or overlapping, no SVG
+label collisions, TOC anchors present. For cross-links, serve the repo
+(`python3 -m http.server 8000`), open `http://localhost:8000/index.html`, and confirm the card
+appears, filters find it, and its link resolves. Note any check you could not run.
+
+**Hygiene, each of which has bitten:** absolute paths only (a bare `$PWD/...` breaks silently
+when the working directory moves — the browser writes no file and the batch looks like it
+ran); a dedicated `--user-data-dir` (otherwise the profile lock refuses a second run);
+cache-bust re-renders with `?v=$(date +%s)` before the `#`; and `ls` the output file after a
+batch, because a missing file is the only signal that the command did nothing.
 
 ## Housekeeping
 

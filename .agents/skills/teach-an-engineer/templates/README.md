@@ -5,10 +5,10 @@ starting point for a `teach-an-engineer` artifact. Do **not** hand-build a new t
 unless the user explicitly asks for a custom look. The file is a complete skeleton
 (layout + CSS + KaTeX from a CDN) — copy it and fill in the placeholder frames.
 
-The skill teaches from these frames: a section is built on the page before it is
-discussed, and the session hands over a `#/N` deep link instead of a terminal
-explanation. Design the frames accordingly — one claim each, the question on the
-frame, and the answer one key press away.
+Build a concise, complete deck before teaching, then revise it during discussion.
+Teach one connected idea at a time using `#/N` deep links. Each guiding question
+should lead to the next reasoning step, not ask for text copied from a slide;
+put its answer and reasoning behind an overlay for independent reading.
 
 ## `beamer-deck.html` — LaTeX Beamer look
 - **Look & feel:** white 1280x720 pages on a grey backdrop, tinted head and foot
@@ -50,6 +50,11 @@ frame, and the answer one key press away.
   table, or `pre` is clipped horizontally, gets a red `overfull \vbox` /
   `overfull \hbox` tag in the corner. Treat it like a compiler warning: shorten the
   frame, split it, or set the formula in `.eq.tight`.
+- **Layout audit (`?fit`):** open the deck with `?fit` in the query string and a panel
+  lists every frame's fill and status. One screenshot audits the whole deck instead of one
+  screenshot per frame. **Read `fill`, not just the badge** — 94% passes today and overflows
+  after one more sentence, so keep frames under ~90%. Author-only, hidden when printing;
+  the command and the frame budget are in `repo-notes.md`.
 - **Controls:** arrows, `Space`, `PageUp`/`PageDown` step fragments then frames;
   `Home`/`End` jump; `f` fullscreen; `r` reader mode; plus the corner button
   cluster. `#/N` deep-links to frame N, which is how a teaching session points at
@@ -76,24 +81,26 @@ fit a column, shorten it or add `.eq.tight`.
    registering the card on the landing page).
 2. Update `<title>` to `Deck Title — one-line hook`. The foot band prints the text
    before the em dash as the running title, so keep that part short.
-3. Replace the placeholder frames. One claim per frame, four to six bullets at
-   most, and a frame that only repeats the next one is a frame to delete.
+3. Replace all placeholder frames with the complete reasoning chain. Use one idea
+   per frame and no fixed frame or bullet count; remove repetition, not logical bridges.
 4. Add or drop `.section` dividers with the outline, and keep `data-section` and
    `data-secname` identical across a divider and the frames it introduces.
 5. Spend overlays where the argument branches: `data-fragment` on each beat of a
    list, and on the answer of a prediction prompt so the question lands first.
-6. Close every section with a `.block.takeaway`, and the deck with a sources frame: one entry
-   per authoritative reference, each carrying a real arXiv ID or DOI link and a line on what it
-   adds. Fetch those identifiers with the paper MCP servers rather than from memory, and mirror
-   the list into `summary.md` (see [../references/sources.md](../references/sources.md)).
+6. Close sections with a brief `.block.takeaway`, without requiring a separate frame.
+   Present evaluative results and tradeoffs after the mechanism; end with sources actually
+   read and what they support. Papers use DOI/arXiv links when available; books and blogs use
+   appropriate bibliographic details and public links. Mirror that mapping in `summary.md`
+   (see [../references/sources.md](../references/sources.md)).
 7. Ship `data-theme="beamer"` — the default. Do not switch a deck to
    `data-theme="paper"` on your own initiative, and do not treat "the other pages
    in this folder are serif" as a reason: a deck is its own artifact, and a
    neighbouring page's palette is not an instruction. Change it only when the user
    asks for the paper look by name, and say so in `summary.md`. Recolor anything
    else only on request.
-8. Fix every `overfull \vbox` / `overfull \hbox` tag before shipping, then keep the
-   CDN KaTeX links and delete unused placeholder frames (the CSS may stay).
+8. Audit the whole deck at once with the `?fit` panel and fix every `overfull` tag before
+   shipping, then keep the CDN KaTeX links and delete unused placeholder frames (the CSS
+   may stay).
 
 ## Existing long-form notes
 
