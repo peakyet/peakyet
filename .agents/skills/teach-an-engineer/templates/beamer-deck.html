@@ -321,7 +321,8 @@
 </head>
 
 <body data-theme="beamer" class="deck">
-<!-- data-theme="paper" switches to the repository's serif/gold look; the layout is identical. -->
+<!-- data-theme="beamer" (the default) is the classic blue theme. data-theme="paper" is an
+     opt-in variant using the repository's serif/gold palette; same layout. Set it only on request. -->
 <div class="progress" aria-hidden="true"><i id="progress-bar"></i></div>
 
 <main class="stage" id="stage">
@@ -563,9 +564,20 @@
   function check(){
     slides.forEach(function(sl){
       var fb = sl.querySelector('.frame-body');
-      var tall = fb && fb.scrollHeight > fb.clientHeight + 2;
+      /* A block's bottom margin counts toward the container's scrollHeight even
+         though overflow:hidden clips only empty space. Discount the last child's
+         trailing margin so the warning means real clipping. */
+      var trail = 0;
+      if (fb && fb.lastElementChild){
+        trail = parseFloat(window.getComputedStyle(fb.lastElementChild).marginBottom) || 0;
+      }
+      var tall = fb && fb.scrollHeight - trail > fb.clientHeight + 2;
       var wide = false;
       Array.prototype.forEach.call(sl.querySelectorAll('.eq,.katex-display,.mono,table,pre'), function(el){
+        /* Inline elements (e.g. <span class="mono">) report clientWidth 0, which
+           would flag every frame that mentions a filename. Only block boxes can
+           genuinely clip horizontally. */
+        if (!el.clientWidth) return;
         if (el.scrollWidth > el.clientWidth + 2) wide = true;
       });
       sl.classList.toggle('ov-v', !!tall);

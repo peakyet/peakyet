@@ -67,6 +67,12 @@ should arrive on a key press rather than a click; one `.eq` per display equation
 `.figure` + `.figure-caption` for the frame's single visual claim. Frames stack and
 reflow below ~700px, and a frame that no longer fits its page is tagged `overfull`.
 
+Ship `data-theme="beamer"` — the classic blue theme, and the default for every deck. The
+serif/gold `data-theme="paper"` is opt-in: the repository's *long-form notes* use that
+palette, but a deck is a different artifact and does not inherit it, so do not switch a
+deck to `paper` because a neighbouring page or an earlier deck looks that way. Only the
+user's explicit request changes it, and `summary.md` records that they asked.
+
 The contract below is the repository's long-form note style, which every newer note under
 `<Category>/<slug>/` already follows. No template ships for it: read these bullets when
 editing an existing note, and keep that note's renderer and class names. For anything new,

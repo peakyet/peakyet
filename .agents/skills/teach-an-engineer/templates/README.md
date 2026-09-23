@@ -12,10 +12,12 @@ frame, and the answer one key press away.
 
 ## `beamer-deck.html` — LaTeX Beamer look
 - **Look & feel:** white 1280x720 pages on a grey backdrop, tinted head and foot
-  bands, filled-triangle bullets, and Beamer's rounded `block` boxes. The default
-  theme is classic Beamer blue (`data-theme="beamer"`, sans body);
-  `data-theme="paper"` swaps in this repository's serif-on-paper palette with the
-  same layout. **Light mode.**
+  bands, filled-triangle bullets, and Beamer's rounded `block` boxes. **The theme
+  is classic Beamer blue (`data-theme="beamer"`, sans body), and that is the
+  default for every deck.** `data-theme="paper"` swaps in the repository's
+  serif-on-paper palette with the same layout, but it is opt-in only: set it when
+  the user asks for it, never on your own initiative, and never because a
+  neighbouring page uses it. **Light mode.**
 - **Use it for:** every new artifact — a talk, a lesson the user walks through, or an
   explanation that gains from one claim per frame.
 - **Font:** the Beamer theme uses a Helvetica/Arial sans stack, the paper theme a
@@ -84,8 +86,12 @@ fit a column, shorten it or add `.eq.tight`.
    per authoritative reference, each carrying a real arXiv ID or DOI link and a line on what it
    adds. Fetch those identifiers with the paper MCP servers rather than from memory, and mirror
    the list into `summary.md` (see [../references/sources.md](../references/sources.md)).
-7. Keep `data-theme="beamer"` unless the user wants the deck to read as part of the
-   note series, then set `data-theme="paper"`. Recolor anything else only on request.
+7. Ship `data-theme="beamer"` — the default. Do not switch a deck to
+   `data-theme="paper"` on your own initiative, and do not treat "the other pages
+   in this folder are serif" as a reason: a deck is its own artifact, and a
+   neighbouring page's palette is not an instruction. Change it only when the user
+   asks for the paper look by name, and say so in `summary.md`. Recolor anything
+   else only on request.
 8. Fix every `overfull \vbox` / `overfull \hbox` tag before shipping, then keep the
    CDN KaTeX links and delete unused placeholder frames (the CSS may stay).
 
