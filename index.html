@@ -351,25 +351,49 @@
         <span class="foot"><span class="field"><i></i>Numerical Linear Algebra</span></span>
       </a>
 
-      <a class="card" href="Algebra/francis-qz-step/francis-qz-step.html" data-category="algebra optimization control" data-field="Numerical Linear Algebra" data-tags="linear-algebra generalized-eigenvalue qz francis double-shift hessenberg-triangular bulge-chase numerical-methods eigenvalues schur">
+      <a class="card" href="Algebra/qz-algorithm/qz-algorithm.html" data-category="algebra control optimization" data-field="Numerical Linear Algebra" data-tags="linear-algebra eigenvalues generalized-eigenvalue qz francis double-shift hessenberg hessenberg-triangular bulge-chase schur numerical-methods slides">
         <div class="toprow">
-          <span class="tag amber">Numerical Linear Algebra</span>
+          <span class="tag amber">Eigenvalue Algorithms</span>
           <span class="read"></span>
         </div>
-        <h3>The Francis QZ Step</h3>
-        <p>How QZ takes a double-shift QR step on \(HT^{-1}\) without ever inverting \(B\): Hessenberg&ndash;triangular reduction, the three-entry bulge vector, and the alternating left/right rotations that chase it down the pencil.</p>
+        <h3>QZ Algorithm and the Francis QR Step</h3>
+        <p>How a spectrum is computed without ever writing \(\sqrt{-1}\): reduce once to Hessenberg (or Hessenberg&ndash;triangular) form, then chase a degree-2 bulge with orthogonal reflectors &mdash; the Francis double-shift step for a matrix, and its alternating left/right cousin, the QZ step, for a pencil \(A-\lambda B\).</p>
         <div class="tags">
           <span class="tag-pill">linear-algebra</span>
-          <span class="tag-pill">generalized-eigenvalue</span>
+          <span class="tag-pill">eigenvalues</span>
           <span class="tag-pill">qz</span>
           <span class="tag-pill">francis</span>
           <span class="tag-pill">double-shift</span>
-          <span class="tag-pill">hessenberg-triangular</span>
           <span class="tag-pill">bulge-chase</span>
-          <span class="tag-pill">numerical-methods</span>
+          <span class="tag-pill">schur</span>
+          <span class="tag-pill">slides</span>
         </div>
         <span class="go">Open the slides</span>
         <span class="foot"><span class="field"><i></i>Numerical Linear Algebra</span></span>
+      </a>
+
+      <a class="card" href="Control/sda-algebraic-riccati/sda-algebraic-riccati-deck.html" data-category="control algebra" data-field="Control Theory" data-tags="control algebra riccati care dare sda doubling cayley symplectic numerical-methods slides">
+        <div class="toprow">
+          <span class="tag teal">Riccati / SDA</span>
+          <span class="read"></span>
+        </div>
+        <h3>SDA for the Algebraic Riccati Equation</h3>
+        <p>How the structure-preserving doubling algorithm solves a CARE: select the stabilizing invariant subspace, Cayley-transform into discrete time, and repeatedly square a normalized Riccati factorization so \(k\) updates cover \(2^k\) fixed-point steps.</p>
+        <div class="tags">
+          <span class="tag-pill">control</span>
+          <span class="tag-pill">algebra</span>
+          <span class="tag-pill">riccati</span>
+          <span class="tag-pill">care</span>
+          <span class="tag-pill">dare</span>
+          <span class="tag-pill">sda</span>
+          <span class="tag-pill">doubling</span>
+          <span class="tag-pill">cayley</span>
+          <span class="tag-pill">symplectic</span>
+          <span class="tag-pill">numerical-methods</span>
+          <span class="tag-pill">slides</span>
+        </div>
+        <span class="go">Open the slides</span>
+        <span class="foot"><span class="field"><i></i>Control Theory</span></span>
       </a>
 
       <a class="card" href="Control/h2-control/h2-control.html" data-category="control" data-field="Control Theory" data-tags="control h2 lqr optimal-control kalman state-space frequency lyapunov">
