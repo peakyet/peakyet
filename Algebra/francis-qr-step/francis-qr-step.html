@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Francis QR Step — how eigenvalues are computed without ever writing &radic;&minus;1</title>
+<!--
+  DRAFT: sections 2-6 are not written yet. Section 1 is built and taught.
+  Frame map lives in summary.md beside this file.
+
+  Built from .claude/skills/teach-an-engineer/templates/beamer-deck.html.
+  Every number on these frames is produced by scripts/verify_francis_qr.py;
+  run it to reproduce them.
+-->
+<style>
+  /* ---------- reset & theme tokens ---------- */
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{font-size:16px;overflow-x:clip}
+  body{background:#d7dade;color:#1a1a1a;font-family:var(--font-body);
+      -webkit-font-smoothing:antialiased}
+
+  body[data-theme="beamer"]{
+    --font-body:"Helvetica Neue",Helvetica,Arial,"Liberation Sans",sans-serif;
+    --font-head:var(--font-body);
+    --frame-w:1280px; --frame-h:720px; --slide-fs:26px;
+    --paper:#fff; --ink:#1a1a1a; --muted:#5c6169;
+    --accent:#1f5f9c; --accent-ink:#123c63;
+    --band:#eaf0f7; --rule:#bacfe4; --link:#1f5f9c;
+    --blk-bg:#f4f8fc; --blk-title:#dbe7f3; --blk-border:#b9cee3; --blk-ink:#123c63;
+    --alt-bg:#fdf4f4; --alt-title:#f3d9d9; --alt-border:#dfb3b3; --alt-ink:#8f2323;
+    --ex-bg:#f7faee; --ex-title:#e3ecc9; --ex-border:#c9d8a5; --ex-ink:#4f6218;
+    --intuition:#4a7bb5; --intuition-bg:#eef4fb; --takeaway:#3a7d44; --takeaway-bg:#edf5ec;
+    --eq-bg:#f3f7fb; --tint:#f7f9fc; --code-bg:#f4f4f2;
+  }
+  /* Repo-paper variant: same layout, the knowledge base's serif/gold palette. */
+  body[data-theme="paper"]{
+    --font-body:"Source Serif Pro",Georgia,"Times New Roman",serif;
+    --font-head:var(--font-body);
+    --frame-w:1280px; --frame-h:720px; --slide-fs:26px;
+    --paper:#fffdf7; --ink:#1a1a1a; --muted:#5c574a;
+    --accent:#9a5b00; --accent-ink:#7a4a00;
+    --band:#f7f4ec; --rule:#d4a72c; --link:#9a5b00;
+    --blk-bg:#f7f4ec; --blk-title:#efe7d3; --blk-border:#e2d9bd; --blk-ink:#7a5a00;
+    --alt-bg:#fbf1ee; --alt-title:#f0dcd5; --alt-border:#e0c0b6; --alt-ink:#8f3b23;
+    --ex-bg:#f2f6ee; --ex-title:#e2ebd8; --ex-border:#cbd9ba; --ex-ink:#3a6b3f;
+    --intuition:#4a7bb5; --intuition-bg:#eef4fb; --takeaway:#3a7d44; --takeaway-bg:#edf5ec;
+    --eq-bg:#f7f4ec; --tint:#faf8f2; --code-bg:#f4f0e4;
+  }
+
+  /* ---------- stage & frame geometry ---------- */
+  .stage{position:fixed; inset:0; overflow:hidden}
+  body.reader{background:var(--paper)}
+  body.reader .stage{position:static; inset:auto; overflow:visible;
+    padding:0.75rem 0.5rem 3rem}
+  .slide{
+    position:absolute; left:50%; top:50%; width:var(--frame-w); height:var(--frame-h);
+    transform:translate(-50%,-50%) scale(var(--s,1));
+    transform-origin:center center;
+    background:var(--paper); color:var(--ink); font-size:var(--slide-fs);
+    line-height:1.45; overflow:hidden;
+    box-shadow:0 6px 24px rgba(20,30,45,.28);
+    display:flex; flex-direction:column;
+    opacity:0; visibility:hidden;
+  }
+  .slide{transition:none}
+  .deck.ready .slide{transition:opacity .16s ease}
+  .slide.current{opacity:1; visibility:visible}
+  body.reader .slide{position:relative; left:auto; top:auto; width:min(1100px,100%);
+    height:auto; min-height:0; margin:0 auto 1rem; transform:none; opacity:1;
+    visibility:visible; box-shadow:0 1px 6px rgba(20,30,45,.14); font-size:17px}
+  body.reader [data-fragment]{opacity:1; transform:none}
+  body.reader .slide.ov-v::after,body.reader .slide.ov-h::after{display:none}
+  body.reader .controls,body.reader .progress{display:none}
+  body.reader .frame-foot{display:none}
+
+  /* Beamer's overfull-box warning, for the two ways a frame can fail to fit. */
+  .slide.ov-v::after,.slide.ov-h::after{position:absolute; right:0; top:0;
+    font:500 11px/1 ui-monospace,Menlo,Consolas,monospace; letter-spacing:0;
+    color:#fff; background:#b3352e; padding:0.35em 0.5em; border-radius:0 0 0 6px}
+  .slide.ov-v::after{content:"overfull \\vbox"}
+  .slide.ov-h::after{content:"overfull \\hbox"}
+  .slide.ov-v.ov-h::after{content:"overfull \\vbox + \\hbox"}
+  .slide.ov-v .frametitle,.slide.ov-h .frametitle{padding-right:8em}
+
+  /* ---------- head & foot bands ---------- */
+  .frame-head{background:var(--band); border-bottom:2px solid var(--rule);
+    padding:0.5em 1.1em 0.42em; flex:0 0 auto}
+  .frametitle{font-family:var(--font-head); font-size:1.3em; font-weight:700;
+    line-height:1.2; color:var(--accent-ink); letter-spacing:0}
+  .framesubtitle{display:block; font-size:0.78em; font-weight:400; color:var(--muted);
+    margin-top:0.12em}
+  .frame-body{flex:1 1 auto; padding:0.6em 1.1em 0.5em; min-height:0; overflow:hidden}
+  .frame-foot{flex:0 0 auto; display:grid; grid-template-columns:1fr auto 1fr;
+    align-items:center; gap:0.8em; background:var(--band); border-top:1px solid var(--rule);
+    color:var(--accent-ink); font-size:0.62em; padding:0.5em 1.1em}
+  .foot-left{text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .foot-right{text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap}
+  .miniframes{display:flex; gap:0.45em; align-items:center; justify-content:center}
+  .miniframes button{width:0.72em; height:0.72em; padding:0; border-radius:50%;
+    border:1px solid var(--accent); background:transparent; cursor:pointer}
+  .miniframes button.done{background:var(--accent)}
+  .miniframes button.present{background:var(--accent); box-shadow:0 0 0 2px var(--paper),
+    0 0 0 3px var(--accent)}
+  .miniframes button:hover{border-color:var(--accent-ink)}
+
+  /* ---------- typography ---------- */
+  .frame-body p{margin:0.42em 0}
+  .frame-body p.lead{font-size:1.06em; color:var(--muted)}
+  h1,h2,h3,h4{font-family:var(--font-head); letter-spacing:0}
+  .frame-body h3{font-size:1.05em; color:var(--accent-ink); margin:0.7em 0 0.2em}
+  a{color:var(--link); text-decoration:none; border-bottom:1px solid var(--rule)}
+  a:hover{color:var(--accent-ink)}
+  strong{color:var(--ink); font-weight:700}
+  em{color:var(--ink)}
+  .frame-body small{font-size:0.78em; color:var(--muted)}
+  .frame-body>ol,.frame-body>ul{margin:0.3em 0 0.3em 1.15em}
+  li{margin:0.18em 0}
+  ul.item{list-style:none; margin-left:0.1em}
+  ul.item>li{position:relative; padding-left:0.95em}
+  ul.item>li::before{content:""; position:absolute; left:0; top:0.52em;
+    border-left:0.42em solid var(--accent); border-top:0.26em solid transparent;
+    border-bottom:0.26em solid transparent}
+  ul.item ul.item{list-style:none; margin:0.1em 0 0.1em 1.1em}
+  ul.item ul.item>li::before{border-left-width:0.3em; border-top-width:0.19em;
+    border-bottom-width:0.19em; opacity:.75}
+  ol.enum{margin-left:1.5em}
+  ol.enum>li::marker{color:var(--accent); font-weight:700}
+
+  /* ---------- overlays / fragments ---------- */
+  [data-fragment]{opacity:0; transform:translateY(0.14em)}
+  .deck.ready [data-fragment]{transition:opacity .18s ease, transform .18s ease}
+  [data-fragment].on{opacity:1; transform:none}
+
+  /* ---------- beamer blocks ---------- */
+  .block{border:1px solid var(--blk-border); border-radius:0.28em; background:var(--blk-bg);
+    margin:0.5em 0; overflow:hidden}
+  .block>.blk-title{background:var(--blk-title); color:var(--blk-ink); font-weight:700;
+    font-size:0.88em; padding:0.26em 0.6em; border-bottom:1px solid var(--blk-border)}
+  .block>.blk-body{padding:0.36em 0.6em 0.44em}
+  .block.alert{border-color:var(--alt-border); background:var(--alt-bg)}
+  .block.alert>.blk-title{background:var(--alt-title); color:var(--alt-ink);
+    border-bottom-color:var(--alt-border)}
+  .block.example{border-color:var(--ex-border); background:var(--ex-bg)}
+  .block.example>.blk-title{background:var(--ex-title); color:var(--ex-ink);
+    border-bottom-color:var(--ex-border)}
+  .block.intuition{border-color:#b9cee3; background:var(--intuition-bg)}
+  .block.intuition>.blk-title{background:var(--intuition-bg); color:#1f4f7a;
+    border-bottom-color:#cfdff0}
+  .block.takeaway{border-color:#bcd6bf; background:var(--takeaway-bg)}
+  .block.takeaway>.blk-title{background:var(--takeaway-bg); color:#1d5e2a;
+    border-bottom-color:#cbe0cd}
+
+  /* ---------- theorem-like environments ---------- */
+  .thm,.defn,.lem,.cor{margin:0.55em 0; padding:0.42em 0.6em; border-left:3px solid var(--rule);
+    background:var(--tint)}
+  .thm>.thm-name,.defn>.thm-name,.lem>.thm-name,.cor>.thm-name{display:inline;
+    font-weight:700; color:var(--accent-ink)}
+  .thm,.lem,.cor{font-style:italic}
+  .thm .thm-body,.lem .thm-body,.cor .thm-body,.defn .thm-body{display:inline}
+  .proof{margin:0.55em 0; padding-left:0.6em; border-left:3px solid var(--rule)}
+  .proof>.proof-name{font-weight:700; font-style:italic; color:var(--accent-ink)}
+  .proof::after{content:"\25FD"; float:right; color:var(--accent); font-size:0.9em}
+
+  /* ---------- equations ---------- */
+  .eq{display:block; text-align:center; margin:0.5em 0; padding:0.4em 0.5rem;
+    background:var(--eq-bg); border-left:3px solid var(--rule); border-radius:0.2em;
+    overflow-x:auto; line-height:1.8}
+  .eq.tight{font-size:0.82em}
+
+  /* ---------- figures ---------- */
+  .figure{margin:0.5em auto; padding:0.45em; background:var(--paper);
+    border:1px solid var(--rule); border-radius:0.28em; max-width:100%}
+  .figure svg{width:100%; height:auto; display:block}
+  .figure img{max-width:100%; margin:0 auto; display:block}
+  .figure-caption{font-size:0.72em; color:var(--muted); text-align:center;
+    margin-top:0.28em; line-height:1.35}
+  .figure-caption b{color:var(--accent-ink)}
+
+  /* ---------- callouts lifted from the note template ---------- */
+  .callout{background:var(--blk-bg); border-left:4px solid var(--rule);
+    border-radius:0 .3em .3em 0; padding:0.4em 0.6em; margin:0.5em 0; font-size:0.94em}
+  .callout.intuition{border-left-color:var(--intuition); background:var(--intuition-bg)}
+  .callout.intuition strong{color:#1f4f7a}
+  .callout.takeaway{border-left-color:var(--takeaway); background:var(--takeaway-bg)}
+  .callout.takeaway strong{color:#1d5e2a}
+  details.predict{background:var(--tint); border:1px solid var(--rule); border-radius:0.3em;
+    padding:0.4em 0.6em; margin:0.5em 0}
+  details.predict summary{cursor:pointer; font-weight:700; color:var(--accent-ink)}
+
+  /* ---------- tables, code, demos ---------- */
+  table{border-collapse:collapse; margin:0.4em 0; font-size:0.84em}
+  th,td{border:1px solid var(--rule); padding:0.22em 0.5em; text-align:left}
+  th{background:var(--band); color:var(--accent-ink); font-weight:700}
+  tr:nth-child(even) td{background:var(--tint)}
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:0.86em}
+  pre{background:var(--code-bg); border:1px solid var(--rule); border-radius:0.25em;
+    padding:0.4em 0.6em; overflow-x:auto; font-size:0.72em; line-height:1.45}
+  code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-size:0.88em;
+    background:var(--code-bg); padding:0.05em 0.3em; border-radius:0.2em}
+  pre code{background:none; padding:0}
+  .demo{border:1px solid var(--rule); border-radius:0.3em; padding:0.5em 0.7em;
+    margin:0.5em 0; background:var(--tint)}
+  .demo-controls{display:flex; flex-wrap:wrap; gap:0.8em; align-items:center; margin:0.2em 0 0.5em}
+  .demo-controls input[type=range]{width:min(16em,100%); vertical-align:middle}
+  button,.demo select,.demo input{font:inherit; color:inherit}
+  .btn{border:1px solid var(--accent); background:var(--band); color:var(--accent-ink);
+    border-radius:0.25em; padding:0.16em 0.6em; cursor:pointer}
+  .btn:hover{background:var(--blk-title)}
+
+  /* ---------- columns ---------- */
+  .cols{display:grid; grid-template-columns:1fr 1fr; gap:0.8em; align-items:start}
+  .cols.c3{grid-template-columns:1fr 1fr 1fr}
+  .cols.w64{grid-template-columns:3fr 2fr}
+  .cols.w46{grid-template-columns:2fr 3fr}
+  .col{min-width:0}
+
+  /* ---------- title page ---------- */
+  .slide.title .titlepage{flex:1; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; gap:1.1em; padding:1.2em 2em; text-align:center;
+    background:linear-gradient(180deg,var(--paper) 0%,var(--band) 100%)}
+  .titlebox,.authorbox{background:var(--paper); border:1px solid var(--rule);
+    border-radius:0.3em; box-shadow:0 3px 10px rgba(20,30,45,.14); padding:0.7em 1.4em}
+  .titlebox h1{font-size:2.25em; line-height:1.15; color:var(--accent); font-weight:700}
+  .titlebox .subtitle{display:block; font-size:1.05em; color:var(--muted); margin-top:0.35em}
+  .authorbox{font-size:0.92em; color:var(--accent-ink)}
+  .authorbox .author{font-weight:700}
+  .authorbox .institute,.authorbox .date{color:var(--muted); margin-top:0.12em}
+
+  /* ---------- toc & section frames ---------- */
+  .toc-list{list-style:none; margin:0.3em 0}
+  .toc-list>li{margin:0.3em 0; padding:0.14em 0.3em; display:flex;
+    gap:0.5em; align-items:baseline}
+  .secnum{flex:0 0 auto; display:inline-grid; place-items:center; min-width:1.5em; height:1.5em;
+    padding:0 0.22em; border-radius:50%; background:var(--band); border:1px solid var(--rule);
+    color:var(--accent-ink); font-size:0.74em; font-weight:700}
+  .toc-list .sec-title{font-size:1.02em; font-weight:600}
+  .toc-list li.current{background:var(--band); border-radius:0.25em}
+  .toc-list li.current .secnum{background:var(--accent); color:#fff; border-color:var(--accent)}
+  .toc-list .sec-frames{color:var(--muted); font-size:0.84em}
+
+  .slide.section .sectionpage{flex:0 0 auto; padding:0.9em 1.1em;
+    background:var(--band); border-left:0.32em solid var(--accent); border-radius:0.2em}
+  .section-kicker{font-size:0.8em; color:var(--muted); text-transform:uppercase}
+  .section-title{font-size:1.7em; font-weight:700; color:var(--accent); line-height:1.2;
+    margin-top:0.12em}
+  .section-wrap{flex:1; display:flex; flex-direction:column; justify-content:center;
+    padding:0 1.4em; gap:0.9em}
+
+  /* ---------- deck chrome ---------- */
+  .progress{position:fixed; left:0; top:0; height:3px; width:100%; z-index:70}
+  .progress i{display:block; height:100%; width:0; background:var(--accent);
+    transition:width .18s ease}
+  .controls{position:fixed; right:0.9rem; bottom:0.9rem; z-index:70; display:flex;
+    gap:0.3rem; background:rgba(255,255,255,.92); border:1px solid #bacfe4;
+    border-radius:0.6rem; padding:0.28rem; backdrop-filter:blur(6px);
+    box-shadow:0 2px 10px rgba(20,30,45,.18)}
+  .controls button{border:0; background:transparent; color:#123c63;
+    cursor:pointer; font-size:1rem; line-height:1; padding:0.3rem 0.5rem; border-radius:0.35rem}
+  .controls button:hover{background:#eaf0f7}
+  .sr-only{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);
+    white-space:nowrap}
+
+  @media (max-width:700px){
+    .controls,.progress{display:none}
+    [data-fragment]{opacity:1; transform:none}
+    .cols,.cols.c3,.cols.w64,.cols.w46{grid-template-columns:1fr}
+    .slide.ov-v::after,.slide.ov-h::after{display:none}
+    .titlebox h1{font-size:1.75em}
+    .frame-head{padding:0.45em 0.7em 0.4em}
+    .frame-body{padding:0.5em 0.7em}
+    .frame-foot{padding:0.45em 0.7em; font-size:0.68em}
+  }
+
+  @media print{
+    @page{size:1280px 720px; margin:0}
+    html,body{background:#fff}
+    .stage{position:static; padding:0}
+    .slide{position:relative; left:auto; top:auto; width:var(--frame-w);
+      height:var(--frame-h); transform:none; opacity:1; visibility:visible;
+      box-shadow:none; break-after:page; font-size:var(--slide-fs)}
+    .slide:last-of-type{break-after:auto}
+    [data-fragment]{opacity:1; transform:none}
+    .controls,.progress,.slide.ov-v::after,.slide.ov-h::after{display:none}
+  }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[
+    {left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}]});"></script>
+</head>
+
+<body data-theme="beamer" class="deck">
+<div class="progress" aria-hidden="true"><i id="progress-bar"></i></div>
+
+<main class="stage" id="stage">
+
+  <!-- ================= \titlepage ================= -->
+  <section class="slide title" aria-label="Title">
+    <div class="titlepage">
+      <div class="titlebox">
+        <h1>The Francis QR Step</h1>
+        <span class="subtitle">How a computer finds every eigenvalue of a matrix
+          without ever writing down the characteristic polynomial &mdash; and
+          without ever calling \(\sqrt{-1}\).</span>
+      </div>
+      <div class="authorbox">
+        <p class="author">A working engineer's walkthrough</p>
+        <p class="institute"><a href="../../index.html">knowledge base home</a> &middot;
+          prerequisite: <a href="../householder-transformations/householder-transformations.html">Householder
+          transformations</a></p>
+        <p class="date">Numerical Linear Algebra &middot; 2026</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= \tableofcontents ================= -->
+  <section class="slide toc-frame" aria-label="Outline">
+    <header class="frame-head"><h2 class="frametitle">Outline</h2></header>
+    <div class="frame-body">
+      <p class="lead">Read this as the route: why the obvious tools fail, then the one
+        step that works, then what the real implementation adds on top.</p>
+      <ul class="toc-list">
+        <li data-for-section="1"><span class="secnum">1</span>
+          <span class="sec-title">Why eigenvalues need their own algorithm</span>
+          <span class="sec-frames">&mdash; the polynomial trap, and what power iteration cannot do</span></li>
+        <li data-for-section="2"><span class="secnum">2</span>
+          <span class="sec-title">The QR step, and why it is too slow</span>
+          <span class="sec-frames">&mdash; a similarity that preserves eigenvalues, at the rate of an eigenvalue ratio</span></li>
+        <li data-for-section="3"><span class="secnum">3</span>
+          <span class="sec-title">Hessenberg form and the implicit Q theorem</span>
+          <span class="sec-frames">&mdash; the lemma that makes a cheap step possible</span></li>
+        <li data-for-section="4"><span class="secnum">4</span>
+          <span class="sec-title">The Francis double shift</span>
+          <span class="sec-frames">&mdash; two complex shifts, one real matrix, three numbers to chase</span></li>
+        <li data-for-section="5"><span class="secnum">5</span>
+          <span class="sec-title">Chasing the bulge, deflating, and where it breaks</span>
+          <span class="sec-frames">&mdash; the exit condition, the cost, and the limits</span></li>
+        <li data-for-section="6"><span class="secnum">6</span>
+          <span class="sec-title">Closing: connections and sources</span>
+          <span class="sec-frames">&mdash; where this sits in the knowledge base, and what to read</span></li>
+      </ul>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <!-- ================= Section 1 ================= -->
+  <section class="slide section" data-section="1" aria-label="Section 1">
+    <div class="section-wrap">
+      <div class="sectionpage">
+        <p class="section-kicker">Section 1</p>
+        <p class="section-title">Why eigenvalues need their own algorithm</p>
+      </div>
+      <div class="block intuition">
+        <p class="blk-title">Question this section answers</p>
+        <div class="blk-body"><p>You already know \(\det(A-\lambda I)=0\). Why is that
+          not how anyone actually computes eigenvalues?</p></div>
+      </div>
+      <div class="block takeaway">
+        <p class="blk-title">The mental model to carry forward</p>
+        <div class="blk-body"><p>The algorithm never computes an eigenvalue directly.
+          It keeps rotating the basis until the eigenvalues can be <em>read off</em>.
+          Sections 2&ndash;5 are about making that rotation cheap, fast, and
+          accurate.</p></div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <section class="slide frame" data-section="1" data-secname="Why eigenvalues need their own algorithm" aria-label="Three routes">
+    <header class="frame-head">
+      <h2 class="frametitle">Three routes to the eigenvalues
+        <span class="framesubtitle">Two of them are taught in every first course. Neither one scales.</span></h2>
+    </header>
+    <div class="frame-body">
+      <ul class="item">
+        <li data-fragment><strong>Expand the determinant.</strong> Write out
+          \(p(\lambda)=\det(A-\lambda I)\) and find its roots. For the matrix this deck
+          uses throughout, \(C=\operatorname{circ}(1,2,3,4)\), that polynomial is
+          \(p(\lambda)=\lambda^4-4\lambda^3-44\lambda^2-144\lambda-160\). Correct &mdash;
+          but at \(n=100\) it is a degree-100 polynomial, and its roots are a
+          <em>different</em> problem.</li>
+        <li data-fragment><strong>Power iteration.</strong> Multiply a vector by \(A\)
+          over and over. It returns one eigenvalue: the largest in modulus.</li>
+        <li data-fragment><strong>Change the matrix instead of the polynomial.</strong>
+          Apply orthogonal similarities until the eigenvalues are forced onto the
+          diagonal. That is the QR algorithm, and it is what this deck is about.</li>
+      </ul>
+      <div class="block alert" data-fragment>
+        <p class="blk-title">The failure mode</p>
+        <div class="blk-body"><p>Route 1 throws away the matrix &mdash; the object with the
+          good numerical properties &mdash; and hands you a polynomial instead. Route 2
+          hands you one eigenvalue out of \(n\). For an \(n\times n\) matrix you want all
+          \(n\) of them.</p></div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <section class="slide frame" data-section="1" data-secname="Why eigenvalues need their own algorithm" aria-label="Power iteration finds one">
+    <header class="frame-head">
+      <h2 class="frametitle">The cheap tool finds exactly one eigenvalue</h2>
+    </header>
+    <div class="frame-body">
+      <div class="cols w46">
+        <div class="col">
+          <p>Run \(v_{k+1}=Cv_k/\lVert Cv_k\rVert\) on the running example and read off
+            the Rayleigh quotient \(v_k^{\mathsf T}Cv_k\).</p>
+          <table>
+            <thead><tr><th>\(k\)</th><th>estimate</th><th>change</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">1</td><td class="mono">9.638955</td><td class="mono">9.6e+00</td></tr>
+              <tr><td class="mono">2</td><td class="mono">9.971854</td><td class="mono">3.3e&minus;01</td></tr>
+              <tr><td class="mono">3</td><td class="mono">9.997806</td><td class="mono">2.6e&minus;02</td></tr>
+              <tr><td class="mono">4</td><td class="mono">9.999827</td><td class="mono">2.0e&minus;03</td></tr>
+              <tr><td class="mono">5</td><td class="mono">9.999986</td><td class="mono">1.6e&minus;04</td></tr>
+              <tr><td class="mono">10</td><td class="mono">10.000000</td><td class="mono">5.1e&minus;10</td></tr>
+            </tbody>
+          </table>
+          <p><small>Real output of <span class="mono">scripts/verify_francis_qr.py</span>.
+            It converges to \(10\) &mdash; and says nothing at all about \(-2\)
+            or \(-2\pm 2i\).</small></p>
+        </div>
+        <div class="col">
+          <figure class="figure">
+            <svg viewBox="0 0 420 250" role="img"
+              aria-label="Log-scale plot of the power-iteration error against the exact eigenvalue 10, falling on a straight line of slope minus 1.11 per step.">
+              <line x1="55" y1="205" x2="405" y2="205" stroke-width="1.5" style="stroke:var(--rule)"/>
+              <line x1="55" y1="25" x2="55" y2="205" stroke-width="1.5" style="stroke:var(--rule)"/>
+              <text x="230" y="238" font-size="15" text-anchor="middle" style="fill:var(--accent-ink)">iteration k</text>
+              <text x="16" y="120" font-size="15" text-anchor="middle" transform="rotate(-90 16 120)" style="fill:var(--accent-ink)">log&#8321;&#8320; error</text>
+              <g font-size="12" style="fill:var(--muted)">
+                <text x="48" y="29" text-anchor="end">1</text>
+                <text x="48" y="82" text-anchor="end">&minus;4</text>
+                <text x="48" y="135" text-anchor="end">&minus;9</text>
+                <text x="48" y="188" text-anchor="end">&minus;14</text>
+                <text x="79" y="220" text-anchor="middle">1</text>
+                <text x="249" y="220" text-anchor="middle">8</text>
+                <text x="395" y="220" text-anchor="middle">14</text>
+              </g>
+              <line x1="79" y1="40.3" x2="395" y2="191.8" stroke-width="2.5" stroke-dasharray="7 4" style="stroke:var(--accent)"/>
+              <circle cx="79" cy="40.3" r="4.5" style="fill:var(--ex-ink)"/>
+              <circle cx="104" cy="52.0" r="4.5" style="fill:var(--ex-ink)"/>
+              <circle cx="128" cy="63.7" r="4.5" style="fill:var(--ex-ink)"/>
+              <circle cx="152" cy="75.4" r="4.5" style="fill:var(--ex-ink)"/>
+              <circle cx="177" cy="87.1" r="4.5" style="fill:var(--ex-ink)"/>
+              <circle cx="298" cy="145.2" r="4.5" style="fill:var(--ex-ink)"/>
+              <text x="120" y="118" font-size="14" style="fill:var(--accent-ink)">one straight line,</text>
+              <text x="120" y="136" font-size="14" style="fill:var(--accent-ink)">slope &minus;1.11 per step</text>
+            </svg>
+            <figcaption class="figure-caption"><b>Figure 1.</b> Power iteration on
+              \(C=\operatorname{circ}(1,2,3,4)\). The error falls by a constant factor
+              \(0.078\approx(2.828/10)^2\) every step, and it falls to a <em>single</em>
+              number: the eigenvalue of largest modulus.</figcaption>
+          </figure>
+        </div>
+      </div>
+      </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <section class="slide frame" data-section="1" data-secname="Why eigenvalues need their own algorithm" aria-label="What the algorithm promises">
+    <header class="frame-head">
+      <h2 class="frametitle">What the algorithm promises
+        <span class="framesubtitle">And why &ldquo;backward stable&rdquo; is the right promise to make.</span></h2>
+    </header>
+    <div class="frame-body">
+      <div class="cols">
+        <div class="col">
+          <ul class="item">
+            <li>All \(n\) eigenvalues, not one.</li>
+            <li>\(\mathcal{O}(n^3)\) <em>total</em> &mdash; the cost of a few matrix
+              factorisations, not of a polynomial root hunt.</li>
+            <li><strong>Real arithmetic</strong>, even when the eigenvalues are complex.</li>
+            <li><strong>Backward stable</strong>: the numbers it returns are the exact
+              eigenvalues of a matrix within rounding distance of yours.</li>
+          </ul>
+          <p>It delivers them by driving the matrix to <strong>real Schur form</strong>:
+            block upper triangular, with \(1\times1\) blocks carrying real eigenvalues
+            and \(2\times2\) blocks carrying complex conjugate pairs.</p>
+        </div>
+        <div class="col">
+          <div class="block example">
+            <p class="blk-title">Why that is the strongest honest promise</p>
+            <div class="blk-body">
+              <p>Take \(A=\left[\begin{smallmatrix}1&amp;1000\\0&amp;1\end{smallmatrix}\right]\).
+                Change the single zero entry \(a_{21}\) to \(10^{-16}\) and the eigenvalues
+                move from \(1\) to \(1\pm 3.162\times10^{-7}\).</p>
+              <p>A \(10^{-16}\) change in the <em>data</em> moves the <em>answer</em> by
+                \(3.2\times10^{-7}\) &mdash; a factor of \(3\times10^{9}\). No algorithm
+                can undo that; the sensitivity belongs to the matrix. What an algorithm
+                <em>can</em> promise is that it adds no error of its own, which is
+                exactly backward stability.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <section class="slide frame" data-section="1" data-secname="Why eigenvalues need their own algorithm" aria-label="The running example">
+    <header class="frame-head">
+      <h2 class="frametitle">The matrix we will watch
+        <span class="framesubtitle">Small enough to print, with eigenvalues known in closed form.</span></h2>
+    </header>
+    <div class="frame-body">
+      <div class="cols w46">
+        <div class="col">
+          <div class="eq tight">\[ C=\operatorname{circ}(1,2,3,4)
+            =\begin{bmatrix}1&2&3&4\\4&1&2&3\\3&4&1&2\\2&3&4&1\end{bmatrix} \]</div>
+          <p>\(C\) is a <strong>circulant</strong>, so the discrete Fourier matrix
+            diagonalises it. With \(\omega=e^{2\pi ik/4}\) and
+            \(\lambda_k=\sum_j c_j\omega^{jk}\), the eigenvalues are known in closed
+            form:</p>
+          <div class="eq tight">\[ \lambda\in\{10,\;-2,\;-2+2i,\;-2-2i\}. \]</div>
+          <p><small>Check: \(\operatorname{trace}C=4=\sum_k\lambda_k\).</small></p>
+        </div>
+        <div class="col">
+          <figure class="figure">
+            <svg viewBox="0 0 460 230" role="img"
+              aria-label="A row of four blocks showing the target real Schur form: a one by one block holding 10, then a two by two block holding the complex pair minus two plus or minus two i, then a one by one block holding minus two, with zeros below the blocks.">
+              <g font-size="17" font-family="ui-monospace,Menlo,monospace">
+                <rect x="14" y="18" width="58" height="58" rx="6" style="fill:var(--ex-bg);stroke:var(--ex-border)"/>
+                <text x="43" y="56" text-anchor="middle" style="fill:var(--ex-ink)">10</text>
+                <rect x="78" y="18" width="124" height="124" rx="6" style="fill:var(--alt-bg);stroke:var(--alt-border)"/>
+                <text x="140" y="70" text-anchor="middle" style="fill:var(--alt-ink)">&minus;2 &nbsp;&nbsp; 2</text>
+                <text x="140" y="106" text-anchor="middle" style="fill:var(--alt-ink)">&minus;2 &nbsp;&minus;2</text>
+                <rect x="208" y="18" width="58" height="58" rx="6" style="fill:var(--ex-bg);stroke:var(--ex-border)"/>
+                <text x="237" y="56" text-anchor="middle" style="fill:var(--ex-ink)">&minus;2</text>
+              </g>
+              <g font-size="15" style="fill:var(--accent-ink)">
+                <text x="288" y="42">1&#215;1: real eigenvalue,</text>
+                <text x="288" y="62">read off the diagonal.</text>
+                <text x="288" y="106">2&#215;2: complex pair,</text>
+                <text x="288" y="126">read from the block.</text>
+                <text x="288" y="170">below the blocks:</text>
+                <text x="288" y="190">all zero.</text>
+              </g>
+            </svg>
+            <figcaption class="figure-caption"><b>Figure 2.</b> The target: real Schur
+              form. The \(2\times2\) block keeps a nonzero subdiagonal entry &mdash; it
+              <em>must</em>, since a real similarity cannot split a complex pair into two
+              \(1\times1\) blocks.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <section class="slide frame" data-section="1" data-secname="Why eigenvalues need their own algorithm" aria-label="Prediction">
+    <header class="frame-head">
+      <h2 class="frametitle">Predict before the next section</h2>
+    </header>
+    <div class="frame-body">
+      <div class="block example">
+        <p class="blk-title">Prediction prompt</p>
+        <div class="blk-body">
+          <p>The QR step replaces \(A\) by \(A'=RQ\) when \(A=QR\). Do \(A\) and
+            \(A'\) have the same eigenvalues?</p>
+          <p class="mono" data-fragment>Tempting answer: no &mdash; \(QR\neq RQ\), so
+            surely the matrix has changed.</p>
+          <p data-fragment><strong>Why that fails:</strong>
+            \(A'=RQ=Q^{\mathsf T}AQ\) &mdash; an <em>orthogonal similarity</em>, the same
+            matrix in a rotated basis. Eigenvalues are exactly what a similarity cannot
+            change, so the step may move every entry as long as it leaves the spectrum
+            alone.</p>
+        </div>
+      </div>
+      <div class="block takeaway" data-fragment>
+        <p class="blk-title">Takeaway</p>
+        <div class="blk-body"><p>The characteristic polynomial turns an \(n\times n\)
+          matrix into a degree-\(n\) polynomial and hands you a worse-conditioned
+          problem; power iteration returns one eigenvalue out of \(n\). The QR
+          algorithm works on the matrix itself and returns all of them.</p></div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+<!-- ================= Section 2 ================= -->
+  <section class="slide section" data-section="2" aria-label="Section 2">
+    <div class="section-wrap">
+      <div class="sectionpage">
+        <p class="section-kicker">Section 2</p>
+        <p class="section-title">The QR step, and why it is too slow</p>
+      </div>
+      <div class="block intuition">
+        <p class="blk-title">Question this section answers</p>
+        <div class="blk-body"><p>What does one QR step actually do to the matrix &mdash; and if
+          it is a similarity, why does running it not finish the job quickly?</p></div>
+      </div>
+      <div class="block takeaway">
+        <p class="blk-title">The mental model to carry forward</p>
+        <div class="blk-body"><p>The step multiplies the whole basis by \(A\) and
+          re-orthonormalises it. Each subdiagonal then falls at a fixed ratio of two
+          eigenvalue moduli &mdash; so its speed is set by the <em>spectrum</em>, not by the
+          algorithm, and equal moduli stall it outright.</p></div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <section class="slide frame" data-section="2" data-secname="The QR step, and why it is too slow" aria-label="One step">
+    <header class="frame-head">
+      <h2 class="frametitle">One step: \(A=QR\), then \(A'=RQ\)
+        <span class="framesubtitle">The whole algorithm is this, repeated &mdash; and the eigenvalues never move.</span></h2>
+    </header>
+    <div class="frame-body">
+      <div class="cols w46">
+        <div class="col">
+          <p>Factor \(A=QR\) with \(Q\) orthogonal and \(R\) upper triangular, then swap the
+            factors:</p>
+          <div class="eq tight">\[ A=QR \quad\Longrightarrow\quad A'=RQ . \]</div>
+          <p>The swap is an orthogonal similarity:</p>
+          <div class="eq tight">\[ A'=RQ=Q^{\mathsf T}(QR)Q=Q^{\mathsf T}AQ . \]</div>
+          <p>The same matrix in a rotated basis &mdash; the spectrum is untouched, which is what
+            lets it rewrite every entry.</p>
+          <p><small>Cost per step: a full QR factorisation, \(\mathcal{O}(n^3)\). Section 3
+            removes that; this section counts steps.</small></p>
+        </div>
+        <div class="col">
+          <p class="mono" style="margin:0.1em 0">H₀ &nbsp;&rarr;&nbsp; H₁ (one unshifted step on the running example)</p>
+          <table style="font-size:0.72em">
+            <tbody>
+              <tr><td class="mono">1.00000</td><td class="mono">&minus;4.64238</td><td class="mono">&minus;2.71616</td><td class="mono">0.26595</td></tr>
+              <tr><td class="mono">&minus;5.38516</td><td class="mono">6.37931</td><td class="mono">1.42755</td><td class="mono">&minus;0.44446</td></tr>
+              <tr><td class="mono">0</td><td class="mono">3.11187</td><td class="mono">&minus;1.38520</td><td class="mono">1.05398</td></tr>
+              <tr><td class="mono">0</td><td class="mono">0</td><td class="mono">&minus;1.17437</td><td class="mono">&minus;1.99411</td></tr>
+            </tbody>
+          </table>
+          <table style="font-size:0.72em">
+            <tbody>
+              <tr><td class="mono">8.00000</td><td class="mono">4.29598</td><td class="mono">1.43758</td><td class="mono">&minus;0.10621</td></tr>
+              <tr><td class="mono">4.53137</td><td class="mono">&minus;0.05195</td><td class="mono">&minus;1.32192</td><td class="mono">&minus;0.04688</td></tr>
+              <tr><td class="mono">0</td><td class="mono">1.95643</td><td class="mono">&minus;1.94833</td><td class="mono">0.87892</td></tr>
+              <tr><td class="mono">0</td><td class="mono">0</td><td class="mono">&minus;0.88655</td><td class="mono">&minus;1.99972</td></tr>
+            </tbody>
+          </table>
+          <p><small>\(\operatorname{trace}=4.000000\) both times. Every subdiagonal shrank,
+            but only slightly: \(5.385\to4.531\), \(3.112\to1.956\),
+            \(1.174\to0.887\). Output of
+            <span class="mono">scripts/verify_francis_qr.py</span>.</small></p>
+        </div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <section class="slide frame" data-section="2" data-secname="The QR step, and why it is too slow" aria-label="What the step really does">
+    <header class="frame-head">
+      <h2 class="frametitle">What the step is really doing
+        <span class="framesubtitle">It is power iteration, run on the entire basis at once.</span></h2>
+    </header>
+    <div class="frame-body">
+      <div class="cols w46">
+        <div class="col">
+          <p>Iterate \(k\) times and the factors accumulate into the QR factorisation of
+            \(A^k\):</p>
+          <div class="eq tight">\[ A^k=Q_kR_k . \]</div>
+          <ul class="item">
+            <li>The columns of \(Q_k\) are the columns of \(A^k\)
+              <em>re-orthonormalised</em>: column 1 is power iteration on
+              \(\boldsymbol{e}_1\), and \(h_{11}\) becomes its Rayleigh quotient &mdash;
+              the eigenvalue.</li>
+            <li>Because that basis is <em>nested</em>, the eigenvalues surface largest modulus
+              first.</li>
+          </ul>
+        </div>
+        <div class="col">
+          <figure class="figure">
+            <svg viewBox="0 0 460 250" role="img"
+              aria-label="Three panels: an orthonormal basis; the same basis multiplied by A, now stretched and no longer orthogonal and leaning toward the dominant eigendirection; the re-orthonormalised basis, rotated closer to that direction.">
+              <g stroke-width="1.4" style="stroke:var(--rule)">
+                <line x1="20" y1="150" x2="440" y2="150"/>
+                <line x1="20" y1="150" x2="20" y2="30"/>
+              </g>
+              <!-- dominant eigendirection, same in all panels -->
+              <g stroke-width="2" stroke-dasharray="6 4" style="stroke:var(--rule)">
+                <line x1="30" y1="148" x2="330" y2="72"/>
+                <line x1="170" y1="148" x2="470" y2="72"/>
+              </g>
+              <text x="300" y="94" font-size="12" style="fill:var(--muted)">dominant eigendirection</text>
+              <!-- panel 1: orthonormal basis -->
+              <g stroke-width="3" style="stroke:var(--accent)">
+                <line x1="60" y1="148" x2="120" y2="148"/>
+                <line x1="60" y1="148" x2="60" y2="88"/>
+              </g>
+              <text x="124" y="152" font-size="13" style="fill:var(--accent-ink)">q&#8321;</text>
+              <text x="54" y="82" font-size="13" style="fill:var(--accent-ink)">q&#8322;</text>
+              <text x="60" y="182" font-size="13" text-anchor="middle" style="fill:var(--accent-ink)">basis</text>
+              <!-- panel 2: A * basis, stretched -->
+              <g stroke-width="3" style="stroke:var(--ex-ink)">
+                <line x1="205" y1="148" x2="315" y2="124"/>
+                <line x1="205" y1="148" x2="257" y2="66"/>
+              </g>
+              <text x="300" y="146" font-size="13" style="fill:var(--ex-ink)">Aq&#8321;</text>
+              <text x="238" y="58" font-size="13" style="fill:var(--ex-ink)">Aq&#8322;</text>
+              <text x="205" y="182" font-size="13" text-anchor="middle" style="fill:var(--ex-ink)">&times; A</text>
+              <!-- panel 3: re-orthonormalised -->
+              <g stroke-width="3" style="stroke:var(--accent)">
+                <line x1="350" y1="148" x2="430" y2="124"/>
+                <line x1="350" y1="148" x2="372" y2="80"/>
+              </g>
+              <text x="424" y="118" font-size="13" style="fill:var(--accent-ink)">q&#8321;</text>
+              <text x="356" y="72" font-size="13" style="fill:var(--accent-ink)">q&#8322;</text>
+              <text x="368" y="182" font-size="13" text-anchor="middle" style="fill:var(--accent-ink)">re-orthonormalised</text>
+            </svg>
+            <figcaption class="figure-caption"><b>Figure 3.</b> One sweep, drawn in two
+              dimensions: multiply the basis by \(A\) &mdash; now stretched and no longer
+              orthogonal &mdash; then re-orthonormalise. The first direction has rotated
+              toward the dominant eigendirection, and \(R\) records the stretching.
+              <em>&ldquo;Nested&rdquo; means
+              \(\operatorname{span}(q_1,\dots,q_j)\) converges to the span of the first
+              \(j\) eigenvectors. Schematic of the mechanism, not the running example's
+              numbers.</em></figcaption>
+          </figure>
+        </div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <section class="slide frame" data-section="2" data-secname="The QR step, and why it is too slow" aria-label="The rate">
+    <header class="frame-head">
+      <h2 class="frametitle">The rate is a ratio of eigenvalue moduli</h2>
+    </header>
+    <div class="frame-body">
+      <div class="cols w46">
+        <div class="col">
+          <p>Each subdiagonal has its own fixed rate:</p>
+          <div class="eq tight">\[ |h_{i+1,i}| \;\longrightarrow\; 0
+            \quad\text{like}\quad \left|\frac{\lambda_{i+1}}{\lambda_i}\right|^{k} \]</div>
+          <p>Moduli of \(C\): \(10,\;2.828427,\;2.828427,\;2\). So the two vanishing entries
+            should decay at \(0.282843\) and \(0.707107\):</p>
+          <table style="font-size:0.76em">
+            <thead><tr><th>\(k\)</th><th>\(|h_{21}|\)</th><th>\(|h_{32}|\)</th><th>\(|h_{43}|\)</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">0</td><td class="mono">5.385e+00</td><td class="mono">3.112e+00</td><td class="mono">1.174e+00</td></tr>
+              <tr><td class="mono">2</td><td class="mono">1.437e+00</td><td class="mono">1.901e+00</td><td class="mono">6.587e&minus;01</td></tr>
+              <tr><td class="mono">4</td><td class="mono">1.118e&minus;01</td><td class="mono">1.970e+00</td><td class="mono">3.436e&minus;01</td></tr>
+              <tr><td class="mono">8</td><td class="mono">7.054e&minus;04</td><td class="mono">1.998e+00</td><td class="mono">8.710e&minus;02</td></tr>
+              <tr><td class="mono">15</td><td class="mono">1.021e&minus;07</td><td class="mono">2.000e+00</td><td class="mono">7.706e&minus;03</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="col">
+          <figure class="figure">
+            <svg viewBox="0 0 460 250" role="img"
+              aria-label="Log-scale plot: the subdiagonal h21 falls steeply on a straight line of slope minus 0.55 per step, h43 falls gently on a line of slope minus 0.15 per step, and h32 stays flat at about 2.0 for all steps.">
+              <line x1="62" y1="206" x2="440" y2="206" stroke-width="1.4" style="stroke:var(--rule)"/>
+              <line x1="62" y1="22" x2="62" y2="206" stroke-width="1.4" style="stroke:var(--rule)"/>
+              <g font-size="11" style="fill:var(--muted)">
+                <text x="54" y="30" text-anchor="end">1</text>
+                <text x="54" y="83" text-anchor="end">&minus;4</text>
+                <text x="54" y="136" text-anchor="end">&minus;9</text>
+                <text x="54" y="189" text-anchor="end">&minus;14</text>
+                <text x="62" y="222" text-anchor="middle">0</text>
+                <text x="174" y="222" text-anchor="middle">5</text>
+                <text x="286" y="222" text-anchor="middle">10</text>
+                <text x="398" y="222" text-anchor="middle">15</text>
+              </g>
+              <text x="250" y="242" font-size="13" text-anchor="middle" style="fill:var(--accent-ink)">sweep k</text>
+              <text x="20" y="120" font-size="13" text-anchor="middle" transform="rotate(-90 20 120)" style="fill:var(--accent-ink)">log&#8321;&#8320; |entry|</text>
+              <!-- h32: flat -->
+              <line x1="62" y1="33.4" x2="398" y2="33.4" stroke-width="2.5" stroke-dasharray="7 4" style="stroke:var(--alt-ink)"/>
+              <text x="252" y="27" font-size="13" style="fill:var(--alt-ink)">|h&#8323;&#8322;| &mdash; rate |&#955;&#8323;/&#955;&#8322;| = 1.000</text>
+              <!-- h43: gentle -->
+              <polyline points="62.0,35.8 84.4,37.1 106.8,38.5 129.2,40.0 151.6,41.5 174.0,43.1 196.4,44.6 218.8,46.2 241.2,47.8 263.6,49.4 286.0,51.0 308.4,52.6 330.8,54.2 353.2,55.8 375.6,57.4 398.0,59.0"
+                fill="none" stroke-width="3" style="stroke:var(--ex-ink)"/>
+              <!-- h21: steep -->
+              <polyline points="62.0,28.8 84.4,29.6 106.8,34.9 129.2,40.8 151.6,46.7 174.0,52.5 196.4,58.3 218.8,64.1 241.2,70.0 263.6,75.8 286.0,81.6 308.4,87.4 330.8,93.2 353.2,99.0 375.6,104.8 398.0,110.6"
+                fill="none" stroke-width="3" style="stroke:var(--accent)"/>
+              <text x="300" y="118" font-size="13" style="fill:var(--accent-ink)">|h&#8322;&#8321;| &mdash; rate 0.2828</text>
+              <text x="150" y="70" font-size="13" style="fill:var(--ex-ink)">|h&#8324;&#8323;| &mdash; rate 0.7071</text>
+            </svg>
+            <figcaption class="figure-caption"><b>Figure 4.</b> Both falling entries follow
+              straight lines on a log scale, with the slopes their modulus ratios predict.
+              \(|h_{32}|\) does not fall at all: \(|\lambda_2|=|\lambda_3|\), so its rate is
+              exactly \(1\). Measured over 200 sweeps, \(|h_{32}|\) is still \(2.000000\).</figcaption>
+          </figure>
+          <p><small>Rate law verified in <span class="mono">scripts/verify_francis_qr.py</span>.</small></p>
+        </div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+  <section class="slide frame" data-section="2" data-secname="The QR step, and why it is too slow" aria-label="Prediction">
+    <header class="frame-head">
+      <h2 class="frametitle">Predict before the next section</h2>
+    </header>
+    <div class="frame-body">
+      <div class="block example">
+        <p class="blk-title">Prediction prompt</p>
+        <div class="blk-body">
+          <p>\(|h_{32}|\) sits at \(2.0000\) and refuses to move. Is that because it needs more
+            sweeps?</p>
+          <p class="mono" data-fragment>Tempting answer: yes &mdash; 15 sweeps is not many;
+            let it run longer and it will get there.</p>
+          <p data-fragment><strong>Why that fails:</strong> its rate is
+            \(|\lambda_3/\lambda_2|=1.0000000000\). A rate of exactly \(1\) means the entry
+            has no reason to shrink <em>at all</em> &mdash; after 200 sweeps \(|h_{32}|\) is
+            still \(2.000000\), while \(|h_{21}|\) has reached
+            \(3.5\times10^{-109}\).</p>
+        </div>
+      </div>
+      <div class="block takeaway" data-fragment>
+        <p class="blk-title">Takeaway</p>
+        <div class="blk-body"><p>One sweep re-orthonormalises \(A^k\), so eigenvalues surface
+          largest modulus first &mdash; but each subdiagonal falls only at a ratio of
+          eigenvalue moduli, and stalls when they are equal. Two problems remain: the
+          \(\mathcal{O}(n^3)\) cost per sweep (section 3) and the rate frozen by the spectrum
+          (section 4).</p></div>
+      </div>
+    </div>
+    <footer class="frame-foot"><span class="foot-left"></span><span class="miniframes"></span><span class="foot-right"></span></footer>
+  </section>
+
+</main>
+
+<nav class="controls" aria-label="Slide controls">
+  <button type="button" data-nav="first" title="First frame (Home)">&laquo;</button>
+  <button type="button" data-nav="prev" title="Previous frame or fragment (Left)">&lsaquo;</button>
+  <button type="button" data-nav="next" title="Next fragment or frame (Right, Space)">&rsaquo;</button>
+  <button type="button" data-nav="last" title="Last frame (End)">&raquo;</button>
+  <button type="button" data-nav="reader" title="Reader mode: stack the frames (r)">&#9707;</button>
+  <button type="button" data-nav="full" title="Fullscreen (f)">&#x26F6;</button>
+</nav>
+<p class="sr-only" role="status" aria-live="polite" id="live"></p>
+
+<script>
+(function(){
+  'use strict';
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var deckShort = (document.title.split('\u2014')[0] || document.title).trim();
+  var bar = document.getElementById('progress-bar');
+  var live = document.getElementById('live');
+  var narrow = window.matchMedia('(max-width:700px)');
+  var idx = 0;
+  var wantReader = false;
+
+  function frags(sl){ return Array.prototype.slice.call(sl.querySelectorAll('[data-fragment]')); }
+  function setFrags(sl, on){
+    frags(sl).forEach(function(f){ f.classList.toggle('on', !!on); });
+  }
+
+  function fit(){
+    var root = document.documentElement;
+    if (narrow.matches || document.body.classList.contains('reader')){ root.style.setProperty('--s','1'); return; }
+    var w = slides[0].offsetWidth || 1280, h = slides[0].offsetHeight || 720;
+    root.style.setProperty('--s', Math.max(0.2, Math.min((window.innerWidth-24)/w, (window.innerHeight-24)/h)));
+  }
+
+  function check(){
+    slides.forEach(function(sl){
+      var fb = sl.querySelector('.frame-body');
+      /* A block's bottom margin counts toward the container's scrollHeight even
+         though overflow:hidden clips only empty space. Discount the last child's
+         trailing margin so the warning means real clipping. */
+      var trail = 0;
+      if (fb && fb.lastElementChild){
+        trail = parseFloat(window.getComputedStyle(fb.lastElementChild).marginBottom) || 0;
+      }
+      var tall = fb && fb.scrollHeight - trail > fb.clientHeight + 2;
+      var wide = false;
+      Array.prototype.forEach.call(sl.querySelectorAll('.eq,.katex-display,.mono,table,pre'), function(el){
+        /* Inline elements (e.g. <span class="mono">) report clientWidth 0, which
+           would flag every frame that mentions a filename. Only block boxes can
+           genuinely clip horizontally. */
+        if (!el.clientWidth) return;
+        if (el.scrollWidth > el.clientWidth + 2) wide = true;
+      });
+      sl.classList.toggle('ov-v', !!tall);
+      sl.classList.toggle('ov-h', wide);
+    });
+  }
+
+  function footFill(sl){
+    var sec = sl.getAttribute('data-section') || '';
+    var name = sl.getAttribute('data-secname') || (sl.classList.contains('toc-frame') ? 'Outline' : '');
+    var left = sl.querySelector('.foot-left'), minis = sl.querySelector('.miniframes'),
+        right = sl.querySelector('.foot-right');
+    if (left) left.textContent = deckShort + (name ? ' \u00b7 ' + name : '');
+    if (right) right.textContent = (idx + 1) + ' / ' + slides.length;
+    if (!minis) return;
+    minis.textContent = '';
+    slides.forEach(function(s, i){
+      if (!sec || s.getAttribute('data-section') !== sec) return;
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('data-goto', i);
+      b.title = 'Go to frame ' + (i + 1);
+      b.setAttribute('aria-label', 'Go to frame ' + (i + 1));
+      b.className = i < idx ? 'done' : (i === idx ? 'present' : '');
+      minis.appendChild(b);
+    });
+  }
+
+  function render(){
+    slides.forEach(function(sl, i){
+      var cur = i === idx;
+      sl.classList.toggle('current', cur);
+      sl.setAttribute('aria-hidden', cur ? 'false' : 'true');
+      if (cur) footFill(sl);
+    });
+    var tocLi = document.querySelectorAll('.toc-list [data-for-section]');
+    var sec = slides[idx].getAttribute('data-section') || '';
+    Array.prototype.forEach.call(tocLi, function(li){
+      li.classList.toggle('current', li.getAttribute('data-for-section') === sec);
+    });
+    if (bar) bar.style.width = (slides.length > 1 ? idx / (slides.length - 1) * 100 : 0) + '%';
+    if (live){
+      var h = slides[idx].querySelector('.frametitle, .section-title, h1');
+      live.textContent = 'Frame ' + (idx + 1) + ' of ' + slides.length +
+        (h ? ': ' + h.textContent.trim().replace(/\s+/g, ' ') : '');
+    }
+    check();
+  }
+
+  function go(i, mode){
+    i = Math.max(0, Math.min(slides.length - 1, i));
+    idx = i;
+    if (mode === 'back') setFrags(slides[i], true);
+    else if (mode === 'fwd') setFrags(slides[i], false);
+    try { history.replaceState(null, '', '#/' + (i + 1)); } catch (e) {}
+    render();
+    if (document.body.classList.contains('reader')){
+      var el = slides[i];
+      requestAnimationFrame(function(){ if (el.scrollIntoView) el.scrollIntoView({block:'start'}); });
+    }
+  }
+
+  function step(d){
+    var f = frags(slides[idx]);
+    if (d > 0){
+      for (var i = 0; i < f.length; i++){
+        if (!f[i].classList.contains('on')){ f[i].classList.add('on'); render(); return; }
+      }
+      go(idx + 1, 'fwd');
+    } else {
+      var shown = f.filter(function(x){ return x.classList.contains('on'); });
+      if (shown.length){ shown[shown.length - 1].classList.remove('on'); render(); return; }
+      go(idx - 1, 'back');
+    }
+  }
+
+  function fullscreen(){
+    if (document.fullscreenElement){ document.exitFullscreen(); }
+    else if (document.documentElement.requestFullscreen){ document.documentElement.requestFullscreen(); }
+  }
+  function syncMode(){
+    document.body.classList.toggle('reader', wantReader || narrow.matches);
+    fit(); render();
+  }
+  function toggleReader(){ wantReader = !wantReader; syncMode(); }
+
+  document.addEventListener('keydown', function(e){
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var t = e.target;
+    if (t && (t.isContentEditable || /^(INPUT|SELECT|TEXTAREA)$/.test(t.tagName))) return;
+    switch (e.key){
+      case 'ArrowRight': case 'PageDown': case ' ': case 'Spacebar': e.preventDefault(); step(1); break;
+      case 'ArrowLeft': case 'PageUp': e.preventDefault(); step(-1); break;
+      case 'Home': e.preventDefault(); go(0, 'back'); break;
+      case 'End': e.preventDefault(); go(slides.length - 1, 'back'); break;
+      case 'f': case 'F': fullscreen(); break;
+      case 'r': case 'R': toggleReader(); break;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var nav = e.target.closest && e.target.closest('[data-nav]');
+    if (nav){
+      var a = nav.getAttribute('data-nav');
+      if (a === 'next') step(1);
+      else if (a === 'prev') step(-1);
+      else if (a === 'first') go(0, 'back');
+      else if (a === 'last') go(slides.length - 1, 'back');
+      else if (a === 'reader') toggleReader();
+      else if (a === 'full') fullscreen();
+      return;
+    }
+    var dot = e.target.closest && e.target.closest('.miniframes button[data-goto]');
+    if (dot) go(parseInt(dot.getAttribute('data-goto'), 10), 'fwd');
+  });
+
+  window.addEventListener('resize', function(){ fit(); check(); }, {passive:true});
+  window.addEventListener('load', function(){ fit(); check(); });
+  if (narrow.addEventListener) narrow.addEventListener('change', syncMode);
+  else if (narrow.addListener) narrow.addListener(syncMode);
+
+  var m = /^#\/(\d+)$/.exec(location.hash);
+  idx = m ? Math.max(0, Math.min(slides.length - 1, parseInt(m[1], 10) - 1)) : 0;
+  if (idx) setFrags(slides[idx], true);
+  syncMode();
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){ document.body.classList.add('ready'); });
+  });
+})();
+</script>
+</body>
+</html>
