@@ -6,18 +6,18 @@ How a `teach-an-engineer` artifact lands in this repository. The repo's `AGENTS.
 
 ```text
 index.html                                     landing page: every note is a card in #grid
-<Category>/<topic-slug>/<topic-slug>.html      the page (file name repeats the folder name)
+<Category>/<topic-slug>/<topic-slug>.html      the one-page note
 <Category>/<topic-slug>/summary.md             short teaching handoff, sources, current discussion point
-<Category>/<topic-slug>/assets/                generated figures (png/svg) only when inline SVG will not do
+<Category>/<topic-slug>/assets/                figure exports referenced by the note (never ../)
 <Category>/<topic-slug>/scripts/               runnable helpers (.mjs, .py, .json) that produced numbers on the page
 ```
 
-The default page is a Beamer-style deck built from `templates/beamer-deck.html`, and
-a new topic's deck owns the plain name above. An existing note keeps that name: add
-`<Category>/<slug>/<slug>-deck.html` beside it instead of overwriting, and use
-`<Category>/<slug>/<slug>-note.html` for a long-form note that follows a deck. Either
-way it is one self-contained page, the same `assets/` and `scripts/` rules apply, and
-the two pages link to each other.
+Copy `templates/note.html` to the plain page name above and fill it in place. A new topic owns
+that name. Update an existing note there too, keeping its current math renderer and class names.
+Treat any other layout as frozen — deck-shaped files (`-deck` suffixes, frame or slide markup,
+`#/N` deep links) are legacy pages that keep their own vocabulary; never convert one into the
+other for consistency. Publish exactly one card per topic, pointing at that topic's plain note,
+so the grid counts topics rather than files.
 
 Category folder -> the `data-category` chip token the card must carry:
 
@@ -52,115 +52,111 @@ Insert into `<div class="grid" id="grid">` in `index.html`, ordered with the nei
 - `data-field` is a human label ("Numerical Linear Algebra", "Control Theory"), shown as the card footer and counted in the hero. It must equal the `.foot` text.
 - Tag colour classes available on `.tag`: `amber`, `teal`, `purple`, `rose`. Match the neighbouring cards in the same category.
 - Placeholder notes use `class="card soon"` and are excluded from the computed counts; a real note must not.
-- A deck gets its card the same way, with `slides` (or `talk`) in `data-tags`,
-  `<span class="go">Open the slides</span>`, and a `data-field` matching its field, so
-  the grid counts it exactly like a note.
 - `#stat-notes`, `#stat-fields`, and the per-field `#cnt-*` numbers are all derived from `.card` elements. Do not hardcode them, and do not leave an `href` pointing at a file that does not exist.
 
 ## Style contract
 
-Default to `templates/beamer-deck.html`. A deck keeps the same vocabulary inside a fixed
-1280x720 frame: `.frame-head` with `.frametitle`, a `.frame-body`, and a script-filled
-`.frame-foot`; `.block` in place of `.callout`, with the `.intuition` / `.takeaway`
-variants; `data-fragment` in place of a collapsed `details.predict`, since a slide answer
-should arrive on a key press rather than a click; one `.eq` per display equation;
-`.figure` + `.figure-caption` for the frame's single visual claim. Frames stack and
-reflow below ~700px, and a frame that no longer fits its page is tagged `overfull`.
+New pages use `templates/note.html` unchanged apart from content and intentional, documented
+exceptions. The page is one responsive document:
 
-Ship `data-theme="beamer"` — the classic blue theme, and the default for every deck. The
-serif/gold `data-theme="paper"` is opt-in: the repository's *long-form notes* use that
-palette, but a deck is a different artifact and does not inherit it, so do not switch a
-deck to `paper` because a neighbouring page or an earlier deck looks that way. Only the
-user's explicit request changes it, and `summary.md` records that they asked.
+- Journal-style serif on white: `"Source Serif Pro", Georgia, ...`, background `#ffffff`, navy
+  accent `#1f4e79`, links `#173b5c`. Base font size 17px, content column `max-width:880px`.
+- Centered `h1`, an italic `p.hero` summary, numbered `h2` sections with `id="sN"`, and `<hr>`
+  between sections.
+- Each section starts with a visible `.callout` containing `<strong>Question:</strong>` and only
+  the setup needed to attempt it. The expected answer, explanation, solution, proof, method,
+  result, conclusion, and takeaway stay out of the HTML and are tracked in `summary.md`.
+- Do not use `Intuition:`, `Takeaway:`, or `Claim:` blocks in the default question-map page.
+  Their styles remain available for other notes but would reveal the expected insight here.
+- Display math in `<div class="eq">\[ ... \]</div>`; inline math in `\(...\)`. Equations may
+  state setup or the question, never the answer.
+- `.figure` with `.figure-caption` (`<b>Figure N.</b>` first); inline SVG, local assets, or
+  external assets are allowed, including computed plots.
+- `.demo` for an interactive widget: `.demo-controls` with labeled controls, an output area,
+  and `.mono` for numbers. Controls must be keyboard usable.
+- `nav.toc` is a restrained sticky contents bar with one anchor per section, horizontal overflow
+  on narrow screens, and the template's scroll-spy script for active-section highlighting.
+- Keep the page responsive below ~700px; the template's media query covers the common cases.
 
-### Three rules that save the most time
-
-1. **Budget the frame before writing it.** A `.frame-body` holds ~20 em (less ~1 em with a
-   `.framesubtitle`). Count 1.45 em per text line, 3 em per `.eq`, 1.7 em per `.block`,
-   0.9 em per table row. **`.cols` gives each column the same budget, not half the text** —
-   the most common way a frame overflows is a two-column frame written at full-width length.
-   Over 20 em → split the frame or cut content.
-2. **One concrete object beats notation.** A frame stated over subspaces or operators reads as
-   complexity even when the idea is simple; the same content around one vector or one number
-   lands immediately. Introduce a symbol only if the frame uses it twice.
-3. **Compute when it helps.** Use scripts for demos, illustrations, or difficult calculations,
-   not as a prerequisite for every claim. Reason through routine derivations; ground specialized
-   claims in authoritative sources. Report only real demo output, and do not treat examples as proofs.
-
-The contract below is the repository's long-form note style, which every newer note under
-`<Category>/<slug>/` already follows. No template ships for it: read these bullets when
-editing an existing note, and keep that note's renderer and class names. For anything new,
-start from the deck template rather than hand-rolling a page:
-
-- Serif on paper: `"Source Serif Pro", Georgia, ...`, background `#fdfcf8`, gold accent `#d4a72c`, links `#9a5b00`. Base font size 17px, content column `max-width:900px`.
-- `h1` with a gold underline, a `p.hero` summary, numbered `h2` sections with `id="sN"`, `<hr>` between sections.
-- Display math in `<div class="eq">\[ ... \]</div>`; inline math in `\(...\)`.
-- `.callout` for a side note, `.callout.intuition` (blue) for the mental model, `.callout.takeaway` (green) for the one-sentence close of a section.
-- `.figure` with `.figure-caption` (`<b>Figure N.</b>` first); inline SVG preferred, `assets/` images when the plot is the evidence.
-- `details.predict` for a prediction prompt, with the answer revealed inside the same block.
-- `.demo` for an interactive widget: `.demo-controls` with labeled `input[type=range]`/`select`, an output area, and `.mono` for numbers. Controls must be keyboard usable.
-- `nav.toc` sticky at the bottom with one anchor per section, plus the scroll-spy script that marks the active section.
-- Keep the page responsive below ~700px; the media query in the template covers the common cases.
-
-Math renderer: a new deck uses the template's KaTeX (auto-render from the jsDelivr CDN). Some older notes load MathJax instead. When editing an existing page, keep that page's renderer; never mix the two on one page, and never convert a note to slides just for consistency.
+Math renderer: a new page uses the template's KaTeX auto-render from the jsDelivr CDN. Some
+older notes load MathJax instead. When editing an existing page, keep that page's renderer;
+never mix the two on one page.
 
 ## summary.md
 
-Keep a short handoff: audience assumptions, section-to-frame links, current discussion
-point, the running example, unresolved gaps, sources with the claims they support, and
-checks actually performed or unavailable. Record useful learning evidence without a
-transcript, mandatory explain-back, or prerequisite-status table. Follow [sources.md](sources.md)
-for papers, books, and blogs.
+Fill [../templates/summary.md](../templates/summary.md) rather than designing one. Keep a short
+handoff: stage, audience assumptions, question/expected-insight map and statuses, current discussion
+point, the running example, unresolved or research-needed claims, sources actually consulted,
+and checks actually performed or unavailable. Record useful learning evidence without a
+transcript, mandatory explain-back, or prerequisite-status table. Follow
+[sources.md](sources.md) when a section is deepened and research is actually needed.
 
-The first HTML draft covers the complete reasoning chain; teaching progress is separate
-from artifact readiness. Add the landing card after the complete draft is usable and
-checked, not after the reader passes each section. Revise the deck and handoff during teaching.
+The first HTML artifact is a question map with the complete question chain and only the setup
+needed to attempt each question. File it and add the landing card immediately; the card points at
+a real, readable page even though expected insights, proofs, citations, demos, and exact results
+stay in the handoff or chat. Mark the handoff `question map`, record expected insights, likely
+misconceptions, assessment focus, and precision-sensitive claims under the handoff headings, and
+deepen the response during teaching without researching ahead or writing the answer into HTML.
 
 ## Verify
 
-**Use Chrome, not Firefox.** Chrome renders a frame in ~3 s; headless Firefox takes 30–120 s,
-has hung and left a stale process that blocks every later run, and caches `file://` pages so
-a re-render can silently serve the previous frame.
+Checks are proportional to the pass. Every published revision checks the structural contract and
+renders desktop and narrow views. A deepened section checks only what it added; a skipped or
+unchanged section is not rechecked. The question-map pass has no scripts, demos, computed numbers,
+or external sources to validate, so do not create checks merely to make the page look complete.
 
-### Layout audit — the whole deck in one screenshot
-
-The template's `?fit` mode renders a panel listing every frame's fill and status. This is the
-loop to use while *writing* frames:
+Prefer Firefox or Chrome headless for consistency with existing layout checks; use an available
+browser if necessary and record it. Inspect actual rendering rather than assuming one browser's
+layout results apply to all browsers.
 
 ```sh
 P=/home/chun/work/peakyet/<Category>/<slug>/<slug>.html          # ABSOLUTE path
-google-chrome-stable --headless --disable-gpu --no-sandbox \
-  --user-data-dir=/tmp/chrome-deck \
-  --screenshot=/tmp/<slug>-fit.png --window-size=1440,900 "file://$P?fit#/1"
+# Structural contract: no leftover slots, and nav.toc anchors match heading ids exactly.
+grep -n 'FILL:' "$P"
+diff <(grep -o 'href="#[^"]*"' "$P" | cut -d'"' -f2 | sed 's/#//' | sort -u) \
+     <(grep -o '<h[12][^>]*id="[^"]*"' "$P" | sed 's/.*id="//;s/"//' | sort -u)
+# Teaching sections carry one visible question each (the sources heading legitimately does not).
+grep -c '<h[23] id="s[0-9]' "$P"; grep -c '<strong>Question:</strong>' "$P"
+# Question-map pages must not contain answer-revealing blocks.
+grep -n '<strong>\(Intuition\|Takeaway\|Claim\):</strong>' "$P"
+grep -on 'src="\.\./\|href="\.\./\|src="https\?://[^"]*\.\(png\|jpe\?g\|svg\|gif\)"' "$P"
+ls -l "$P"
+firefox --headless --screenshot=/tmp/<slug>-desktop.png --window-size=1440,2600 "file://$P"
+firefox --headless --screenshot=/tmp/<slug>-narrow.png --window-size=420,2600 "file://$P"
+# Only when a section anchor or the TOC changed:
+# firefox --headless --screenshot=/tmp/<slug>-section.png --window-size=1440,1200 "file://$P#s2"
 ```
 
-Read `frame fill status`. **`fill` is the number that matters, not the badge** — a frame at
-94% passes today and overflows after one more sentence, so trim anything above ~90% and never
-leave a frame above 95%. Chrome and Firefox break lines differently, so the Chrome audit is
-the authority; a Firefox shot alone does not clear a frame.
+The anchor diff must print nothing (the `#s7` sources heading carries an id and belongs in both
+lists). Compare the two counts after excluding any sources or further-reading heading from the
+section count, so ask for one question per *teaching* section only — an `intuition` or
+`What changes:` callout legitimately follows a section's opening `.callout`. Keep the counts equal
+when inserting or removing a section.
 
-### Visual check — a few frames, once the audit is clean
+For a deepened section, run only its relevant checks: confirm the exact passage for a sourced
+claim; run one reproducible script for a computed number; smoke-test a new demo; spot-check a
+changed deep link or landing-card link. Keep the result in the assessment or handoff; do not add
+the expected answer to the question map. Do not repeat a completed check, read a whole paper, or
+re-verify a claim already supported unless the source, claim, or version changed.
 
-```sh
-google-chrome-stable --headless --disable-gpu --no-sandbox --user-data-dir=/tmp/chrome-deck \
-  --screenshot=/tmp/<slug>-f1.png --window-size=1440,900 "file://$P#/1"     # then #/4, #/<N>
-google-chrome-stable --headless --disable-gpu --no-sandbox --user-data-dir=/tmp/chrome-deck \
-  --screenshot=/tmp/<slug>-narrow.png --window-size=420,3200 "file://$P"
-```
+Inline SVG beats an embedded raster for anything carrying text, because it stays sharp and its
+labels stay correct at any width. A generated plot may be inline or a local asset referenced as
+`assets/<name>.png` beside the note (`../` paths break under GitHub Pages, whose root is the
+repository), and a data-heavy page past a few hundred kilobytes usually means raster figures
+belonging in `assets/`, not inlined bytes. Provenance convention from the existing notes: name
+the producing script once near the numbers it generated ("all frames computed by
+`scripts/verify_<slug>.py`").
 
-`#/N` deep-links to frame N and reveals every overlay inside it, which is what the printed
-deck shows. For a long-form note, shoot the document instead at `1440,2600` and `420,2600`.
+Look for rendered math, figures placed and labelled, no clipping or overlap, no SVG label
+collisions, usable sticky TOC navigation, and correct section-anchor positioning below it. Test
+one deep link other than `#s1` when the TOC or anchors changed. When card or cross-links changed,
+serve the repo (`python3 -m http.server 8000`), open `http://localhost:8000/index.html`, and
+confirm the affected card appears, filters find it, and its link resolves. Note any check you
+could not run.
 
-Then look: math rendered, figures placed and labelled, nothing clipped or overlapping, no SVG
-label collisions, TOC anchors present. For cross-links, serve the repo
-(`python3 -m http.server 8000`), open `http://localhost:8000/index.html`, and confirm the card
-appears, filters find it, and its link resolves. Note any check you could not run.
-
-**Hygiene, each of which has bitten:** absolute paths only (a bare `$PWD/...` breaks silently
-when the working directory moves — the browser writes no file and the batch looks like it
-ran); a dedicated `--user-data-dir` (otherwise the profile lock refuses a second run);
-cache-bust re-renders with `?v=$(date +%s)` before the `#`; and `ls` the output file after a
-batch, because a missing file is the only signal that the command did nothing.
+Use absolute paths resolved from the repository root and `ls` the output file after a screenshot
+batch, because a missing file is the only signal that the command did nothing. Cache-bust
+re-renders with `?v=$(date +%s)` before the section anchor when the browser serves a stale copy.
 
 ## Housekeeping
 

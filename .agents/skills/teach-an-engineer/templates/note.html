@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FILL: Note Title — one-line hook</title>
+<!--
+  note.html — the default academic one-page shell for a teach-an-engineer note.
+
+  Copy this file; do not redesign it. The typography, math renderer, sticky top table of
+  contents, responsive layout, and content vocabulary are fixed. Fill every FILL: slot and
+  uncomment only the optional blocks the argument needs.
+
+  Sections are numbered h2 elements with id="sN", separated by <hr>. Keep every heading id in
+  nav.toc, in the same order. Each section opens with a visible question and resolves it.
+  Math is KaTeX auto-render: \(...\) inline and \[...\] inside .eq.
+-->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+  :root{--paper:#ffffff;--ink:#1f2933;--muted:#5b6673;--accent:#1f4e79;--accent-2:#2b7a8c;--accent-ink:#173b5c;--line:#cbd5e1;--soft:#f4f7fa;--blue:#1f4e79;--blue-bg:#eef4fa;--teal:#0f766e;--teal-bg:#eefaf8}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{font-size:17px;scroll-behavior:smooth;overflow-x:clip}
+  body{font-family:"Source Serif Pro",Georgia,"Times New Roman",serif;color:var(--ink);background:var(--paper);line-height:1.65}
+  main{max-width:880px;margin:0 auto;padding:1.25rem 1.5rem 5rem}
+  img{max-width:100%;display:block}
+  h1{font-weight:600;font-size:2rem;line-height:1.2;margin:2.2rem 0 .35rem;color:#17212b;text-align:center;letter-spacing:-.01em}
+  h2{font-weight:600;font-size:1.35rem;color:var(--accent);margin:0 0 .75rem;padding-bottom:.25rem;border-bottom:1px solid var(--line);scroll-margin-top:5rem}
+  h3{font-size:1.08rem;color:var(--accent);margin:1.4rem 0 .4rem}
+  p{margin:.75rem 0}
+  a{color:var(--accent-ink);text-decoration:none;border-bottom:1px solid rgba(31,78,121,.45)}
+  a:hover{color:var(--accent)}
+  strong{color:#111}em{color:#444}
+  ul,ol{margin:.6rem 0 .6rem 1.4rem}li{margin:.3rem 0}
+  .hero{max-width:680px;font-size:1.04rem;font-style:italic;color:var(--muted);text-align:center;margin:.4rem auto 2rem}
+  .small{font-size:.9rem;color:var(--muted)}
+  .eq{display:block;text-align:center;margin:1.1rem 0;padding:.75rem .5rem;background:#fafbfc;border-left:2px solid var(--accent);overflow-x:auto;line-height:1.9}
+  .callout{background:#f8fafc;border-left:3px solid var(--accent);padding:.72rem 1rem;margin:1rem 0;font-size:.97rem}
+  .callout.takeaway{border-left-color:var(--teal);background:var(--teal-bg)}
+  .callout.takeaway strong{color:#0b5f59}
+  .callout.intuition{border-left-color:var(--blue);background:var(--blue-bg)}
+  .callout.intuition strong{color:#1f4f7a}
+  .figure{margin:1.4rem 0;padding:1.15rem;background:#fff;border:1px solid var(--line)}
+  .figure svg{width:100%;height:auto;display:block}
+  .figure-caption{font-size:.88rem;color:var(--muted);text-align:left;margin-top:.6rem;padding-top:.45rem;border-top:1px solid var(--line);line-height:1.5}
+  .figure-caption b{color:#333}
+  .table-wrap{overflow-x:auto;margin:1rem 0}
+  table{border-collapse:collapse;font-size:.92rem;width:100%}
+  th,td{border:0;border-bottom:1px solid var(--line);padding:.45rem .65rem;text-align:left;vertical-align:top}
+  th{background:transparent;color:#17212b;border-top:2px solid #334155;border-bottom:1px solid #334155}
+  tr:nth-child(even) td{background:transparent}
+  .demo{background:#fff;border:1px solid var(--line);padding:1rem;margin:1.3rem 0}
+  .demo-controls{display:flex;flex-wrap:wrap;gap:1rem;align-items:center;margin:.4rem 0 .8rem}
+  .demo-controls label{font-size:.95rem}
+  .demo-controls input[type=range]{vertical-align:middle;width:min(300px,58vw)}
+  .demo canvas{width:100%;max-width:760px;height:auto;display:block;margin:.6rem auto 0;border:1px solid var(--line);background:#fff}
+  .demo-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(230px,.75fr);gap:1rem;align-items:start}
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:.86em}
+  .metrics{display:grid;grid-template-columns:auto 1fr;gap:.28rem .75rem;font-size:.88rem;padding:.7rem;background:var(--soft)}
+  .metrics dt{font-weight:700;color:#555}
+  .metrics dd{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;text-align:right}
+  pre{background:var(--soft);border:1px solid var(--line);padding:.8rem 1rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+  code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:.9em;background:#edf2f7;padding:.05em .3em}
+  pre code{background:none;padding:0}
+  .formula-label{font-weight:700;color:var(--accent-ink);margin-bottom:-.6rem;text-align:center;font-size:.92rem}
+  hr{border:none;border-top:1px solid #d8dee6;margin:2.4rem 0}
+  .toc{position:sticky;top:0;z-index:50;display:flex;gap:.3rem;align-items:center;overflow-x:auto;overscroll-behavior-x:contain;background:rgba(255,255,255,.98);border-bottom:1px solid var(--line);padding:.48rem 0;margin:0 0 1.5rem;scrollbar-width:thin}
+  .toc a{flex:0 0 auto;border:0;border-bottom:2px solid transparent;padding:.25rem .42rem;font-size:.82rem;color:var(--muted);font-variant:small-caps;letter-spacing:.035em;white-space:nowrap}
+  .toc a:hover{color:var(--accent)}
+  .toc a.active{border-bottom-color:var(--accent);color:var(--accent);font-weight:700}
+  @media (max-width:700px){
+    html{font-size:16px}
+    main{padding:.5rem 1rem 3rem}
+    h1{font-size:1.7rem}
+    h2{font-size:1.28rem;scroll-margin-top:4.5rem}
+    .demo-grid{grid-template-columns:1fr}
+    .toc{margin-left:-1rem;margin-right:-1rem;padding-left:1rem;padding-right:1rem}
+  }
+  @media print{
+    body{font-size:11pt}
+    main{max-width:none;padding:0}
+    .toc{display:none}
+    a{color:inherit;border:0}
+    .figure,.callout,.eq{break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+<main>
+
+<nav class="toc" aria-label="Sections">
+  <!-- One anchor per h2 id, in order. Keep labels short enough to scan. -->
+  <a href="#s1">1. Opening question</a>
+  <a href="#s2">2. Why the obvious approach fails</a>
+  <a href="#s3">3. What must be supplied</a>
+  <a href="#s4">4. Why it should work</a>
+  <a href="#s5">5. What the method produces</a>
+  <a href="#s6">6. Changed condition</a>
+  <a href="#s7">7. Sources</a>
+</nav>
+
+<h1>FILL: Note title</h1>
+<p class="hero">FILL: one-line hook naming the questions this page will test.</p>
+
+<!-- ============================== 1. QUESTION ============================== -->
+<h2 id="s1">1. FILL: the opening deep question</h2>
+<div class="callout"><strong>Question:</strong> FILL: ask for the mechanism, prediction, or
+  reason that requires the key insight. Do not answer it here.</div>
+<p>FILL: establish the running example with the facts, assumptions, definitions, and notation the
+  reader needs to attempt the question. Do not state the expected answer.</p>
+
+<figure class="figure">
+  <!-- A figure may expose the phenomenon, object, or contrast the reader must interpret. -->
+  <svg viewBox="0 0 760 300" role="img" aria-label="FILL: one sentence describing what the reader should inspect.">
+    <rect x="20" y="20" width="720" height="260" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
+    <line x1="90" y1="230" x2="680" y2="230" stroke="#5b564b" stroke-width="2"/>
+    <line x1="90" y1="230" x2="90" y2="70" stroke="#5b564b" stroke-width="2"/>
+    <path d="M110 210 C220 90, 390 250, 650 95" fill="none" stroke="#2b7a8c" stroke-width="5" stroke-linecap="round"/>
+    <text x="380" y="270" text-anchor="middle" font-family="Georgia,serif" font-size="18" fill="#5b564b">FILL: axis or object label</text>
+  </svg>
+  <figcaption class="figure-caption"><b>Figure 1.</b> FILL: what to inspect or predict from the
+    figure, not the conclusion.</figcaption>
+</figure>
+
+<hr>
+
+<!-- ============================== 2. NEED ================================= -->
+<h2 id="s2">2. FILL: why does the familiar approach fail?</h2>
+<div class="callout"><strong>Question:</strong> FILL: ask the reader to identify the missing
+  property, ambiguity, or failure mode. Do not reveal it.</div>
+<p>FILL: set up the familiar approach far enough that the reader can test it. Do not work it
+  through to the answer.</p>
+<div class="eq">\[ \text{FILL: the setup, attempted relation, or quantity the reader must inspect.} \]</div>
+
+<hr>
+
+<!-- ============================== 3. IDEA ================================= -->
+<h2 id="s3">3. FILL: what must be supplied, and why?</h2>
+<div class="callout"><strong>Question:</strong> FILL: ask what object, relationship, or
+  construction supplies the missing property. Do not name the answer.</div>
+<p>FILL: define only the notation and context needed to state the question. The expected insight
+  belongs in <span class="mono">summary.md</span>, not in this page.</p>
+
+<hr>
+
+<!-- ============================== 4. WHY ================================== -->
+<h2 id="s4">4. FILL: why should the idea work beyond one case?</h2>
+<div class="callout"><strong>Question:</strong> FILL: ask for the reason, invariant, or
+  mechanism that would justify the idea. Do not provide the argument.</div>
+<p>FILL: give one revealing case or set of assumptions the reader can reason about. Do not supply
+  the proof, claim, or conclusion.</p>
+
+<hr>
+
+<!-- ============================== 5. METHOD =============================== -->
+<h2 id="s5">5. FILL: what does the method produce?</h2>
+<div class="callout"><strong>Question:</strong> FILL: ask what procedure follows and what the
+  reader predicts it produces on the running example. Do not list the procedure or result.</div>
+<p>FILL: specify the inputs, outputs, and stopping question only. Do not provide steps, computed
+  values, or a worked result.</p>
+
+<hr>
+
+<!-- ============================== 6. LIMITS =============================== -->
+<h2 id="s6">6. FILL: what changes when one condition changes?</h2>
+<div class="callout"><strong>Question:</strong> FILL: change exactly one assumption or input and
+  ask what the reader predicts happens and why. Do not state the result.</div>
+<p>FILL: define the changed condition and the observations available to the reader. Do not state
+  where the guarantee ends or which alternative wins.</p>
+
+<hr>
+
+<!-- ============================== 7. SOURCES ============================== -->
+<h2 id="s7">7. Sources and further reading</h2>
+<p>FILL: In the first pass, state that no external sources have been consulted yet. After
+  research, list only public sources actually used; do not use a source annotation to disclose an
+  expected answer.</p>
+<p class="small">FILL: suggested further reading, labelled as not consulted. Keep this optional
+  and separate from sources actually used.</p>
+
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+  if (window.renderMathInElement){
+    renderMathInElement(document.body,{
+      delimiters:[
+        {left:"\\(",right:"\\)",display:false},
+        {left:"\\[",right:"\\]",display:true}
+      ],
+      throwOnError:false
+    });
+  }
+
+  /* Sticky table of contents with active-section highlighting. Do not rewrite this. */
+  var links=Array.prototype.slice.call(document.querySelectorAll("nav.toc a[href^='#']"));
+  var items=links.map(function(a){
+    var el=document.querySelector(a.getAttribute("href"));
+    return el?{a:a,el:el}:null;
+  }).filter(Boolean);
+  function updateToc(){
+    var ref=110,current=items[0]||null;
+    items.forEach(function(it){
+      if (it.el.getBoundingClientRect().top<=ref) current=it;
+    });
+    items.forEach(function(it){
+      var active=it===current;
+      it.a.classList.toggle("active",active);
+      if (active) it.a.setAttribute("aria-current","true");
+      else it.a.removeAttribute("aria-current");
+    });
+  }
+  window.addEventListener("scroll",updateToc,{passive:true});
+  window.addEventListener("resize",updateToc);
+  window.addEventListener("load",updateToc);
+  window.addEventListener("hashchange",updateToc);
+  updateToc();
+  requestAnimationFrame(updateToc);
+});
+</script>
+</main>
+</body>
+</html>

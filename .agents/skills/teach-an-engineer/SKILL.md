@@ -1,43 +1,54 @@
 ---
 name: teach-an-engineer
-description: "Teach an engineering topic through a concise, complete HTML slide deck and guided questions. Use for /teach-an-engineer, visual explanations, or requests to understand how something works in this knowledge base; not for ordinary prose-only answers."
+description: "Teach an engineering topic through a section-by-section deep-question map in a one-page HTML note. The page tests the reader's understanding without revealing the expected insight; deepen, research, or demonstrate only after the reader's answer requires it. Use for /teach-an-engineer, visual explanations, or requests to understand how something works in this knowledge base; not for ordinary prose-only answers."
 ---
 
 # teach-an-engineer
 
-**Build a minimal, complete explanation first; teach through connected questions that make each next step necessary; revise where understanding breaks.**
+**Questions drive the lesson, and the HTML is a question map, not an answer key: every teaching section poses one deep, insight-testing question with only the setup needed to attempt it. Ask one section at a time, wait for the reader's answer, and never place the expected answer, solution path, or conclusion in the page.**
 
-Assume an engineer new to the topic but comfortable with basic algebra and calculus. Adapt to their answers without a prerequisite interview. The repository's `AGENTS.md` takes precedence over this skill and its references.
+Assume an engineer new to the topic but comfortable with basic algebra and calculus. Adapt without a prerequisite interview. `AGENTS.md` takes precedence over this skill and its references.
 
-## Build the whole draft first
+## Pass 1: publish the question map
 
-- Read `AGENTS.md`, [template guidance](templates/README.md), and [repo notes](references/repo-notes.md). Start from [beamer-deck.html](templates/beamer-deck.html); preserve its renderer, navigation, and responsive layout.
-- Before teaching, create the shortest self-contained HTML deck covering the entire reasoning chain. Complete means understandable end to end, not exhaustive: no placeholder sections or lessons deferred until the reader answers. No fixed frame or section counts.
-- Start with a concrete problem or failure. Develop the core mechanism through one running example, introducing notation and necessary assumptions when used. Explain why each step follows; brevity must not erase a logical bridge.
-- Present results, advantages, guarantees, limitations, and comparisons after the mechanism is understood. Motivation belongs early; properties needed to derive the method belong with the derivation. Defer optional variants and history.
-- Give each frame one clear idea. Prefer a concrete object, inline SVG figure, or small demo to dense prose; use [figure guidance](references/figures.md) when needed. Close each section with a brief takeaway, not necessarily a separate frame. Keep the existing frame budget and `?fit` layout audit; do not squeeze content to meet an arbitrary slide count.
+- Read `AGENTS.md` and the [template router](templates/README.md) first; read [repo notes](references/repo-notes.md) when filing and verifying.
+- Copy [note.html](templates/note.html) to `<Category>/<slug>/<slug>.html`. Read it once before filling so you know which classes and blocks exist; its typography, math renderer, navigation, responsive layout, and content vocabulary are fixed — change content and uncommented optional blocks, never the stylesheet or the scroll-spy script.
+- Before teaching, write the shortest one-page note with one deep question per teaching section. Give the reader only the running example, facts, assumptions, definitions, and notation needed to attempt that question. Do not put the expected insight, explanation, solution, proof, method, result, conclusion, or leading hint in the HTML.
+- Make each question test understanding rather than recall or recognition. Ask for a mechanism, prediction, reason, transfer to a changed case, or failure mode; a reader should need the key idea or deep insight to answer it. Avoid yes/no, definition-only, or questions already answered by the setup.
+- Keep one running example. Let each question expose the next unresolved point in the chain, but do not display the answer that resolves the previous question. Setup may include approximate equations, objects, or a figure that presents the phenomenon to inspect; it must not state what the reader should conclude.
+- Do not research, build demos, or verify before the reader attempts the question. No `Intuition:`, `Takeaway:`, `Claim:`, proof, method-summary, worked-result, or overall-conclusion blocks belong in the page. The Sources section may say that no external sources have been consulted yet; it must not reveal an expected answer.
+- File the HTML and add the landing card immediately once the question map is usable. Fill [templates/summary.md](templates/summary.md) with the expected insight, likely misconception, assessment focus, unresolved claims, and route status for each question. These are teaching notes for the agent and must not be copied into the HTML.
 
-## Teach with questions, not gates
+## Ask and assess section by section
 
-The complete deck is available from the start; the conversation proceeds one connected idea at a time. Teach from its frames, using a short deep link and a guiding question rather than a parallel lesson in chat.
+The page is visible immediately, but it tests understanding rather than explaining the answer. Teach one connected question at a time from its section anchor; keep chat to a deep link, the exact question, and the smallest clarification needed to attempt it.
 
-- Questions primarily guide reasoning toward the core idea; diagnosing understanding is secondary. Ask why a step is necessary, what would fail without it, or what the mechanism predicts in a changed example—not for a formula or sentence copied from the slide.
-- Supply the ingredients before asking for the inference. Each question should bridge from what has been established to the next idea, without relying on untaught knowledge. Depth is not obscurity.
-- Put the question on the relevant frame and its answer with reasoning behind `data-fragment`, so the deck also works for independent reading. Close every question the deck opens. Use questions where they help, not to satisfy a quota.
-- Use responses to clarify a missing link or repair a misconception. Add only the prerequisite explanation needed for that link, then return to the main thread. Do not require explain-back checklists, repeated quizzes, or explicit permission at every transition; respect requests to skip, pause, or go deeper. Silence is not evidence of understanding.
-- Revise affected frames and downstream reasoning as the discussion develops. Keep lasting explanations in the deck; brief clarification in chat is fine.
+- Send the section link and its question, then wait. Do not answer, hint, or expose the expected insight before the reader has attempted it.
+- If the reader demonstrates the expected insight, mark the section `skipped` or `closed` and move on without research, source checking, demonstration, or verification.
+- If the answer is partial, ask one narrower question about the missing distinction or give one hint. Deepen only if the reader still needs it.
+- If the answer reveals a misconception or a wrong mechanism, use a counterexample, prediction, or targeted question to expose the conflict before explaining. Give the expected insight only after the reader has had a real attempt, unless they explicitly ask to skip the exercise.
+- A request to explain, prove, source, illustrate, compute, or demonstrate deepens only the requested section and its immediate dependencies. Research and demos may be skipped entirely when the reader already has the idea.
 
-## Research and computation
+## Research only what the response needs
 
-Use classic-first research: foundational papers, established books, and authoritative technical blogs. Read relevant passages, not everything. Avoid derivative or unsupported material; elementary does not mean low quality. Use newer primary sources when correctness, current behavior, or attribution requires them. Follow [sources.md](references/sources.md) for paper MCP tools and citation recording.
+- Keep the section question, expected insight, and the reader's attempt in view. Triage only the claim needed to assess the answer or prepare the smallest helpful follow-up; routine derivations, definitions, standard mathematical facts, and the reader's existing understanding need no external source.
+- Use one authoritative source for an attributed, historical, quoted, or borrowed result, and read the passage that directly supports the claim. Add a second source only when credible sources conflict, priority is disputed, or the claim is unusually consequential or current.
+- Use the `arxiv-mcp-server` and `paper-search-mcp` servers for scholarly discovery and metadata, not recalled citations. For software behavior, use official documentation. Follow [sources.md](references/sources.md) for retrieval, stopping, and attribution.
+- Stop once the exact sentence or equation is supported. Do not read whole papers, chase citation chains, or require an original plus a survey unless lineage or priority is the teaching point. Record what the source grounds in `summary.md`; do not paste the expected answer into the HTML.
+- Metadata and abstracts may establish bibliographic facts or attribution, but not a detailed technical result. If support remains inadequate, qualify or remove the claim instead of searching indefinitely.
 
-Use direct reasoning for routine derivations. Do not create a verifier for every claim. Use scripts mainly for demonstrations and illustrations, or when a difficult calculation genuinely needs checking. Run executable demos before reporting their output; label anything unrun. A numerical example is not a general proof. Verify specialized or attributed claims against sources, and disclose unresolved uncertainty rather than substituting confidence for evidence.
+## Verify only what changed
 
-## Save and deliver
+- Verify in service of the assessment: routine mathematics by direct reasoning; an external claim against its targeted passage; a computed number with one reproducible script run, using a second method only if results disagree or the claim is fragile; and an interactive addition with one smoke test.
+- Every published revision passes the structural and rendering checks in [repo notes](references/repo-notes.md): no `FILL:` slots, headings and TOC anchors agree, asset paths resolve, and desktop and narrow views render without clipping or overlap.
+- Check that the page remains answer-free: no `Intuition:`, `Takeaway:`, `Claim:`, solution, worked result, or concluding statement that would let the reader bypass the deep question.
+- A deepened section also runs only the checks relevant to what it added: the source passage, numeric script, demo, changed anchor, or changed landing-card link. Do not repeat completed checks or re-verify a skipped section.
+- Disclose checks that could not run. Do not build new verification infrastructure for routine page work.
 
-- File the deck and register its landing-page card using the repo notes. Artifact readiness is independent of teaching progress: add the card once the complete draft is usable and checked, without waiting for the reader to finish it. Update existing decks in place.
-- Keep `summary.md` as a short handoff: audience assumptions, section/frame map, current discussion point, running example, unresolved gaps, sources and what they support, and checks performed. No transcript or prerequisite ledger.
-- Use the existing `?fit` audit and inspect representative desktop frames plus a narrow view. Check math, controls, links, and the landing card; fix overflow and disclose unavailable checks. Do not build new verification infrastructure for routine page checks.
-- Deliver the complete deck link, point to the first teaching frame, and ask its guiding question. Keep research downloads and generated inspection artifacts out of the repository.
+## Handoff and delivery
+
+- File the page and card using the repo notes, updating an existing page in place and keeping its renderer and class names.
+- Keep `summary.md` short: stage, audience assumptions, question/expected-insight map and statuses, current discussion point, running example, unresolved or research-needed claims, sources actually consulted, and checks actually performed.
+- Deliver the question-map link and the current question-section link. Keep research downloads and inspection artifacts out of the repository.
 
 Topic: $ARGUMENTS
