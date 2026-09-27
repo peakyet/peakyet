@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QZ and the Algebraic Riccati Equation: reading the stabilizing solution out of a generalized Schur form</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+  :root{--paper:#ffffff;--ink:#1f2933;--muted:#5b6673;--accent:#1f4e79;--accent-2:#2b7a8c;--accent-ink:#173b5c;--line:#cbd5e1;--soft:#f4f7fa;--blue:#1f4e79;--blue-bg:#eef4fa;--teal:#0f766e;--teal-bg:#eefaf8}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{font-size:17px;scroll-behavior:smooth;overflow-x:clip}
+  body{font-family:"Source Serif Pro",Georgia,"Times New Roman",serif;color:var(--ink);background:var(--paper);line-height:1.65}
+  main{max-width:880px;margin:0 auto;padding:1.25rem 1.5rem 5rem}
+  img{max-width:100%;display:block}
+  h1{font-weight:600;font-size:2rem;line-height:1.2;margin:2.2rem 0 .35rem;color:#17212b;text-align:center;letter-spacing:-.01em}
+  h2{font-weight:600;font-size:1.35rem;color:var(--accent);margin:0 0 .75rem;padding-bottom:.25rem;border-bottom:1px solid var(--line);scroll-margin-top:5rem}
+  h3{font-size:1.08rem;color:var(--accent);margin:1.4rem 0 .4rem}
+  p{margin:.75rem 0}
+  a{color:var(--accent-ink);text-decoration:none;border-bottom:1px solid rgba(31,78,121,.45)}
+  a:hover{color:var(--accent)}
+  strong{color:#111}em{color:#444}
+  ul,ol{margin:.6rem 0 .6rem 1.4rem}li{margin:.3rem 0}
+  .hero{max-width:680px;font-size:1.04rem;font-style:italic;color:var(--muted);text-align:center;margin:.4rem auto 2rem}
+  .small{font-size:.9rem;color:var(--muted)}
+  .eq{display:block;text-align:center;margin:1.1rem 0;padding:.75rem .5rem;background:#fafbfc;border-left:2px solid var(--accent);overflow-x:auto;line-height:1.9}
+  .callout{background:#f8fafc;border-left:3px solid var(--accent);padding:.72rem 1rem;margin:1rem 0;font-size:.97rem}
+  .callout.takeaway{border-left-color:var(--teal);background:var(--teal-bg)}
+  .callout.takeaway strong{color:#0b5f59}
+  .callout.intuition{border-left-color:var(--blue);background:var(--blue-bg)}
+  .callout.intuition strong{color:#1f4f7a}
+  .figure{margin:1.4rem 0;padding:1.15rem;background:#fff;border:1px solid var(--line)}
+  .figure svg{width:100%;height:auto;display:block}
+  .figure-caption{font-size:.88rem;color:var(--muted);text-align:left;margin-top:.6rem;padding-top:.45rem;border-top:1px solid var(--line);line-height:1.5}
+  .figure-caption b{color:#333}
+  .table-wrap{overflow-x:auto;margin:1rem 0}
+  table{border-collapse:collapse;font-size:.92rem;width:100%}
+  th,td{border:0;border-bottom:1px solid var(--line);padding:.45rem .65rem;text-align:left;vertical-align:top}
+  th{background:transparent;color:#17212b;border-top:2px solid #334155;border-bottom:1px solid #334155}
+  tr:nth-child(even) td{background:transparent}
+  .demo{background:#fff;border:1px solid var(--line);padding:1rem;margin:1.3rem 0}
+  .demo-controls{display:flex;flex-wrap:wrap;gap:1rem;align-items:center;margin:.4rem 0 .8rem}
+  .demo-controls label{font-size:.95rem}
+  .demo-controls input[type=range]{vertical-align:middle;width:min(300px,58vw)}
+  .demo canvas{width:100%;max-width:760px;height:auto;display:block;margin:.6rem auto 0;border:1px solid var(--line);background:#fff}
+  .demo-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(230px,.75fr);gap:1rem;align-items:start}
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:.86em}
+  .metrics{display:grid;grid-template-columns:auto 1fr;gap:.28rem .75rem;font-size:.88rem;padding:.7rem;background:var(--soft)}
+  .metrics dt{font-weight:700;color:#555}
+  .metrics dd{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;text-align:right}
+  pre{background:var(--soft);border:1px solid var(--line);padding:.8rem 1rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+  code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:.9em;background:#edf2f7;padding:.05em .3em}
+  pre code{background:none;padding:0}
+  .formula-label{font-weight:700;color:var(--accent-ink);margin-bottom:-.6rem;text-align:center;font-size:.92rem}
+  hr{border:none;border-top:1px solid #d8dee6;margin:2.4rem 0}
+  .toc{position:sticky;top:0;z-index:50;display:flex;gap:.3rem;align-items:center;overflow-x:auto;overscroll-behavior-x:contain;background:rgba(255,255,255,.98);border-bottom:1px solid var(--line);padding:.48rem 0;margin:0 0 1.5rem;scrollbar-width:thin}
+  .toc a{flex:0 0 auto;border:0;border-bottom:2px solid transparent;padding:.25rem .42rem;font-size:.82rem;color:var(--muted);font-variant:small-caps;letter-spacing:.035em;white-space:nowrap}
+  .toc a:hover{color:var(--accent)}
+  .toc a.active{border-bottom-color:var(--accent);color:var(--accent);font-weight:700}
+  @media (max-width:700px){
+    html{font-size:16px}
+    main{padding:.5rem 1rem 3rem}
+    h1{font-size:1.7rem}
+    h2{font-size:1.28rem;scroll-margin-top:4.5rem}
+    .demo-grid{grid-template-columns:1fr}
+    .toc{margin-left:-1rem;margin-right:-1rem;padding-left:1rem;padding-right:1rem}
+  }
+  @media print{
+    body{font-size:11pt}
+    main{max-width:none;padding:0}
+    .toc{display:none}
+    a{color:inherit;border:0}
+    .figure,.callout,.eq{break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+<main>
+
+<nav class="toc" aria-label="Sections">
+  <a href="#s1">1. The gain</a>
+  <a href="#s2">2. The pencil</a>
+  <a href="#s3">3. Not eigenvectors</a>
+  <a href="#s4">4. The form</a>
+  <a href="#s5">5. The method</a>
+  <a href="#s6">6. Limits</a>
+  <a href="#s7">7. Sources</a>
+</nav>
+
+<h1>The QZ Algorithm and the Algebraic Riccati Equation</h1>
+<p class="hero">A quadratic matrix equation with several answers, a plant whose modes you cannot
+decouple, and one pencil whose invariant planes <em>are</em> the answers: how the generalized Schur
+decomposition turns "which root?" into "which subspace?", and where that stops being enough.</p>
+
+<!-- ============================== 1. QUESTION ============================== -->
+<h2 id="s1">1. Which of the four candidates is the gain?</h2>
+<div class="callout"><strong>Question:</strong> The LQR gain comes from one matrix equation, and
+  that equation is quadratic in its unknown, so it has several answers. The plant below is
+  unstable. What decides which answer is the right one, and what kind of object do we actually have
+  to compute?</div>
+
+<p>The plant is \(x_{k+1} = A x_k + B u_k\) and the cost per step is \(x_k' Q x_k + u_k' R u_k\),
+with</p>
+<div class="eq">\[ A = \begin{pmatrix} \tfrac{1}{2} &amp; 1 \\ 1 &amp; \tfrac{1}{2} \end{pmatrix}, \qquad
+B = \begin{pmatrix} 1 \\ 1 \end{pmatrix}, \qquad
+Q = \begin{pmatrix} \tfrac{1}{2} &amp; -\tfrac{1}{4} \\ -\tfrac{1}{4} &amp; \tfrac{1}{2} \end{pmatrix}, \qquad
+R = [\,1\,]. \]</div>
+<p>Two features of these numbers matter already. The open loop has eigenvalues \(1.5\) and
+\(-0.5\), so one mode grows by fifty percent per step: feedback is not a refinement here, it is what
+keeps the state bounded. And \(Q\) has an off-diagonal entry, so the two states are coupled in the
+cost: there is no change of coordinates that makes this two independent scalar problems. The
+quantity to find is the symmetric solution \(X\) of the discrete algebraic Riccati equation, and the
+gain it defines.</p>
+<div class="formula-label">The equation to be solved</div>
+<div class="eq">\[ X = Q + A'XA - A'XB\,(R + B'XB)^{-1}B'XA, \qquad
+K = (R + B'XB)^{-1}B'XA. \]</div>
+<p>Solve for \(X\), form \(K\), and the closed loop is \(A - BK\). The catch is in the word
+"<em>the</em>". The equation is quadratic: with \(n = 1\) it is an ordinary quadratic with two
+roots, and with \(n = 2\) it has several symmetric solutions. So "solve the Riccati equation" is
+really a selection problem, and a selection needs a rule. The rule is not size. It is this: the
+solution the LQR gain comes from is the one whose closed loop \(A - BK\) has every multiplier inside
+the unit disk, and that solution is called the <em>stabilizing</em> one.</p>
+
+<figure class="figure">
+  <svg viewBox="0 0 760 300" role="img" aria-label="Two lines through the origin of a plane with
+    horizontal axis x and vertical axis lambda, plus the vertical direction itself: the candidate
+    solution planes, of which the two sloped ones are graphs of a matrix and the vertical one is
+    not.">
+    <line x1="60" y1="190" x2="520" y2="190" stroke="#5b6673" stroke-width="1.6"/>
+    <line x1="290" y1="58" x2="290" y2="282" stroke="#5b6673" stroke-width="1.6"/>
+    <text x="528" y="196" font-family="Georgia,serif" font-size="17" fill="#1f2933">x</text>
+    <text x="297" y="72" font-family="Georgia,serif" font-size="17" fill="#1f2933">lambda</text>
+    <text x="60" y="40" font-family="Georgia,serif" font-size="14" fill="#5b6673">n = 1: the unknown
+      is a slope, the two roots are two lines</text>
+    <line x1="170" y1="270" x2="410" y2="55" stroke="#2b7a8c" stroke-width="4"/>
+    <line x1="170" y1="118" x2="410" y2="258" stroke="#8b95a3" stroke-width="3"
+      stroke-dasharray="7 6"/>
+    <line x1="290" y1="66" x2="290" y2="276" stroke="#b03a5b" stroke-width="3"
+      stroke-dasharray="2 7" stroke-linecap="round"/>
+    <circle cx="290" cy="190" r="4.5" fill="#1f2933"/>
+    <g font-family="Georgia,serif" font-size="14" fill="#1f2933">
+      <line x1="548" y1="100" x2="582" y2="100" stroke="#2b7a8c" stroke-width="4"/>
+      <text x="590" y="105">graph of X&#8321;: closed loop contracts</text>
+      <line x1="548" y1="130" x2="582" y2="130" stroke="#8b95a3" stroke-width="3"
+        stroke-dasharray="7 6"/>
+      <text x="590" y="135">graph of X&#8322;: same equation, grows</text>
+      <line x1="548" y1="160" x2="582" y2="160" stroke="#b03a5b" stroke-width="3"
+        stroke-dasharray="2 7" stroke-linecap="round"/>
+      <text x="590" y="165">vertical: no matrix at all</text>
+    </g>
+    <text x="60" y="240" font-family="Georgia,serif" font-size="14" fill="#5b6673">the plane is the
+      object; the matrix X is what it looks like seen from x</text>
+  </svg>
+  <figcaption class="figure-caption"><b>Figure 1.</b> A schematic of the object we are really
+    after. Write the state as \(x\) and the costate as \(\lambda\): a Riccati solution is the matrix
+    telling you that \(\lambda = Xx\) on a plane that stays put under the dynamics. For \(n=1\) that
+    plane is a line through the origin, the two solutions of the quadratic are the two slopes, and
+    the vertical line is the case where no \(X\) exists. For \(n=2\) the candidates are 2-planes in a
+    4-dimensional space, and "which root" becomes "which plane". (Schematic: the slopes drawn here
+    are illustrative; every number elsewhere on this page comes from
+    <span class="mono">scripts/verify_qz_riccati.py</span>.)</figcaption>
+</figure>
+
+<div class="callout intuition"><strong>Intuition:</strong> A quadratic equation in a matrix
+  unknown does not have "roots" in an ordered sense; it has a finite family of candidate subspaces,
+  and only some of them are graphs of a matrix. Whatever computes the answer should therefore work
+  with subspaces, not with numbers to be compared.</div>
+
+<p>The answer we are chasing, stated now so that this page can be read straight through: for this
+plant the stabilizing solution is \(P = I\), the gain is \(K = [\,\tfrac12 \;\; \tfrac12\,]\), the
+closed loop is \(A - BK = \begin{pmatrix} 0 &amp; \tfrac12 \\ \tfrac12 &amp; 0 \end{pmatrix}\) with
+multipliers \(\pm\tfrac12\), and in exact rational arithmetic the residual of the equation above at
+\(X = P\) is exactly \(0\). What follows is about reaching that answer by a method rather than by
+guesswork, and about the cases where the method's own guarantees run out.</p>
+
+<div class="callout takeaway"><strong>Takeaway:</strong> We need a rule that replaces "pick the
+  right root" with "pick the right subspace", plus a numerically honest way to compute that subspace.
+  The next section looks for the linear problem that the quadratic equation is hiding.</div>
+
+<hr>
+
+<!-- ============================== 2. NEED ================================= -->
+<h2 id="s2">2. Where is the linear problem hiding?</h2>
+<div class="callout"><strong>Question:</strong> The Riccati equation is quadratic in \(X\), so
+  where is the linear problem inside it that would let us choose a plane instead of guessing a
+  root?</div>
+
+<p>Look at the optimality conditions instead of at the equation. Let \(\lambda_k\) be the costate,
+the gradient of the remaining cost with respect to \(x_k\). Stationarity in \(u_k\) gives
+\(u_k = -R^{-1}B'\lambda_{k+1}\), and substituting it into the dynamics and the costate recursion
+gives a pair of relations that are <em>linear</em> in \((x,\lambda)\):</p>
+<div class="eq">\[ x_{k+1} = A x_k - G\lambda_{k+1}, \qquad
+\lambda_k = Q x_k + A'\lambda_{k+1}, \qquad G = BR^{-1}B' = \begin{pmatrix} 1 &amp; 1 \\ 1 &amp; 1 \end{pmatrix}. \]</div>
+<p>Collected into one statement that links step \(k\) to step \(k+1\), that is a relation between
+two matrices, not an eigenvalue problem for one:</p>
+<div class="formula-label">The Riccati pencil of the running example</div>
+<div class="eq">\[ L \begin{pmatrix} x_k \\ \lambda_k \end{pmatrix} = N \begin{pmatrix} x_{k+1} \\ \lambda_{k+1} \end{pmatrix}, \qquad
+L = \begin{pmatrix} A &amp; 0 \\ -Q &amp; I \end{pmatrix} = \begin{pmatrix} \tfrac12 &amp; 1 &amp; 0 &amp; 0 \\ 1 &amp; \tfrac12 &amp; 0 &amp; 0 \\ -\tfrac12 &amp; \tfrac14 &amp; 1 &amp; 0 \\ \tfrac14 &amp; -\tfrac12 &amp; 0 &amp; 1 \end{pmatrix}, \quad
+N = \begin{pmatrix} I &amp; G \\ 0 &amp; A' \end{pmatrix} = \begin{pmatrix} 1 &amp; 0 &amp; 1 &amp; 1 \\ 0 &amp; 1 &amp; 1 &amp; 1 \\ 0 &amp; 0 &amp; \tfrac12 &amp; 1 \\ 0 &amp; 0 &amp; 1 &amp; \tfrac12 \end{pmatrix}. \]</div>
+<p>Both are \(4\times 4\) here, and both are invertible for this plant:
+\(\det L = \det N = \det A = -\tfrac34\). A plane on which \(\lambda = Xx\) and which the dynamics
+map into itself is what the word "solution" should mean, and that condition has a one-line form:</p>
+<div class="eq">\[ L\begin{pmatrix} I \\ X \end{pmatrix} = N\begin{pmatrix} I \\ X \end{pmatrix} T
+\quad\Longleftrightarrow\quad A = (I+GX)T \;\;\text{and}\;\; X = Q + A'XT. \]</div>
+<p>Eliminating \(T\) between those two block rows returns the Riccati equation, with
+\(T = A - BK\). On the running example this elimination can be checked in rationals at
+\(X = P = I\): \(T\) comes out \(\begin{pmatrix}0&amp;\tfrac12\\ \tfrac12&amp;0\end{pmatrix}\), which is
+\(A - BK\) exactly, and \(X - Q - A'XT\) is the zero matrix. So the quadratic equation and the
+pencil carry the same information; the pencil expresses it as geometry.</p>
+
+<p>Where do the candidate planes live? In the pencil's spectrum. Its multipliers \(z\) are the roots
+of \(\det(L - zN)\), and for this pencil</p>
+<div class="eq">\[ \det(L - zN) = -\tfrac34 + \tfrac{51}{16}z^2 - \tfrac34 z^4
+= -\tfrac{3}{16}\,(4z^2 - 1)(z^2 - 4), \]</div>
+<p>so the four multipliers are \(2, -2, \tfrac12, -\tfrac12\), and they come in reciprocal pairs,
+\(z \leftrightarrow 1/z\): \(2 \leftrightarrow \tfrac12\) and \(-2 \leftrightarrow -\tfrac12\). That
+pairing is the Riccati structure showing through the spectrum, and it is the reason a pencil of this
+kind never happens to be all-stable: every multiplier inside the disk drags one outside.</p>
+
+<p>Now the selection problem, exactly. A solution of the DARE is a choice of \(n = 2\) of those four
+multipliers whose deflating subspace is a graph. There are \(\binom{4}{2} = 6\) choices, and all six
+can be solved in rational arithmetic, because the multipliers are exact:</p>
+
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>selection</th><th>\(\det V_1\) (exact)</th><th>graph of a matrix?</th>
+      <th>\(X\)</th><th>gain \(K\)</th><th>max \(\|T\|\)</th><th>DARE residual</th></tr></thead>
+    <tbody>
+      <tr><td>\(\{2, -\tfrac12\}\)</td><td class="mono">-16</td><td>yes, symmetric</td>
+        <td class="mono">[[7/16, -9/16], [-9/16, 7/16]]</td><td class="mono">[-1/4, -1/4]</td>
+        <td class="mono">2</td><td class="mono">0</td></tr>
+      <tr><td>\(\{2, -2\}\)</td><td class="mono">0</td><td>no</td><td>none</td><td>none</td>
+        <td>&mdash;</td><td>&mdash;</td></tr>
+      <tr><td>\(\{2, \tfrac12\}\)</td><td class="mono">0</td><td>no</td><td>none</td><td>none</td>
+        <td>&mdash;</td><td>&mdash;</td></tr>
+      <tr><td>\(\{-\tfrac12, -2\}\)</td><td class="mono">0</td><td>no</td><td>none</td><td>none</td>
+        <td>&mdash;</td><td>&mdash;</td></tr>
+      <tr><td>\(\{-\tfrac12, \tfrac12\}\)</td><td class="mono">-2</td>
+        <td>yes, symmetric, <b>stabilizing</b></td><td class="mono">[[1, 0], [0, 1]]</td>
+        <td class="mono">[1/2, 1/2]</td><td class="mono">1/2</td><td class="mono">0</td></tr>
+      <tr><td>\(\{-2, \tfrac12\}\)</td><td class="mono">0</td><td>no</td><td>none</td><td>none</td>
+        <td>&mdash;</td><td>&mdash;</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<p>Read that table slowly, because it is the whole problem in miniature. Four of the six pairs give
+<em>no matrix at all</em>: their deflating subspace contains a direction with \(x = 0\), so the top
+block \(V_1\) is exactly singular and \(X = V_2V_1^{-1}\) does not exist. Two pairs give a symmetric
+solution with residual exactly \(0\), and both are honest solutions of the same equation. They differ
+only in where their \(T\) puts the closed loop: \(\max\|T\| = 2\) for \(\{2,-\tfrac12\}\) and
+\(\tfrac12\) for \(\{-\tfrac12,\tfrac12\}\). The LQR answer is the second one, and the first is a
+correct solution to the wrong question: its gain \(K = [-\tfrac14\;-\tfrac14]\) would leave the
+unstable mode unstable.</p>
+
+<div class="demo">
+  <div class="demo-controls">
+    <label for="cb0"><input type="checkbox" id="cb0" checked> keep \(z = 2\)</label>
+    <label for="cb1"><input type="checkbox" id="cb1" checked> keep \(z = -\tfrac12\)</label>
+    <label for="cb2"><input type="checkbox" id="cb2"> keep \(z = -2\)</label>
+    <label for="cb3"><input type="checkbox" id="cb3"> keep \(z = \tfrac12\)</label>
+  </div>
+  <div class="demo-grid">
+    <canvas id="view" width="760" height="230" aria-label="The real axis with the pencil's four multipliers, the band inside the unit circle shaded, and the verdict for whichever two multipliers are selected"></canvas>
+    <dl class="metrics">
+      <dt>selection</dt><dd id="d-sel">&mdash;</dd>
+      <dt>det V&#8321; (exact)</dt><dd id="d-det">&mdash;</dd>
+      <dt>verdict</dt><dd id="d-kind">&mdash;</dd>
+      <dt>X (exact)</dt><dd id="d-x">&mdash;</dd>
+      <dt>gain K</dt><dd id="d-k">&mdash;</dd>
+      <dt>max |T|</dt><dd id="d-t">&mdash;</dd>
+      <dt>DARE residual</dt><dd id="d-res">&mdash;</dd>
+    </dl>
+  </div>
+  <p class="small">Tick exactly two of the four multipliers. Every entry is the same rational
+    arithmetic as the table above, precomputed for all six choices by
+    <span class="mono">scripts/verify_qz_riccati.py --json</span>; nothing here is fitted at
+    display time. Only two of the six ticks give a matrix, and only one of those is stable.</p>
+</div>
+<script>
+/* DEMO-GUARD */
+var DEMO=document.querySelector(".demo");if(!DEMO){/* skeleton: no demo on this page */}else{
+var CB=[DEMO.querySelector("#cb0"),DEMO.querySelector("#cb1"),
+        DEMO.querySelector("#cb2"),DEMO.querySelector("#cb3")];
+var VIEW=DEMO.querySelector("#view"), DSEL=DEMO.querySelector("#d-sel"),
+    DDET=DEMO.querySelector("#d-det"), DKIND=DEMO.querySelector("#d-kind"),
+    DX=DEMO.querySelector("#d-x"), DK=DEMO.querySelector("#d-k"),
+    DT=DEMO.querySelector("#d-t"), DRES=DEMO.querySelector("#d-res");
+/* ids are the order the script reports the multipliers in: 2, -1/2, -2, 1/2 */
+var MZ=[{v:2,s:"2"},{v:-0.5,s:"-1/2"},{v:-2,s:"-2"},{v:0.5,s:"1/2"}];
+var ROWS={
+ "0,1":{det:"-16",X:"[[7/16, -9/16], [-9/16, 7/16]]",K:"[-1/4, -1/4]",t:"2",res:"0",st:false},
+ "0,2":{det:"0"},
+ "0,3":{det:"0"},
+ "1,2":{det:"0"},
+ "1,3":{det:"-2",X:"[[1, 0], [0, 1]]",K:"[1/2, 1/2]",t:"1/2",res:"0",st:true},
+ "2,3":{det:"0"}};
+function chosen(){var c=[];for(var i=0;i<4;i++){if(CB[i].checked)c.push(i);}return c;}
+function draw(){
+  var ctx=VIEW.getContext("2d"),W=VIEW.width,O=380,SC=130,AX=120;
+  ctx.clearRect(0,0,W,VIEW.height);
+  ctx.fillStyle="#eef4fa"; ctx.fillRect(O-SC,40,2*SC,170);
+  ctx.font="15px Georgia"; ctx.fillStyle="#1f4e79"; ctx.textAlign="center";
+  ctx.fillText("inside the unit disk",O,58);
+  ctx.strokeStyle="#cbd5e1"; ctx.setLineDash([5,4]);
+  ctx.beginPath(); ctx.moveTo(O-SC,40); ctx.lineTo(O-SC,210);
+  ctx.moveTo(O+SC,40); ctx.lineTo(O+SC,210); ctx.stroke(); ctx.setLineDash([]);
+  ctx.strokeStyle="#5b6673"; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(40,AX); ctx.lineTo(720,AX); ctx.stroke();
+  ctx.strokeStyle="#9aa5b1"; ctx.lineWidth=1;
+  [[0,3],[1,2]].forEach(function(p){
+    var x1=O+SC*MZ[p[0]].v, x2=O+SC*MZ[p[1]].v, mid=(x1+x2)/2;
+    ctx.beginPath(); ctx.moveTo(x1,AX); ctx.quadraticCurveTo(mid,66,x2,AX); ctx.stroke();
+  });
+  ctx.fillStyle="#5b6673"; ctx.font="14px Georgia";
+  ctx.fillText("z and 1/z are always both present",O,232);
+  var c=chosen(), key=c.slice().sort().join(",");
+  for(var i=0;i<4;i++){
+    var x=O+SC*MZ[i].v, on=(c.indexOf(i)>=0);
+    ctx.beginPath(); ctx.arc(x,AX,on?11:8,0,6.2832);
+    ctx.fillStyle=on?"#1f4e79":"#ffffff"; ctx.fill();
+    ctx.strokeStyle=on?"#1f4e79":"#5b6673"; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle="#1f2933"; ctx.font="16px Georgia"; ctx.textAlign="center";
+    ctx.fillText(MZ[i].s,x,AX-38);
+    ctx.strokeStyle="#8b95a3"; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(x,AX+1); ctx.lineTo(x,AX+52); ctx.stroke();
+  }
+  var r=ROWS[key];
+  ctx.textAlign="center"; ctx.font="17px Georgia";
+  if(c.length!==2){ctx.fillStyle="#b03a5b";
+    ctx.fillText("tick exactly two multipliers: a 2x2 pencil block needs n = 2 of them",O,196);
+    return;}
+  if(!r.X){ctx.fillStyle="#b03a5b";
+    ctx.fillText("this pair is not the graph of any X: det V1 = 0",O,196);}
+  else if(r.st){ctx.fillStyle="#0f766e";
+    ctx.fillText("the stabilizing solution: X = I, closed loop radius 1/2",O,196);}
+  else{ctx.fillStyle="#8b95a3";
+    ctx.fillText("a genuine symmetric solution, but max|T| = 2: not stabilizing",O,196);}
+}
+function show(){
+  var c=chosen(), key=c.slice().sort().join(","), r=ROWS[key];
+  DSEL.textContent=c.length===2?(MZ[c[0]].s+", "+MZ[c[1]].s):c.length+" selected";
+  DDET.textContent=(c.length===2)?r.det:"-";
+  DKIND.textContent=(c.length!==2)?"select two of the four":
+    (!r.X?"not a graph":(r.st?"graph, stabilizing":"graph, unstable"));
+  DX.textContent=(r&&r.X)?r.X:"no X exists";
+  DK.textContent=(r&&r.K)?r.K:"-";
+  DT.textContent=(r&&r.t)?r.t:"-";
+  DRES.textContent=(r&&r.res!==undefined)?r.res:"-";
+  draw();
+}
+CB.forEach(function(b){b.addEventListener("change",show);});
+show();
+} /* end DEMO-GUARD */
+</script>
+
+<p>What the table still does not tell you is how to <em>find</em> one of those planes. The
+multipliers are the roots of a degree-four polynomial, the six pairs are not ordered by anything
+obvious, and four of them are dead ends that only reveal themselves after you have built a basis and
+looked at its top block. So the requirement is now concrete: a procedure that produces a deflating
+subspace directly, for a selection that can be stated afterwards rather than searched for, using only
+transformations that do not amplify rounding error.</p>
+
+<div class="callout takeaway"><strong>Takeaway:</strong> Riccati solutions are in one-to-one
+  correspondence with the pencil's deflating subspaces that are graphs; the stabilizing one is the
+  plane attached to the multipliers inside the disk. The problem is now linear algebra: compute that
+  plane, then test whether it is a graph.</div>
+
+<hr>
+
+<!-- ============================== 3. IDEA ================================= -->
+<h2 id="s3">3. Why not just take two eigenvectors?</h2>
+<div class="callout"><strong>Question:</strong> Section 2 reduced the problem to one deflating
+  subspace of a \(4\times4\) pencil. For this plant \(N\) is invertible, so why not form
+  \(N^{-1}L\), compute its four eigenvectors, keep the two stable ones and stack them?</div>
+
+<p>Two reasons, and both are measurable. The first is that the matrix product is a derived object
+that does not always exist. The second is that even when it does, an eigenvector is the wrong unit
+of accuracy.</p>
+
+<h3>(a) The plant may have no invertible \(A\)</h3>
+<p>Take \(P = I\), \(G\) as before, and the closed loop \(M = \begin{pmatrix} \tfrac14 &amp; \tfrac14 \\ \tfrac14 &amp; \tfrac14 \end{pmatrix}\),
+which designs the plant</p>
+<div class="eq">\[ A = \begin{pmatrix} \tfrac34 &amp; \tfrac34 \\ \tfrac34 &amp; \tfrac34 \end{pmatrix}, \qquad
+Q = \begin{pmatrix} \tfrac58 &amp; -\tfrac38 \\ -\tfrac38 &amp; \tfrac58 \end{pmatrix}, \qquad
+\det A = 0,\ \det Q = \tfrac14. \]</div>
+<p>The cost weight is positive definite and the Riccati answer is perfectly ordinary. But
+\(\det N = \det A = 0\), so \(N^{-1}L\) does not exist: the matrix formulation has nothing to say.
+The pencil still does, and it says something specific. Its characteristic polynomial comes out</p>
+<div class="eq">\[ \det(L - zN) = -\tfrac32 z + \tfrac{15}{4}z^2 - \tfrac32 z^3, \]</div>
+<p>a cubic where a quartic was owed. The missing degree is the pencil announcing a multiplier at
+infinity; the finite multipliers are \(\tfrac12\), \(2\), \(0\). And the answer is still there: in
+exact arithmetic the pair \(\{0, \tfrac12\}\) gives \(\|X - P\| = 0\), a DARE residual of \(0\), and
+a deflating identity \(\max\|LV - NVT\| = 0\). Lancaster and Rodman make precisely this point when
+they note that the pencil formulation drops the invertibility assumption on \(A\), and that when
+\(A\) is singular the pencil has a multiplier at infinity, "a phenomenon which cannot arise in a
+classical eigenvalue problem".</p>
+<p class="small">Disclosed honestly: the double-precision kernel that produced every other number on
+this page has no infinite-multiplier deflation, so on this pencil it <em>refuses</em> (a sweep
+detects a negligible \(\beta\) and declines to divide by it). The exact-arithmetic result above is a
+statement about the pencil, not about our sweeps. Production QZ codes do implement that deflation.</p>
+
+<h3>(b) Eigenvectors are the wrong unit of accuracy</h3>
+<p>Now keep the plant invertible and make the eigenvectors bad. Fix the two stable multipliers at
+\(\tfrac12\) and \(\tfrac{49}{100}\) and let the closed loop be
+\(M = \begin{pmatrix} \tfrac12 &amp; c \\ 0 &amp; \tfrac{49}{100} \end{pmatrix}\) with the same
+\(G = \begin{pmatrix}1&amp;1\\1&amp;1\end{pmatrix}\). Because \(M\) stays lower triangular, the pencil's
+four multipliers are the same for every \(c\), and so is the answer: \(X = I\) throughout. Only the
+directions change. The script measures both routes against the same pencil:</p>
+
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>\(c\)</th><th>\(\kappa(V_4)\)</th><th>sin(graph)</th>
+      <th>floor \(=\epsilon/\sin\)</th><th>\(\|X_{\text{cof}} - I\|\)</th>
+      <th>\(\|X_{\text{QZ}} - I\|\)</th><th>\(\kappa(V_{11})\)</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">0</td><td class="mono">1.687e+00</td><td class="mono">7.516e-01</td><td class="mono">2.220e-16</td><td class="mono">2.220e-16</td><td class="mono">2.909e-14</td><td class="mono">1.000e+00</td></tr>
+      <tr><td class="mono">1</td><td class="mono">4.825e+01</td><td class="mono">1.000e-02</td><td class="mono">2.221e-14</td><td class="mono">1.421e-14</td><td class="mono">1.110e-15</td><td class="mono">1.000e+00</td></tr>
+      <tr><td class="mono">3</td><td class="mono">1.064e+02</td><td class="mono">3.333e-03</td><td class="mono">6.661e-14</td><td class="mono">1.137e-13</td><td class="mono">2.065e-14</td><td class="mono">1.000e+00</td></tr>
+      <tr><td class="mono">10</td><td class="mono">3.530e+02</td><td class="mono">1.000e-03</td><td class="mono">2.220e-13</td><td class="mono">5.684e-13</td><td class="mono">6.783e-14</td><td class="mono">1.000e+00</td></tr>
+      <tr><td class="mono">30</td><td class="mono">1.058e+03</td><td class="mono">3.333e-04</td><td class="mono">6.661e-13</td><td class="mono">9.326e-15</td><td class="mono">1.039e-11</td><td class="mono">1.000e+00</td></tr>
+      <tr><td class="mono">100</td><td class="mono">3.527e+03</td><td class="mono">1.000e-04</td><td class="mono">2.220e-12</td><td class="mono">2.255e-12</td><td class="mono">6.642e-10</td><td class="mono">1.000e+00</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<p>\(V_4\) is the eigenvector matrix of the whole \(4\times4\) product, \(\sin(\text{graph})\) is the
+smallest angle between the top halves of the two <em>stable</em> deflating vectors, "cof" is the
+textbook route (an adjugate column per multiplier, then \(X = V_2V_1^{-1}\), with the multipliers
+handed in exactly so that it gets every advantage), and QZ is the orthogonal route of the next
+section. Read the three right-hand columns together. The two error columns grow like
+\(1/\sin(\text{graph})\), tracking the \(\epsilon/\sin\) floor, while \(\kappa(V_{11})\) stays at
+\(1\) (it is \(1\) on this family because \(X = I\) forces \(V_{21} = V_{11}\)). So the loss of
+accuracy is <em>not</em> the inversion of \(V_{11}\): it is the intrinsic sensitivity of the Riccati
+solution, and no algorithm gets to skip it.</p>
+<p>That is the honest accounting. What the pencil formulation buys is not immunity to the problem's
+conditioning. It is three absences: no \(N^{-1}L\) to form (so (a) cannot happen), no eigenvector
+matrix of the whole pencil whose condition is set by directions you never use (\(\kappa(V_4)\) reaches
+\(3.5\times10^3\) while the two vectors you need are only \(10^4\) apart from parallel), and no
+division by a nearly vanishing quantity on the way, because the subspace is carried as the range of an
+orthogonal matrix rather than as a list of vectors.</p>
+
+<div class="callout intuition"><strong>Intuition:</strong> A deflating subspace is an object. A list
+  of eigenvectors is one coordinate system on that object, and coordinate systems can be badly
+  conditioned or fail to exist while the object is in perfect shape. Compute the object.</div>
+
+<p>So the specification for the algorithm is now fixed by the two failures above:</p>
+<ol>
+  <li><strong>Work with the pair \((L,N)\), never the product.</strong> Nothing may require
+    \(N\) or a subblock of \(N\) to be invertible.</li>
+  <li><strong>Carry the subspace, not vectors.</strong> The basis must stay orthonormal under
+    rounding, because a basis of nearly parallel vectors is worth nothing however accurately it is
+    stored.</li>
+  <li><strong>Decide which subspace last.</strong> The selection among the multipliers should be a
+    reordering of something already computed, not a search over the \(\binom{2n}{n}\) candidates of
+    section 2.</li>
+</ol>
+
+<div class="callout takeaway"><strong>Takeaway:</strong> Eigenvectors one at a time need
+  \(N^{-1}L\) to exist and a well-conditioned basis for the whole pencil; both can fail while the
+  answer is fine. What we need is an orthogonal equivalence of the <em>pencil</em> that makes a
+  chosen set of multipliers separable as a leading block.</div>
+
+<hr>
+
+<!-- ============================== 4. WHY ================================== -->
+<h2 id="s4">4. What the generalized Schur form gives you</h2>
+<div class="callout"><strong>Question:</strong> What does an algorithm build when the output has to
+  be a subspace, the choice has to be made afterwards, and nothing may be inverted? And why does that
+  object contain the Riccati solution?</div>
+
+<p>The answer is the <em>generalized real Schur form</em> of the pencil, computed by the QZ
+algorithm: two orthogonal matrices \(U, V\) of the same size as the pencil such that</p>
+<div class="formula-label">The decomposition (LAPACK's DGGES computes this)</div>
+<div class="eq">\[ U'LV = S = \begin{pmatrix} * &amp; * &amp; * &amp; * \\ 0 &amp; * &amp; * &amp; * \\ 0 &amp; 0 &amp; * &amp; * \\ 0 &amp; 0 &amp; 0 &amp; * \end{pmatrix}, \qquad
+U'NV = R = \begin{pmatrix} * &amp; * &amp; * &amp; * \\ 0 &amp; * &amp; * &amp; * \\ 0 &amp; 0 &amp; * &amp; * \\ 0 &amp; 0 &amp; 0 &amp; * \end{pmatrix}, \]</div>
+<p>with \(S\) quasi-upper-triangular (diagonal blocks of size 1 or 2, so that a real arithmetic form
+can hold a conjugate pair) and \(R\) upper triangular. The multipliers are read blockwise as
+\(z = \alpha/\beta\) from the diagonal pairs, in homogeneous form: a multiplier at infinity is
+\(\beta = 0\), which is representable here and not representable in any list of eigenvalues of
+\(N^{-1}L\). Set against section 3's three requirements, the form is exactly the thing: \(U\) and
+\(V\) are orthogonal, no inverse of \(N\) appears anywhere, and the choice of subspace is a
+reordering of the diagonal blocks.</p>
+<p>The property that makes it a Riccati tool is <em>deflation</em>. Cut both triangular matrices
+after the first \(k\) rows and columns, and the leading \(k\) columns of \(V\), say \(V_k\), satisfy</p>
+<div class="eq">\[ L V_k = N V_k T_k, \qquad T_k = R_{11}^{-1}S_{11}, \]</div>
+<p>so \(\operatorname{range}(V_k)\) is a \(k\)-dimensional deflating subspace of the pencil with
+internal dynamics \(T_k\). Only the small \(k\times k\) block \(R_{11}\) is inverted, never \(N\).
+Van Dooren's theorem on regular pencils is the other half of the licence: the spectrum of a regular
+pencil can be partitioned arbitrarily between the two triangular blocks, so <em>any</em> choice of
+multipliers can be made the leading deflating subspace by reordering. Selecting a Riccati solution is
+therefore a reordering problem, not a search over the \(\binom{2n}{n}\) candidates of section 2.</p>
+
+<figure class="figure">
+  <svg viewBox="0 0 760 300" role="img" aria-label="Four stages of the same 4 by 4 pencil shown as
+    pairs of 4 by 4 grids: dense, Hessenberg-triangular, generalized Schur with multipliers 2, -2,
+    one half, minus one half on the diagonal, and reordered with the leading two by two block
+    highlighted."><g font-family="Georgia,serif">
+    <text x="14" y="34" font-size="15" fill="#1f2933">One pencil, four shapes (the running example's 4x4 pair)</text>
+    <!-- stage titles -->
+    <text x="14" y="80" font-size="12.5" fill="#173b5c">1. the pencil L, N</text>
+    <text x="190" y="80" font-size="12.5" fill="#173b5c">2. Hessenberg-triangular H, T</text>
+    <text x="366" y="80" font-size="12.5" fill="#173b5c">3. Schur form S, R</text>
+    <text x="542" y="80" font-size="12.5" fill="#173b5c">4. reordered S, R</text>
+
+    <!-- stage 1: two dense grids -->
+    <g fill="#dbe3ec" stroke="#9aa5b1" stroke-width="0.8">
+      <rect x="14" y="96" width="76" height="76"/>
+      <rect x="96" y="96" width="76" height="76"/>
+    </g>
+    <g stroke="#9aa5b1" stroke-width="0.8">
+      <path d="M14 115h76 M14 134h76 M14 153h76 M33 96v76 M52 96v76 M71 96v76"/>
+      <path d="M96 115h76 M96 134h76 M96 153h76 M115 96v76 M134 96v76 M153 96v76"/>
+    </g>
+    <!-- stage 2: H upper Hessenberg, T upper triangular -->
+    <g fill="#dbe3ec" stroke="#9aa5b1" stroke-width="0.8">
+      <rect x="190" y="96" width="76" height="76"/>
+      <rect x="272" y="96" width="76" height="76"/>
+    </g>
+    <g fill="#ffffff">
+      <rect x="190" y="134" width="19" height="19"/><rect x="190" y="153" width="19" height="19"/>
+      <rect x="209" y="153" width="19" height="19"/>
+      <rect x="272" y="115" width="19" height="19"/><rect x="272" y="134" width="19" height="19"/>
+      <rect x="291" y="134" width="19" height="19"/><rect x="272" y="153" width="19" height="19"/>
+      <rect x="291" y="153" width="19" height="19"/><rect x="310" y="153" width="19" height="19"/>
+    </g>
+    <g stroke="#9aa5b1" stroke-width="0.8">
+      <path d="M190 115h76 M190 134h76 M190 153h76 M209 96v76 M228 96v76 M247 96v76"/>
+      <path d="M272 115h76 M272 134h76 M272 153h76 M291 96v76 M310 96v76 M329 96v76"/>
+    </g>
+    <!-- stage 3: triangular pair, multipliers on the diagonal -->
+    <g fill="#dbe3ec" stroke="#9aa5b1" stroke-width="0.8">
+      <rect x="366" y="96" width="76" height="76"/>
+      <rect x="448" y="96" width="76" height="76"/>
+    </g>
+    <g fill="#ffffff">
+      <rect x="366" y="115" width="19" height="19"/><rect x="366" y="134" width="19" height="19"/>
+      <rect x="385" y="134" width="19" height="19"/><rect x="366" y="153" width="19" height="19"/>
+      <rect x="385" y="153" width="19" height="19"/><rect x="404" y="153" width="19" height="19"/>
+      <rect x="448" y="115" width="19" height="19"/><rect x="448" y="134" width="19" height="19"/>
+      <rect x="467" y="134" width="19" height="19"/><rect x="448" y="153" width="19" height="19"/>
+      <rect x="467" y="153" width="19" height="19"/><rect x="486" y="153" width="19" height="19"/>
+    </g>
+    <g fill="#1f4e79">
+      <rect x="366" y="96" width="19" height="19"/><rect x="385" y="115" width="19" height="19"/>
+      <rect x="404" y="134" width="19" height="19"/><rect x="423" y="153" width="19" height="19"/>
+    </g>
+    <g stroke="#9aa5b1" stroke-width="0.8">
+      <path d="M366 115h76 M366 134h76 M366 153h76 M385 96v76 M404 96v76 M423 96v76"/>
+      <path d="M448 115h76 M448 134h76 M448 153h76 M467 96v76 M486 96v76 M505 96v76"/>
+    </g>
+    <g font-size="10.5" fill="#ffffff" text-anchor="middle">
+      <text x="375.5" y="109">2</text><text x="394.5" y="128">-2</text>
+      <text x="413.5" y="147">.5</text><text x="432.5" y="166">-.5</text>
+    </g>
+    <!-- stage 4: reordered, leading 2x2 is the stable deflating block -->
+    <g fill="#dbe3ec" stroke="#9aa5b1" stroke-width="0.8">
+      <rect x="542" y="96" width="76" height="76"/>
+      <rect x="624" y="96" width="76" height="76"/>
+    </g>
+    <g fill="#ffffff">
+      <rect x="542" y="115" width="19" height="19"/><rect x="542" y="134" width="19" height="19"/>
+      <rect x="561" y="134" width="19" height="19"/><rect x="542" y="153" width="19" height="19"/>
+      <rect x="561" y="153" width="19" height="19"/><rect x="580" y="153" width="19" height="19"/>
+      <rect x="624" y="115" width="19" height="19"/><rect x="624" y="134" width="19" height="19"/>
+      <rect x="643" y="134" width="19" height="19"/><rect x="624" y="153" width="19" height="19"/>
+      <rect x="643" y="153" width="19" height="19"/><rect x="662" y="153" width="19" height="19"/>
+    </g>
+    <g fill="#1f4e79">
+      <rect x="542" y="96" width="19" height="19"/><rect x="561" y="115" width="19" height="19"/>
+      <rect x="580" y="134" width="19" height="19"/><rect x="599" y="153" width="19" height="19"/>
+      <rect x="624" y="96" width="19" height="19"/><rect x="643" y="115" width="19" height="19"/>
+      <rect x="662" y="134" width="19" height="19"/><rect x="681" y="153" width="19" height="19"/>
+    </g>
+    <g stroke="#9aa5b1" stroke-width="0.8">
+      <path d="M542 115h76 M542 134h76 M542 153h76 M561 96v76 M580 96v76 M599 96v76"/>
+      <path d="M624 115h76 M624 134h76 M624 153h76 M643 96v76 M662 96v76 M681 96v76"/>
+    </g>
+    <g font-size="10.5" fill="#ffffff" text-anchor="middle">
+      <text x="551.5" y="109">.5</text><text x="570.5" y="128">-.5</text>
+      <text x="589.5" y="147">2</text><text x="608.5" y="166">-2</text>
+      <text x="633.5" y="109">.5</text><text x="652.5" y="128">-.5</text>
+      <text x="671.5" y="147">2</text><text x="690.5" y="166">-2</text>
+    </g>
+    <g fill="none" stroke="#0f766e" stroke-width="2.4">
+      <rect x="542" y="96" width="38" height="38"/><rect x="624" y="96" width="38" height="38"/>
+    </g>
+    <!-- arrows -->
+    <g stroke="#5b6673" stroke-width="1.6" fill="#5b6673">
+      <path d="M176 134h12"/><path d="M188 134l-6-3.5v7z"/>
+      <path d="M352 134h12"/><path d="M364 134l-6-3.5v7z"/>
+      <path d="M528 134h12"/><path d="M540 134l-6-3.5v7z"/>
+    </g>
+    <!-- stage notes -->
+    <g font-size="11.5" fill="#5b6673" text-anchor="middle">
+      <text x="52" y="196">det L = det N = -3/4</text>
+      <text x="228" y="196">875 multiply-add units</text>
+      <text x="228" y="212">equiv. 5.6e-17 / 3.5e-17</text>
+      <text x="404" y="196">6 sweeps, 3664 units</text>
+      <text x="404" y="212">equiv. 2.0e-15 / 1.5e-16</text>
+      <text x="580" y="196">5 adjacent swaps</text>
+      <text x="580" y="212">orthogonality 8.9e-16</text>
+    </g>
+    <g stroke="#0f766e" stroke-width="1.6" stroke-dasharray="4 3">
+      <path d="M542 134h158"/>
+    </g>
+    <text x="542" y="232" font-size="11.5" fill="#0f766e">cut after n: leading block is a plane</text>
+    <g font-size="12" fill="#1f2933">
+      <text x="14" y="262">tracked subdiagonal, sweep by sweep: 7.795e-02, 1.435e-03, 2.811e-07, 1.079e-14, then two split steps</text>
+      <text x="14" y="282">chordal gap crossed by each of the five swaps: 1.000, 0.600, 0.600, 1.000, 0.800</text>
+    </g>
+  </g></svg>
+  <figcaption class="figure-caption"><b>Figure 2.</b> The same pencil in the four shapes the
+    algorithm walks it through, with the counts measured on this very pair. Grey means "this entry is
+    live", white means "structurally zero", navy marks the diagonal blocks that carry the
+    multipliers. Only in stage 4 does a Riccati solution exist as an extractable object: the teal
+    box is the leading \(n \times n\) block whose columns of \(V\) span the deflating subspace, and
+    the dashed line is the cut that makes it one. All figures computed by
+    <span class="mono">scripts/verify_qz_riccati.py</span>.</figcaption>
+</figure>
+
+<h3>What each stage has to be careful about</h3>
+<ol>
+  <li><strong>Shape, then cost.</strong> The Hessenberg-triangular reduction costs
+    \(O((2n)^3)\) once and makes every later sweep \(O((2n)^2)\) instead of \(O((2n)^3)\). It is the
+    same trade <a href="../../Algebra/qr-iteration/qr-iteration.html">the ordinary QR iteration</a>
+    makes, and here it is \(875\) multiply-add units against
+    \(3664\) for six whole sweeps.</li>
+  <li><strong>A sweep can be silent.</strong> A \(2\times2\) diagonal block holding two
+    <em>real</em> multipliers does not move under a double-shift sweep: the sweep's shift polynomial
+    is that block's own characteristic polynomial, so \(p(M)e_1 = 0\) by Cayley-Hamilton. One
+    rotation pair finishes it instead. The kernel used here rehearses those rotations on a
+    \(2\times2\) copy and refuses the split if it would leave a subdiagonal above \(10^{-11}\) of the
+    block scale; section 6 shows what that refusal buys.</li>
+  <li><strong>Reordering is the delicate step.</strong> Each adjacent swap solves a small
+    Sylvester-type problem whose conditioning is the chordal distance between the two multipliers
+    being exchanged, and those gaps here are \(0.6\) to \(1.0\): comfortable. LAPACK's
+    <span class="mono">dtgexc.f</span> answers <span class="mono">INFO = 1</span> with exactly the
+    words "would be too far from generalized Schur form; the problem is ill conditioned" when a swap
+    cannot be made safely, which is the same judgement the rehearsal above makes.</li>
+</ol>
+
+<p>Now the payoff, stated with the assumptions it actually needs.</p>
+<div class="callout"><strong>Claim:</strong> Let \((S,R) = (U'LV, U'NV)\) be a generalized real Schur
+  form of the Riccati pencil with \(V\) partitioned as \(\begin{pmatrix} V_{11} &amp; V_{12} \\ V_{21} &amp; V_{22}\end{pmatrix}\)
+  by \(n\). Suppose the diagonal blocks are ordered so that the leading \(n\) carry the chosen
+  multipliers, and suppose \(R_{11}\) and \(V_{11}\) are invertible. Then
+  \(X = V_{21}V_{11}^{-1}\) solves the DARE, and the closed loop is
+  \(A - BK = V_{11} T V_{11}^{-1}\) with \(T = R_{11}^{-1}S_{11}\). So the multipliers in the leading
+  block <em>are</em> the closed-loop multipliers: choosing them inside the disk is choosing a
+  stabilizing gain.</div>
+<p class="small">Proof sketch. Because \(S\) and \(R\) are block upper triangular with the cut after
+  \(n\), the leading \(n\) columns \(V_1 = \begin{pmatrix}V_{11}\\ V_{21}\end{pmatrix}\) of \(V\) obey
+  \(LV_1 = NV_1T\) with \(T = R_{11}^{-1}S_{11}\) (\(R_{11}\) invertible is used exactly here). Write
+  \(X = V_{21}V_{11}^{-1}\) and multiply out the two block rows of \(LV_1 = NV_1T\) on the right by
+  \(V_{11}^{-1}\): the first row gives \(A = (I + GX)T\), the second gives \(X = Q + A'XT\).
+  Eliminating \(T\) yields \(X = Q + A'X(I+GX)^{-1}A\), which is the DARE written with
+  \(G = BR^{-1}B'\); the push-through identity
+  \(X(I+GX)^{-1} = X - XB(R + B'XB)^{-1}B'X\) turns it back into the form in section 1. Each of those
+  steps was checked in rationals on the running example, including \((I+GX)^{-1}A = A - BK\) exactly.
+  \(V_{11}\) invertible is the content of section 2's table: it is what "is a graph" means. The claim
+  is about a <em>deflating subspace</em>, so it does not need \(A\), \(N\), or any eigenvector to be
+  invertible or well conditioned.</p>
+
+<p>On the running pencil the two tests in the hypothesis are measured, not assumed:
+\(|\det R_{11}| = 1.875\) and \(|\det V_{11}| = 0.500\), and the extracted answer is
+\(X = V_{21}V_{11}^{-1} = I\) to ten decimal places.</p>
+<p>One trap worth naming, because it is easy to fall into when reading \(T\) off a QZ output. Here
+\(T = R_{11}^{-1}S_{11} = \operatorname{diag}(-\tfrac12, \tfrac12)\), while the closed loop this
+example was designed from is \(M = \begin{pmatrix}0&amp;\tfrac12\\\tfrac12&amp;0\end{pmatrix}\). Their
+entrywise difference has norm \(5.0\times10^{-1}\), which looks like a failure and is not one: \(T\) is
+the same operator expressed in the QZ basis, \(M\) in the graph basis. Change basis and
+\(\|V_{11}TV_{11}^{-1} - M\| = 6.9\times10^{-15}\), and the graph identity itself closes:
+\(\|A - (I+GX)V_{11}TV_{11}^{-1}\| = 7.2\times10^{-15}\). The subspace and the operator are the
+invariants; the matrices you write down are coordinates.</p>
+
+<div class="callout takeaway"><strong>Takeaway:</strong> The generalized Schur form turns the pencil
+  into a triangular pair whose diagonal blocks <em>are</em> the candidate Riccati planes. Reorder so
+  that the multipliers you want are on top, check \(R_{11}\) and \(V_{11}\), and \(X\) is a
+  \(n\times n\) solve away.</div>
+
+<hr>
+
+<!-- ============================== 5. METHOD =============================== -->
+<h2 id="s5">5. The procedure, the answer, and what it costs</h2>
+<div class="callout"><strong>Question:</strong> What are the steps, what do they give on the running
+  example, and what do they cost next to just iterating the Riccati recursion?</div>
+
+<ol>
+  <li><strong>Build the pencil.</strong> Form \(L = \begin{pmatrix}A&amp;0\\-Q&amp;I\end{pmatrix}\)
+    and \(N = \begin{pmatrix}I&amp;G\\0&amp;A'\end{pmatrix}\) from \(A\), \(Q\) and
+    \(G = BR^{-1}B'\). Size \(2n \times 2n\). Do not invert anything.</li>
+  <li><strong>Reduce to Hessenberg-triangular form</strong> by orthogonal row and column operations:
+    \(U'LV = H\), \(U'NV = T\), with \(T\) triangular throughout.</li>
+  <li><strong>Sweep to the generalized Schur form.</strong> Francis double-shift sweeps on the pair,
+    deflating a subdiagonal when it becomes negligible relative to its own neighbourhood, and
+    splitting a \(2\times2\) block that holds two real multipliers (the rehearsal described in
+    section 4). Stop when every diagonal block is settled.</li>
+  <li><strong>Order the blocks.</strong> Bubble adjacent blocks until the \(n\) multipliers you want,
+    here the ones with \(|z| \lt 1\), occupy the leading block. This is the step that replaces the
+    \(\binom{2n}{n}\) search of section 2.</li>
+  <li><strong>Test the two hypotheses.</strong> \(\sigma_{\min}(R_{11})\) not negligible (equivalently:
+    no chosen multiplier at infinity) and \(|\det V_{11}|\) not negligible (the plane is a graph). If
+    either fails, the selection is not a solution, and the honest output is "no \(X\)" rather than a
+    large matrix.</li>
+  <li><strong>Extract, then check.</strong> \(X = V_{21}V_{11}^{-1}\), \(K = (R + B'XB)^{-1}B'XA\),
+    and then verify two independent things: the DARE residual, and the closed-loop moduli of
+    \(A - BK\). Section 6 shows a case where the first is tiny and the second is the only warning.</li>
+</ol>
+
+<pre><code>$ python3 Control/qz-algebraic-riccati/scripts/verify_qz_riccati.py --section s5
+
+L, N                = pencil(A, Q, G)                  # 2n x 2n pair, N never inverted
+S, R, U, V, sweeps  = qz_schur(L, N)                   # HT reduction + double-shift sweeps
+ok,   swaps         = sort_blocks(S, R, U, V, modulus_key)   # the selection
+X                   = mm(V21, inv(V11))                # after testing R11 and V11
+K                   = gain(A, B, R, X)</code></pre>
+
+<p>On the running example the whole pipeline is:</p>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>quantity</th><th>value</th><th>what it says</th></tr></thead>
+    <tbody>
+      <tr><td>sweeps / splits / swaps</td><td class="mono">6 / 2 / 5</td><td>one pencil, three stages</td></tr>
+      <tr><td>multiply-add units, HT then sweeps</td><td class="mono">875, 3664</td><td>counted by the primitives</td></tr>
+      <tr><td>pencil equivalence \(\|U'LV - S\|\)</td><td class="mono">6.46e-15</td><td rowspan="2">nothing was lost on the way</td></tr>
+      <tr><td>\(\|U'NV - R\|\), orthogonality of \(U,V\)</td><td class="mono">3.89e-16, 8.88e-16</td></tr>
+      <tr><td>\(|\det R_{11}|\), \(|\det V_{11}|\), \(\kappa(V_{11})\)</td><td class="mono">1.875, 0.500, 1.000</td><td>both hypotheses of the Claim hold</td></tr>
+      <tr><td>extracted \(X\)</td><td class="mono">[[1, 0], [0, 1]]</td><td>the exact answer \(P = I\)</td></tr>
+      <tr><td>\(\|X - P\|\), DARE residual, \(\|X - X'\|\)</td><td class="mono">3.28e-15, 4.05e-15, 3.22e-15</td><td>right answer, and symmetric to rounding</td></tr>
+      <tr><td>gain \(K\)</td><td class="mono">[0.50000000, 0.50000000]</td><td>exact answer \([\tfrac12, \tfrac12]\)</td></tr>
+      <tr><td>closed-loop \(|z|\) after, open-loop before</td><td class="mono">0.500, 0.500 / 1.500, 0.500</td><td>the unstable mode moved inside</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<p>Step 5 is not a formality. Running all six selections of section 2 through the same float
+pipeline shows what a wrong selection looks like when you do not test it:</p>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>selection</th><th>exact verdict</th><th>\(|\det V_{11}|\)</th>
+      <th>\(\kappa(V_{11})\)</th><th>\(|\det R_{11}|\)</th><th>DARE residual of the float \(X\)</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">{2, -1/2}</td><td>graph</td><td class="mono">7.02e-01</td><td class="mono">1.403</td><td class="mono">6.06e-01</td><td class="mono">3.72e-15</td></tr>
+      <tr><td class="mono">{2, -2}</td><td>not a graph</td><td class="mono">3.66e-15</td><td class="mono">2.63e+14</td><td class="mono">3.84e-01</td><td class="mono">1.02e+05</td></tr>
+      <tr><td class="mono">{2, 1/2}</td><td>not a graph</td><td class="mono">3.73e-15</td><td class="mono">3.938</td><td class="mono">1.50e+00</td><td class="mono">2.35e+14</td></tr>
+      <tr><td class="mono">{-1/2, -2}</td><td>not a graph</td><td class="mono">1.59e-16</td><td class="mono">1.35e+14</td><td class="mono">5.00e-01</td><td class="mono">9.87e+30</td></tr>
+      <tr><td class="mono">{-1/2, 1/2}</td><td>graph, stabilizing</td><td class="mono">5.00e-01</td><td class="mono">1.000</td><td class="mono">1.88e+00</td><td class="mono">4.00e-15</td></tr>
+      <tr><td class="mono">{-2, 1/2}</td><td>not a graph</td><td class="mono">2.61e-15</td><td class="mono">1.91e+14</td><td class="mono">1.19e+00</td><td class="mono">1.02e+05</td></tr>
+    </tbody>
+  </table>
+</div>
+<p>Every non-graph selection is announced by \(|\det V_{11}|\), which in float lands at the level of
+machine epsilon exactly where the rationals said zero. Note the third row: there \(\kappa(V_{11})\) is
+a harmless \(3.9\) while \(|\det V_{11}|\) is \(3.7\times10^{-15}\). Because \(V\) is orthogonal,
+\(\|V_{11}\| \le 1\), so a nearly vertical plane shows up as a small \(V_{11}\) in <em>norm</em>, not
+necessarily as a badly conditioned one. Test the smallest singular value, or the determinant at size
+\(n\); do not test the ratio.</p>
+
+<h3>Cost, and what the alternative would be</h3>
+<p>The script counts multiply-add units inside every primitive, so the totals below are arithmetic,
+not timed guesses; the seconds are wall-clock on one laptop with a pure-Python implementation and
+vary by a few percent between runs (a Fortran QZ is orders of magnitude faster, but with the same
+unit counts).</p>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>\(n\)</th><th>pencil</th><th>sweeps</th><th>HT units</th>
+      <th>sweep units</th><th>swaps</th><th>\(\|X - P\|\)</th><th>seconds</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">2</td><td class="mono">4</td><td class="mono">6</td><td class="mono">875</td><td class="mono">3664</td><td class="mono">5</td><td class="mono">3.28e-15</td><td class="mono">0.00</td></tr>
+      <tr><td class="mono">3</td><td class="mono">6</td><td class="mono">20</td><td class="mono">3612</td><td class="mono">21588</td><td class="mono">12</td><td class="mono">2.84e-13</td><td class="mono">0.00</td></tr>
+      <tr><td class="mono">4</td><td class="mono">8</td><td class="mono">26</td><td class="mono">9417</td><td class="mono">50040</td><td class="mono">5</td><td class="mono">4.93e-13</td><td class="mono">0.01</td></tr>
+      <tr><td class="mono">6</td><td class="mono">12</td><td class="mono">50</td><td class="mono">34839</td><td class="mono">161568</td><td class="mono">51</td><td class="mono">4.51e-13</td><td class="mono">0.03</td></tr>
+      <tr><td class="mono">8</td><td class="mono">16</td><td class="mono">222</td><td class="mono">86357</td><td class="mono">859428</td><td class="mono">105</td><td class="mono">3.87e-13</td><td class="mono">0.20</td></tr>
+      <tr><td class="mono">12</td><td class="mono">24</td><td class="mono">418</td><td class="mono">304545</td><td class="mono">3392942</td><td class="mono">242</td><td class="mono">4.02e-12</td><td class="mono">0.86</td></tr>
+      <tr><td class="mono">16</td><td class="mono">32</td><td class="mono">219</td><td class="mono">737709</td><td class="mono">2996670</td><td class="mono">415</td><td class="mono">1.89e-12</td><td class="mono">0.87</td></tr>
+      <tr><td class="mono">20</td><td class="mono">40</td><td class="mono">524</td><td class="mono">1459577</td><td class="mono">10123702</td><td class="mono">639</td><td class="mono">4.09e-12</td><td class="mono">3.28</td></tr>
+    </tbody>
+  </table>
+</div>
+<p>Every row converged inside the sweep cap, and the error stays at the \(10^{-12}\) to \(10^{-15}\)
+level: the QZ route finishes the job to working precision in a fixed number of sweeps rather than
+creeping toward the answer. Compare that with iterating the Riccati recursion itself from
+\(X_0 = 0\), which on this plant does converge:</p>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>steps of the recursion</th><th>1</th><th>2</th><th>4</th><th>6</th><th>8</th><th>10</th></tr></thead>
+    <tbody>
+      <tr><td>\(\|X_k - P\|\)</td><td class="mono">0.5</td><td class="mono">0.2188</td><td class="mono">0.019</td><td class="mono">0.001219</td><td class="mono">7.63e-05</td><td class="mono">4.77e-06</td></tr>
+    </tbody>
+  </table>
+</div>
+<p>The successive error ratios settle at \(0.2500\), and the derivative of the Riccati map at
+\(X = P\), computed by central differences, has \(|\text{eig}| = 0.2500, 0.2500, 0.2500\). That is
+\(\rho(M)^2\) with the closed loop's modulus \(\rho(M) = \tfrac12\), which is what the linearisation
+\(\Delta \mapsto T'\Delta T\) predicts: convergence is linear, and reaching \(10^{-12}\) from step 10
+would take 12 more steps, 22 in all, against 6 sweeps plus 5 swaps. Iterating the recursion is not
+wrong here (the plant is detectable, and \(A\) being unstable is exactly the case you need a solver
+for, not a case that breaks the iteration); it is just a different accuracy-per-unit-of-work curve.
+Quadratic convergence is what the structure-preserving doubling family buys instead, and it is the
+route worth knowing once \(2n \times 2n\) stops being small; &sect;7 names it.</p>
+
+<div class="callout takeaway"><strong>Takeaway:</strong> Build the pencil, reduce it by orthogonal
+  equivalences, reorder, test \(R_{11}\) and \(V_{11}\), extract, and check the residual
+  <em>and</em> the closed-loop moduli. On a plant whose modes are coupled in the cost this is
+  \(O((2n)^3)\) once plus \(O((2n)^2)\) per sweep, and it delivers the stabilizing solution to
+  working precision.</div>
+
+<hr>
+
+<!-- ============================== 6. LIMITS =============================== -->
+<h2 id="s6">6. Where the guarantee stops</h2>
+<div class="callout"><strong>Question:</strong> Section 4's Claim needs three things the running
+  example hands out for free: multipliers that can be told apart, a chosen plane that is not
+  vertical, and a unit disk whose inside is decidable. Change one input at a time. Which change
+  breaks the answer, which one only looks dangerous, and which quantity tells you the difference?</div>
+
+<p>Each case below changes exactly one input of a pencil and keeps everything else, including the
+  answer the pencil was designed from. It is worth fixing the predictions before reading the tables:
+  two nearly equal multipliers should be the frightening case, a zero weight should be boring (zero
+  cost is still a well-posed problem), and the DARE residual should be the last thing to complain.</p>
+
+<h3>(a) One weight goes to zero: \(Q = \operatorname{diag}(0, q_2)\)</h3>
+<p>Take the discretized double integrator \(A = \begin{pmatrix}1&amp;1\\0&amp;1\end{pmatrix}\),
+  \(B = \begin{pmatrix}0\\1\end{pmatrix}\), \(R = [\,1\,]\) and
+  \(Q = \begin{pmatrix}0&amp;0\\0&amp;q_2\end{pmatrix}\): the cost penalizes the velocity and never
+  looks at the position. \(A\)'s multiplier is \(1\) twice over and its only eigenvector is
+  \((1,0)\), the pure-position direction, and \(Q^{1/2}\) kills that vector for every \(q_2\). So
+  \((A, Q^{1/2})\) is undetectable at \(q_2 = \tfrac{1}{10}\) as much as at \(q_2 = 0\). This family
+  has a closed form, which makes it a fair test of what detectability was buying.</p>
+
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>\(q_2\)</th><th>the four \(|z|\), ascending</th><th>\(\|X\|\)</th>
+      <th>DARE residual</th><th>gap the cut has to cross</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">1/10</td><td class="mono">0.729844, 1, 1, 1.370156</td><td class="mono">0.3702</td><td class="mono">1.67e-16</td><td class="mono">0.00e+00</td></tr>
+      <tr><td class="mono">1/100</td><td class="mono">0.904875, 1, 1, 1.105125</td><td class="mono">0.1051</td><td class="mono">2.36e-16</td><td class="mono">6.66e-16</td></tr>
+      <tr><td class="mono">1/10000</td><td class="mono">0.990050, 1, 1, 1.010050</td><td class="mono">0.01005</td><td class="mono">1.96e-16</td><td class="mono">2.22e-16</td></tr>
+      <tr><td class="mono">1/1000000</td><td class="mono">0.999000, 1, 1, 1.001001</td><td class="mono">0.001001</td><td class="mono">1.61e-16</td><td class="mono">2.22e-16</td></tr>
+      <tr><td class="mono">0</td><td class="mono">1.000000, 1, 1, 1</td><td class="mono">1.054e-08</td><td class="mono">3.31e-24</td><td class="mono">0.00e+00</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<p>One quantity does not move and two do. The residual is silent in all five rows. The answer
+  evaporates: \(X\) comes out \(\operatorname{diag}(0, x)\) with the other three entries never
+  exceeding \(1.1\times10^{-16}\), and on the four weighted rows \(x\) matches the closed form
+  \(x = \tfrac12\bigl(q_2 + \sqrt{q_2^2 + 4q_2}\bigr)\) to within \(8.1\times10^{-14}\):
+  \(0.370156,\ 0.105125,\ 0.010050,\ 0.001001\), so \(|X| \sim \sqrt{q_2}\). At \(q_2 = 0\) the
+  closed form is exactly \(0\) and the float pipeline leaves \(1.05\times10^{-8}\) behind: with every
+  multiplier on the circle the data no longer determines the selection, and the pipeline settles the
+  tie for it. The gain shrinks with the weight,
+  \(K = [\,0 \;\; x/(1+x)\,]\). And the closed loop keeps a mode at \(|z| = 1\) <em>exactly</em>, for
+  every \(q_2\): its two moduli are \(1/(1+x)\) and \(1\), because the multiplier belonging to the
+  unpenalized position mode does not move at all.</p>
+
+<figure class="figure">
+  <svg viewBox="0 0 760 320" role="img" aria-label="Five columns of four dots plotted against |z| on
+    a vertical axis, for q2 equal to one tenth, one hundredth, one ten-thousandth, one millionth and
+    zero. Two dots in each column sit exactly on the |z| = 1 line, and the other two approach that
+    line from both sides as q2 shrinks, until at q2 = 0 all four are on it.">
+    <text x="60" y="40" font-size="12" fill="#5b6673">the pencil's four multipliers, placed by |z|</text>
+    <rect x="60" y="70" width="600" height="101.25" fill="#fdf1f5"/>
+    <rect x="60" y="171.25" width="600" height="78.75" fill="#eefaf8"/>
+    <g stroke="#cbd5e1" stroke-width="1">
+      <line x1="56" y1="227.5" x2="64" y2="227.5"/><line x1="56" y1="93.75" x2="64" y2="93.75"/>
+    </g>
+    <g font-size="10.5" fill="#5b6673" text-anchor="end">
+      <text x="50" y="231">0.75</text><text x="50" y="97.5">1.25</text>
+    </g>
+    <line x1="60" y1="171.25" x2="660" y2="171.25" stroke="#1f4e79" stroke-width="1.8"/>
+    <text x="668" y="175" font-size="11.5" fill="#1f4e79">|z| = 1</text>
+    <!-- q2 = 1/10 -->
+    <g>
+      <circle cx="105" cy="232.04" r="5.5" fill="#0f766e"/>
+      <circle cx="97" cy="171.25" r="5" fill="#8b95a3"/><circle cx="113" cy="171.25" r="5" fill="#8b95a3"/>
+      <circle cx="105" cy="87.96" r="5.5" fill="#b03a5b"/>
+    </g>
+    <!-- q2 = 1/100 -->
+    <g>
+      <circle cx="225" cy="192.65" r="5.5" fill="#0f766e"/>
+      <circle cx="217" cy="171.25" r="5" fill="#8b95a3"/><circle cx="233" cy="171.25" r="5" fill="#8b95a3"/>
+      <circle cx="225" cy="147.60" r="5.5" fill="#b03a5b"/>
+    </g>
+    <!-- q2 = 1/10000 -->
+    <g>
+      <circle cx="345" cy="173.49" r="5.5" fill="#0f766e"/>
+      <circle cx="337" cy="171.25" r="5" fill="#8b95a3"/><circle cx="353" cy="171.25" r="5" fill="#8b95a3"/>
+      <circle cx="345" cy="168.99" r="5.5" fill="#b03a5b"/>
+    </g>
+    <!-- q2 = 1/1000000 -->
+    <g>
+      <circle cx="465" cy="171.48" r="5.5" fill="#0f766e"/>
+      <circle cx="457" cy="171.25" r="5" fill="#8b95a3"/><circle cx="473" cy="171.25" r="5" fill="#8b95a3"/>
+      <circle cx="465" cy="171.02" r="5.5" fill="#b03a5b"/>
+    </g>
+    <!-- q2 = 0 -->
+    <g fill="#8b95a3">
+      <circle cx="570" cy="171.25" r="5"/><circle cx="580" cy="171.25" r="5"/>
+      <circle cx="590" cy="171.25" r="5"/><circle cx="600" cy="171.25" r="5"/>
+    </g>
+    <g font-size="11.5" fill="#5b6673" text-anchor="end">
+      <text x="654" y="104">discarded: |z| &gt; 1</text>
+      <text x="654" y="232">kept: the two smallest |z|</text>
+    </g>
+    <g font-size="12" fill="#1f2933" text-anchor="middle">
+      <text x="105" y="272">q2 = 1/10</text><text x="225" y="272">q2 = 1/100</text>
+      <text x="345" y="272">q2 = 1/10000</text><text x="465" y="272">q2 = 1/1000000</text>
+      <text x="585" y="272">q2 = 0</text>
+    </g>
+    <g font-size="10.5" fill="#5b6673" text-anchor="middle">
+      <text x="105" y="289">|X| = 0.3702</text><text x="225" y="289">|X| = 0.1051</text>
+      <text x="345" y="289">|X| = 0.01005</text><text x="465" y="289">|X| = 0.001001</text>
+      <text x="585" y="289">|X| = 1.054e-08</text>
+      <text x="105" y="305">1/(1+x), 1, 1, 1+x</text>
+      <text x="225" y="305">0.905, 1, 1, 1.105</text>
+      <text x="345" y="305">0.990, 1, 1, 1.010</text>
+      <text x="465" y="305">0.999, 1, 1, 1.001</text>
+      <text x="585" y="305">1, 1, 1, 1</text>
+    </g>
+  </svg>
+  <figcaption class="figure-caption"><b>Figure 3.</b> The same picture five times: as the only
+    weight goes to zero, the pencil's two mobile multipliers approach the unit circle from both sides
+    while the unpenalized position mode pins a <em>double</em> multiplier exactly on it. The ordering
+    rule "keep the two smallest" has its cut fall on top of the two grey dots it would have to tell
+    apart, which is why the gap column above is \(0\) or machine-epsilon. The columns are drawn to
+    scale, so the fourth group really is a smear: at \(q_2 = 10^{-6}\) the inner multiplier is
+    \(0.999000\), a quarter of a pixel inside the line here. Grey means \(|z| = 1\) exactly;
+    \(1/(1+x)\) and \(1+x\) are the closed form's two mobile multipliers. Positions from
+    <span class="mono">scripts/verify_qz_riccati.py</span>.</figcaption>
+</figure>
+
+<div class="callout intuition"><strong>What changes:</strong> the decision margin and the size of the
+  answer, not the arithmetic. <strong>Why:</strong> detectability is what forces the cost to see every
+  mode that does not decay. Remove it and the unseen mode contributes a multiplier welded to
+  \(|z| = 1\), no weight in \(X\), and no damping in \(K\). The pencil still factorizes; the word
+  "stabilizing" is what loses its content.</div>
+
+<h3>(b) Rounding-size noise on the borderline pencil</h3>
+<p>Take the \(q_2 = 0\) member, build \(L\) in double precision, and add independent uniform noise of
+  size \(10^{-13}\) to its diagonal. Run the identical pipeline six times.</p>
+
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>draw</th><th>the four \(|z| - 1\)</th><th>strictly inside the disk</th>
+      <th>reordering ok</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">0 (none)</td><td class="mono">-3.24e-14, -3.20e-14, +5.15e-14, +6.88e-14</td><td class="mono">2 of 4</td><td class="mono">True</td></tr>
+      <tr><td class="mono">1</td><td class="mono">-1.49e-08, -1.91e-14, +2.44e-15, +1.49e-08</td><td class="mono">2 of 4</td><td class="mono">True</td></tr>
+      <tr><td class="mono">2</td><td class="mono">-1.49e-08, -4.66e-15, +1.67e-14, +1.49e-08</td><td class="mono">2 of 4</td><td class="mono">True</td></tr>
+      <tr><td class="mono">3</td><td class="mono">-1.49e-08, -4.37e-14, +5.13e-14, +1.49e-08</td><td class="mono">2 of 4</td><td class="mono">True</td></tr>
+      <tr><td class="mono">4</td><td class="mono">+8.19e-14, +9.66e-14, +7.11e-14, +7.11e-14</td><td class="mono">0 of 4</td><td class="mono">False</td></tr>
+      <tr><td class="mono">5</td><td class="mono">-3.80e-14, +4.60e-14, +5.82e-14, +5.82e-14</td><td class="mono">1 of 4</td><td class="mono">True</td></tr>
+    </tbody>
+  </table>
+</div>
+<p>The sweeps, the equivalences and the orthogonality behave the same in all six rows; the count does
+  not. It comes out \(2, 2, 2, 2, 0, 1\). In the three middle rows a \(10^{-13}\) change in the data
+  moves a multiplier by \(1.49\times10^{-8}\), five orders of magnitude more, because a quadruple
+  multiplier is a multiple root and the map from data to spectrum is not Lipschitz there. In rows 0,
+  4 and 5 nothing moves that far at all: the moduli stay within \(10^{-13}\) of \(1\) and the count is
+  settled by which side of the line the last bit lands on. Row 4 finds no multiplier inside the disk
+  and the reordering refuses outright.</p>
+<p>Nothing here is a bug in QZ. The question "how many multipliers are strictly inside the disk?" has
+  no answer at this precision for this pencil, and the program is reporting a coin toss. This is the
+  numerical shadow of section 3(a)'s exact statement: a pencil can put a multiplier on the decision
+  boundary itself, and then the boundary, not the algorithm, is what decides.</p>
+
+<h3>(c) Two multipliers about to coincide</h3>
+<p>Return to a plant designed from \(P = I\) whose closed loop is
+  \(\operatorname{diag}(\tfrac12, \tfrac12 + \varepsilon)\), and sweep \(\varepsilon\) down by fifteen
+  orders of magnitude.</p>
+
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>\(\varepsilon\)</th><th>chordal gap</th><th>sweeps</th><th>\(2\times2\) kept</th>
+      <th>reordered ok</th><th>\(\|X - P\|\)</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">1/10</td><td class="mono">7.670e-02</td><td class="mono">2</td><td class="mono">0</td><td class="mono">True</td><td class="mono">4.710e-16</td></tr>
+      <tr><td class="mono">1/100</td><td class="mono">7.968e-03</td><td class="mono">2</td><td class="mono">0</td><td class="mono">True</td><td class="mono">3.442e-15</td></tr>
+      <tr><td class="mono">1/1000</td><td class="mono">7.997e-04</td><td class="mono">2</td><td class="mono">0</td><td class="mono">True</td><td class="mono">2.749e-13</td></tr>
+      <tr><td class="mono">1/100000</td><td class="mono">8.000e-06</td><td class="mono">7</td><td class="mono">0</td><td class="mono">True</td><td class="mono">1.295e-13</td></tr>
+      <tr><td class="mono">1/10000000</td><td class="mono">8.000e-08</td><td class="mono">7</td><td class="mono">0</td><td class="mono">True</td><td class="mono">9.992e-16</td></tr>
+      <tr><td class="mono">1e-12</td><td class="mono">7.589e-13</td><td class="mono">5</td><td class="mono">0</td><td class="mono">True</td><td class="mono">6.506e-14</td></tr>
+      <tr><td class="mono">1e-15</td><td class="mono">5.773e-16</td><td class="mono">2</td><td class="mono">0</td><td class="mono">True</td><td class="mono">1.110e-15</td></tr>
+    </tbody>
+  </table>
+</div>
+<p>The frightening case is harmless. The gap between the multipliers the finished form keeps apart
+  falls from \(7.7\times10^{-2}\) to \(5.8\times10^{-16}\), and the kernel never refuses: no
+  \(2\times2\) block is left holding a pair in any row, every row reports a successful reordering, and
+  the error stays between \(4.7\times10^{-16}\) and \(2.7\times10^{-13}\). The sweep count jitters
+  (\(2,2,2,7,7,5,2\)) but nothing stalls.</p>
+<p>The reason is one line of linear algebra: two <em>distinct</em> multipliers of a regular pencil
+  come with linearly independent eigenvectors, so the deflating subspace the ordering needs is spanned
+  by directions that exist no matter how close the multipliers are. Coincidence is not the difficulty.
+  A <em>shared</em> eigenvector is.</p>
+
+<h3>(d) The shared eigenvector: a pencil that refuses, and an answer that passes the test</h3>
+<p>Change one entry of the last family: closed loop
+  \(M = \begin{pmatrix}\tfrac12&amp;\eta\\0&amp;\tfrac12\end{pmatrix}\), again designed from \(P = I\)
+  with the same \(G\). In rationals the pencil's multipliers are \(\tfrac12, \tfrac12, 2, 2\) for
+  every \(\eta\), so nothing in the spectrum distinguishes \(\eta = 0\) from \(\eta = 1\). The kernel
+  of \(L - zN\) does: at \(\eta = 0\) it is two-dimensional at both \(z = \tfrac12\) and \(z = 2\),
+  and at \(\eta = 1\) it is one-dimensional at both. Algebraic multiplicity two, geometric multiplicity
+  one: the pencil is defective. The same collapse of the kernel is measured at \(\eta = 10^{-3}\) and at
+  \(\eta = 100\), so every nonzero \(\eta\) in the table below is defective, at every scale.</p>
+
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>\(\eta\)</th><th>chordal gap</th><th>sweeps</th><th>\(2\times2\) kept</th>
+      <th>ok</th><th>\(\|X - P\|\)</th><th>DARE residual</th><th>closed-loop \(|z|\)</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">0</td><td class="mono">2.220e-16</td><td class="mono">2</td><td class="mono">0</td><td class="mono">True</td><td class="mono">4.441e-16</td><td class="mono">2.22e-16</td><td class="mono">0.500, 0.500</td></tr>
+      <tr><td class="mono">1/1000</td><td class="mono">2.665e-16</td><td class="mono">8</td><td class="mono">1</td><td class="mono">False</td><td class="mono">1.267e+06</td><td class="mono">1.74e-02</td><td class="mono">2.000, 2.000</td></tr>
+      <tr><td class="mono">1/100</td><td class="mono">6.000e-01</td><td class="mono">6</td><td class="mono">2</td><td class="mono">False</td><td class="mono">1.283e+04</td><td class="mono">2.21e-08</td><td class="mono">2.000, 2.000</td></tr>
+      <tr><td class="mono">1/1000000</td><td class="mono">2.665e-16</td><td class="mono">9</td><td class="mono">1</td><td class="mono">False</td><td class="mono">1.174e+12</td><td class="mono">2.10e+11</td><td class="mono">1.650, 1.989</td></tr>
+      <tr><td class="mono">1</td><td class="mono">6.000e-01</td><td class="mono">5</td><td class="mono">2</td><td class="mono">False</td><td class="mono">5.766e+00</td><td class="mono">8.72e-15</td><td class="mono">2.000, 2.000</td></tr>
+      <tr><td class="mono">100</td><td class="mono">6.000e-01</td><td class="mono">50</td><td class="mono">2</td><td class="mono">False</td><td class="mono">2.830e+00</td><td class="mono">8.49e-09</td><td class="mono">2.000, 2.000</td></tr>
+    </tbody>
+  </table>
+</div>
+<p class="small">The gap column measures the tightest chordal distance between multipliers the
+  <em>finished</em> form leaves in separate blocks, so a row reading \(2.7\times10^{-16}\) is one where
+  the form could not pull two blocks apart, and the \(\eta = 0\) row's \(2.2\times10^{-16}\) is the
+  distance between two blocks holding the same multiplier, which never have to pass each other.</p>
+
+<p>Only the \(\eta = 0\) row reorders. Every other row ends with
+  <span class="mono">ok = False</span> and one or two \(2\times2\) blocks kept whole, which is the
+  same judgement LAPACK's <span class="mono">dtgexc.f</span> renders as
+  <span class="mono">INFO = 1</span>: the requested exchange "would be too far from generalized Schur
+  form; the problem is ill conditioned".</p>
+<p>The row to stare at is \(\eta = 1\). The reordering refuses, the extraction runs anyway on whatever
+  the un-reordered form happens to leave in the leading block, and the matrix it hands back solves the
+  DARE to \(8.7\times10^{-15}\). That is not noise and not garbage. The leading block ended up holding
+  the pair \(\{2, 2\}\), and by the Claim of section 4 the plane over those two multipliers is a correct
+  solution of the right equation with the wrong closed loop: the second kind of answer that section 2
+  tabulated for the running plant, reached here by a route that never got to choose.
+  \(\|X - P\| = 5.766\), the closed loop is \(2.000, 2.000\), and the residual says nothing about
+  either.</p>
+<p>\(\eta = 10^{-6}\) fails in the other direction: the block refuses to split, \(V_{11}\) comes out
+  nearly singular, and error and residual both blow up together (\(1.2\times10^{12}\) and
+  \(2.1\times10^{11}\)), with a closed loop at \(1.650, 1.989\) that belongs to no intended design.
+  Between them, \(\eta = 10^{-3}\) and \(10^{-2}\) show the intermediate regime, a refused swap and an
+  \(X\) whose residual is a modest \(1.7\times10^{-2}\) or a tidy \(2.2\times10^{-8}\) while its error
+  is \(10^{4}\) to \(10^{6}\).</p>
+
+<div class="callout intuition"><strong>What changes:</strong> not the multipliers, not the equation,
+  only how many eigenvectors each multiplier keeps. <strong>Why:</strong> the deflating subspace for
+  \(\{\tfrac12, \tfrac12\}\) still exists, but moving it to the leading block means solving a
+  Sylvester-type exchange equation between adjacent blocks whose conditioning is the chordal distance
+  between the multipliers being swapped. When the two blocks are about to hold the same multiplier and
+  only one eigenvector is available between them, that exchange problem has no stable answer. The
+  subspace exists; the ordered form does not. A defective pencil has deflating subspaces that no
+  sequence of orthogonal block swaps can express separately.</div>
+
+<h3>(e) What the route does not preserve</h3>
+<p>On the running example, the extracted \(X\) differs from its own transpose by
+  \(3.2\times10^{-15}\) while it differs from the exact answer by \(3.3\times10^{-15}\). Symmetry is
+  an accident here, not a guarantee: nothing in \(X = V_{21}V_{11}^{-1}\) forces
+  \(V_{21}V_{11}^{-1} = (V_{21}V_{11}^{-1})'\), and the standard repair is to average,
+  \(\tfrac12(X + X')\), before forming the gain. Under the ill-conditioning of section 3(b) the
+  asymmetry is still small in absolute terms but no longer negligible next to the answer: at
+  \(c = 100\), \(\|X - X'\| = 2.13\times10^{-12}\) against \(\|X - P\| = 6.64\times10^{-10}\) and a
+ residual of \(2.15\times10^{-8}\). The route that respects the structure is not to reorder a general
+ pencil but to do arithmetic in the pencil's own symmetry class, which is what the
+  structure-preserving doubling family and Byers and Benner's pencil arithmetic are for; the aside at
+  the end of section 5 is the same point.</p>
+
+<h3>Where the guarantee ends, and what to check</h3>
+<p>Section 4's Claim is conditional and none of its conditions is free. Detectability is not a
+  hypothesis of the algorithm, it is a hypothesis of the <em>answer</em>: (a) returns a solution with
+  a \(10^{-16}\) residual in every row while its closed loop keeps a mode on the circle. The disk is a
+  decision, not a computation: (b) shows the count of multipliers inside it flipping between 0, 1 and
+  2 under a diagonal perturbation of \(10^{-13}\) that displaces a multiplier by \(1.5\times10^{-8}\).
+  Reordering is a numerical problem
+  with its own conditioning: (d) shows one pencil, with one unchanged spectrum, refusing to be put in
+  the order the selection needs, and then handing back a correct solution of the wrong kind. And (c)
+  shows the case everyone fears, two multipliers \(6\times10^{-16}\) apart, passing without incident.</p>
+<p>There is a fourth limit, of scale rather than of structure. The same kernel, run on a \(48\times48\)
+  pencil (\(n = 24\)) from the family of section 5, spent all \(960\) allowed sweeps, left
+  \(24\) blocks of size \(2\), never reordered at all (\(0\) swaps, <span class="mono">ok = False</span>),
+  and returned \(\|X - P\| = 7.2\times10^{15}\) after \(54\) seconds. The tightest gap it was asked to
+  cross was \(4.2\times10^{-4}\), so the pencil was not objecting; the implementation was, because it
+  has no aggressive early deflation and one stubborn interior block costs the whole pencil a sweep.
+  Production <span class="mono">dgges</span> plus <span class="mono">dtgexc</span> is the answer at that
+  size, and beyond a few thousand states the dense \(2n \times 2n\) pencil is itself the objection.</p>
+<p>Ordered by how much each signal deserves to be trusted:</p>
+<ol>
+  <li><strong>The reordering's own refusal.</strong> \(2\times2\) blocks left holding a mixed pair, or
+    a swap that was declined, is the only signal that fired correctly in every failure above.</li>
+  <li><strong>\(\sigma_{\min}(R_{11})\) and \(\sigma_{\min}(V_{11})\).</strong> The first says no
+    chosen multiplier is at infinity, the second says the plane is a graph. In section 5's float table
+    these were \(10^{0}\) and \(10^{-16}\) respectively on exactly the rows that had to fail.</li>
+  <li><strong>The closed-loop moduli of \(A - BK\).</strong> Cheap, independent of the pencil, and the
+    only number that connects the output to the requirement.</li>
+  <li><strong>The DARE residual.</strong> Last, and not as a certificate: the \(\eta = 1\) row of (d)
+    reports \(8.7\times10^{-15}\) on an answer \(5.8\) away from the one wanted.</li>
+</ol>
+
+<div class="callout takeaway"><strong>Takeaway:</strong> The generalized Schur route fails out loud
+  when it fails at all, provided you read the right signal. It cannot decide which side of the unit
+  circle a multiplier is on when the pencil sits on that circle, and it cannot separate a defective
+  pencil into the block it needs; both show up in the ordering flag and in
+  \(\sigma_{\min}(V_{11})\). What it cannot tell you by itself is whether the answer is the LQR answer.
+  That is detectability's job, and the residual is the weakest of the four checks.</div>
+
+<hr>
+
+<!-- ============================== 7. SOURCES ============================== -->
+<h2 id="s7">7. Sources and further reading</h2>
+<p>C. B. Moler and G. W. Stewart, <em>An Algorithm for Generalized Matrix Eigenvalue
+  Problems</em>, SIAM Journal on Numerical Analysis 10(2) (1973), 241&ndash;256,
+  <a href="https://doi.org/10.1137/0710024">10.1137/0710024</a> &mdash; the QZ algorithm itself,
+  and the source of this note's three stages: reduce the pair to Hessenberg-triangular form by
+  orthogonal transformations, then chase it with double shifts. Their \(B\) is this note's \(N\), and
+  the abstract's own promises are that the method needs "no inversions of \(B\) or its submatrices",
+  "reduces to [the QR algorithm] when \(B = I\)", and pays attention to the "degeneracies which result
+  when \(B\) is singular" (&sect;3(a), &sect;4, &sect;5 steps 1&ndash;3).</p>
+<p>P. Van Dooren, <em>A Generalized Eigenvalue Approach for Solving Riccati Equations</em>, SIAM
+  Journal on Scientific and Statistical Computing 2(2) (1981), 121&ndash;135,
+  <a href="https://doi.org/10.1137/0902010">10.1137/0902010</a> &mdash; grounds the shape of the
+  Claim in &sect;4: every deflating subspace of a regular pencil can be carried on an orthonormal
+  basis reached by orthogonal equivalence, and any desired ordering of the multipliers can be
+  imposed after the factorization rather than searched for (&sect;4, &sect;5 steps 4&ndash;6).</p>
+<p>A. Laub, <em>A Schur method for solving algebraic Riccati equations</em>, IEEE Transactions on
+  Automatic Control 24(6) (1979), 913&ndash;921,
+  <a href="https://doi.org/10.1109/TAC.1979.1102178">10.1109/TAC.1979.1102178</a>, and the same
+  author's <em>Invariant Subspace Methods for the Numerical Solution of Riccati Equations</em>, in
+  <em>The Riccati Equation</em> (Springer, 1991), 163&ndash;196,
+  <a href="https://doi.org/10.1007/978-3-642-58223-3_7">10.1007/978-3-642-58223-3_7</a> &mdash; the
+  invariant-subspace reading of the equation, which is what &sect;2 formalizes and &sect;5 turns into
+  a procedure.</p>
+<p>P. Lancaster and L. Rodman, <em>Discrete Algebraic Riccati Equations and Matrix Pencils</em>,
+  ch. 16 of <em>Algebraic Riccati Equations</em> (Oxford University Press, 1995), 331&ndash;344,
+  ISBN 978-0-19-853795-3,
+  <a href="https://doi.org/10.1093/oso/9780198537953.003.0015">10.1093/oso/9780198537953.003.0015</a>
+  &mdash; grounds &sect;2's pencil and &sect;3(a) in particular. On passing from the pencil to a
+  product they note that it "makes it necessary &hellip; to assume that \(A\) is invertible. This
+  assumption can be avoided by relating the DARE to a \(J\)-unitary pencil &hellip; When \(A\) is not
+  invertible this pencil has an eigenvalue at infinity, a phenomenon which cannot arise in a
+  classical eigenvalue problem."</p>
+<p>B. K&aring;gstr&ouml;m, <em>A Direct Method for Reordering Eigenvalues in the Generalized Real
+  Schur form of a Regular Matrix Pair \((A, B)\)</em>, in <em>Linear Algebra for Large Scale and
+  Real-Time Applications</em> (Springer, 1993), 195&ndash;218,
+  <a href="https://doi.org/10.1007/978-94-015-8196-7_11">10.1007/978-94-015-8196-7_11</a> &mdash; the
+  exchange step of &sect;4 stage 3 and &sect;5 step 4 as a numerical problem in its own right: what it
+  takes to bubble adjacent blocks past each other, and when the pair of blocks is too badly separated
+  to attempt it.</p>
+<p>D. Camps, N. Mastronardi, R. Vandebril and P. Van Dooren, <em>Swapping \(2\times2\) blocks in the
+  Schur and generalized Schur form</em>, Journal of Computational and Applied Mathematics 373 (2020),
+  112274, <a href="https://doi.org/10.1016/j.cam.2019.05.022">10.1016/j.cam.2019.05.022</a> &mdash;
+  the reason a \(2\times2\) diagonal block is the awkward unit of the reordering, in real arithmetic,
+  which is what &sect;4's "a sweep can be silent" and &sect;6(d)'s refused splits are about.</p>
+<p>R. Byers and P. Benner, <em>A structure-preserving method for generalized algebraic Riccati
+  equations based on pencil arithmetic</em>, Proceedings of the 2003 European Control Conference
+  (ECC 2003), 957&ndash;962,
+  <a href="https://doi.org/10.23919/ECC.2003.7085082">10.23919/ECC.2003.7085082</a> &mdash; grounds
+  the alternative named in &sect;6(e): do the arithmetic on the pencil inside its own symmetry class
+  instead of factorizing it as a general pair.</p>
+<p><em>Structure-Preserving Doubling Algorithms for Nonlinear Matrix Equations</em> (SIAM, 2018),
+  ch. 3&ndash;4, <a href="https://doi.org/10.1137/1.9781611975369.ch3">10.1137/1.9781611975369.ch3</a>
+  and <a href="https://doi.org/10.1137/1.9781611975369.ch4">10.1137/1.9781611975369.ch4</a> &mdash; the
+  doubling family behind the quadratic-convergence aside at the end of &sect;5. The record returns no
+  author metadata, so it is cited here by title, publisher and year.</p>
+<p>Reference LAPACK, <a href="https://github.com/Reference-LAPACK/lapack/blob/master/SRC/dtgexc.f"><span class="mono">dtgexc.f</span></a>
+  &mdash; grounds the refusal in &sect;4 and &sect;6(d) as it is actually specified:
+  <span class="mono">INFO = 1</span> means the requested exchange "would be too far from generalized
+  Schur form; the problem is ill conditioned". The kernels in
+  <span class="mono">scripts/verify_qz_riccati.py</span> were written against that behaviour, not the
+  other way round.</p>
+<p><strong>In this knowledge base:</strong> <a href="../../Algebra/qr-iteration/qr-iteration.html">the
+  QR iteration note</a> builds the ordinary Schur form, which is the \(N = I\) special case of stages
+  1&ndash;3 above; Moler and Stewart's own summary is that their algorithm reduces to it there.</p>
+<p class="small">Suggested further reading, not consulted for this note: G. H. Golub and C. F. Van
+  Loan, <em>Matrix Computations</em>, 4th ed., Johns Hopkins, 2013, for the generalized eigenvalue
+  problem and its LAPACK machinery; G. W. Stewart, <em>Matrix Algorithms, Volume II: Eigensystems</em>,
+  SIAM, 1998, for the pencil point of view before it was standard; N. J. Higham, <em>Accuracy and
+  Stability of Numerical Algorithms</em>, 2nd ed., SIAM, 2002, for what scaling a pencil may need
+  before any of this is safe; and the surrounding theory of stabilizing solutions, which this note
+  tests numerically but does not prove.</p>
+<div class="callout takeaway"><strong>Takeaway:</strong> three objects carry the whole method: a
+  pencil that never has to be inverted, the deflating subspaces that are the equation's solutions, and
+  the graph test that says which of them is a matrix. The algorithm hands back a plane and an ordering
+  flag; the plane is the answer and the flag is the warranty, and the residual on its own certifies
+  neither.</div>
+
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+  if (window.renderMathInElement){
+    renderMathInElement(document.body,{
+      delimiters:[
+        {left:"\\(",right:"\\)",display:false},
+        {left:"\\[",right:"\\]",display:true}
+      ],
+      throwOnError:false
+    });
+  }
+
+  /* Sticky table of contents with active-section highlighting. Do not rewrite this. */
+  var links=Array.prototype.slice.call(document.querySelectorAll("nav.toc a[href^='#']"));
+  var items=links.map(function(a){
+    var el=document.querySelector(a.getAttribute("href"));
+    return el?{a:a,el:el}:null;
+  }).filter(Boolean);
+  function updateToc(){
+    var ref=110,current=items[0]||null;
+    items.forEach(function(it){
+      if (it.el.getBoundingClientRect().top<=ref) current=it;
+    });
+    items.forEach(function(it){
+      var active=it===current;
+      it.a.classList.toggle("active",active);
+      if (active) it.a.setAttribute("aria-current","true");
+      else it.a.removeAttribute("aria-current");
+    });
+  }
+  window.addEventListener("scroll",updateToc,{passive:true});
+  window.addEventListener("resize",updateToc);
+  window.addEventListener("load",updateToc);
+  window.addEventListener("hashchange",updateToc);
+  updateToc();
+  requestAnimationFrame(updateToc);
+});
+</script>
+</main>
+</body>
+</html>

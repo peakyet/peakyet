@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QR Iteration — how one matrix step finds every eigenvalue at once</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+  :root{--paper:#ffffff;--ink:#1f2933;--muted:#5b6673;--accent:#1f4e79;--accent-2:#2b7a8c;--accent-ink:#173b5c;--line:#cbd5e1;--soft:#f4f7fa;--blue:#1f4e79;--blue-bg:#eef4fa;--teal:#0f766e;--teal-bg:#eefaf8}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{font-size:17px;scroll-behavior:smooth;overflow-x:clip}
+  body{font-family:"Source Serif Pro",Georgia,"Times New Roman",serif;color:var(--ink);background:var(--paper);line-height:1.65}
+  main{max-width:880px;margin:0 auto;padding:1.25rem 1.5rem 5rem}
+  img{max-width:100%;display:block}
+  h1{font-weight:600;font-size:2rem;line-height:1.2;margin:2.2rem 0 .35rem;color:#17212b;text-align:center;letter-spacing:-.01em}
+  h2{font-weight:600;font-size:1.35rem;color:var(--accent);margin:0 0 .75rem;padding-bottom:.25rem;border-bottom:1px solid var(--line);scroll-margin-top:5rem}
+  h3{font-size:1.08rem;color:var(--accent);margin:1.4rem 0 .4rem}
+  p{margin:.75rem 0}
+  a{color:var(--accent-ink);text-decoration:none;border-bottom:1px solid rgba(31,78,121,.45)}
+  a:hover{color:var(--accent)}
+  strong{color:#111}em{color:#444}
+  ul,ol{margin:.6rem 0 .6rem 1.4rem}li{margin:.3rem 0}
+  .hero{max-width:680px;font-size:1.04rem;font-style:italic;color:var(--muted);text-align:center;margin:.4rem auto 2rem}
+  .small{font-size:.9rem;color:var(--muted)}
+  .eq{display:block;text-align:center;margin:1.1rem 0;padding:.75rem .5rem;background:#fafbfc;border-left:2px solid var(--accent);overflow-x:auto;line-height:1.9}
+  .callout{background:#f8fafc;border-left:3px solid var(--accent);padding:.72rem 1rem;margin:1rem 0;font-size:.97rem}
+  .callout.takeaway{border-left-color:var(--teal);background:var(--teal-bg)}
+  .callout.takeaway strong{color:#0b5f59}
+  .callout.intuition{border-left-color:var(--blue);background:var(--blue-bg)}
+  .callout.intuition strong{color:#1f4f7a}
+  .figure{margin:1.4rem 0;padding:1.15rem;background:#fff;border:1px solid var(--line)}
+  .figure svg{width:100%;height:auto;display:block}
+  .figure-caption{font-size:.88rem;color:var(--muted);text-align:left;margin-top:.6rem;padding-top:.45rem;border-top:1px solid var(--line);line-height:1.5}
+  .figure-caption b{color:#333}
+  .table-wrap{overflow-x:auto;margin:1rem 0}
+  table{border-collapse:collapse;font-size:.92rem;width:100%}
+  th,td{border:0;border-bottom:1px solid var(--line);padding:.45rem .65rem;text-align:left;vertical-align:top}
+  th{background:transparent;color:#17212b;border-top:2px solid #334155;border-bottom:1px solid #334155}
+  tr:nth-child(even) td{background:transparent}
+  .demo{background:#fff;border:1px solid var(--line);padding:1rem;margin:1.3rem 0}
+  .demo-controls{display:flex;flex-wrap:wrap;gap:1rem;align-items:center;margin:.4rem 0 .8rem}
+  .demo-controls label{font-size:.95rem}
+  .demo-controls input[type=range]{vertical-align:middle;width:min(300px,58vw)}
+  .demo canvas{width:100%;max-width:760px;height:auto;display:block;margin:.6rem auto 0;border:1px solid var(--line);background:#fff}
+  .demo-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(230px,.75fr);gap:1rem;align-items:start}
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:.86em}
+  .metrics{display:grid;grid-template-columns:auto 1fr;gap:.28rem .75rem;font-size:.88rem;padding:.7rem;background:var(--soft)}
+  .metrics dt{font-weight:700;color:#555}
+  .metrics dd{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;text-align:right}
+  pre{background:var(--soft);border:1px solid var(--line);padding:.8rem 1rem;overflow-x:auto;font-size:.82rem;line-height:1.5}
+  code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:.9em;background:#edf2f7;padding:.05em .3em}
+  pre code{background:none;padding:0}
+  .formula-label{font-weight:700;color:var(--accent-ink);margin-bottom:-.6rem;text-align:center;font-size:.92rem}
+  hr{border:none;border-top:1px solid #d8dee6;margin:2.4rem 0}
+  .toc{position:sticky;top:0;z-index:50;display:flex;gap:.3rem;align-items:center;overflow-x:auto;overscroll-behavior-x:contain;background:rgba(255,255,255,.98);border-bottom:1px solid var(--line);padding:.48rem 0;margin:0 0 1.5rem;scrollbar-width:thin}
+  .toc a{flex:0 0 auto;border:0;border-bottom:2px solid transparent;padding:.25rem .42rem;font-size:.82rem;color:var(--muted);font-variant:small-caps;letter-spacing:.035em;white-space:nowrap}
+  .toc a:hover{color:var(--accent)}
+  .toc a.active{border-bottom-color:var(--accent);color:var(--accent);font-weight:700}
+  @media (max-width:700px){
+    html{font-size:16px}
+    main{padding:.5rem 1rem 3rem}
+    h1{font-size:1.7rem}
+    h2{font-size:1.28rem;scroll-margin-top:4.5rem}
+    .demo-grid{grid-template-columns:1fr}
+    .toc{margin-left:-1rem;margin-right:-1rem;padding-left:1rem;padding-right:1rem}
+  }
+  @media print{
+    body{font-size:11pt}
+    main{max-width:none;padding:0}
+    .toc{display:none}
+    a{color:inherit;border:0}
+    .figure,.callout,.eq{break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+<main>
+
+<nav class="toc" aria-label="Sections">
+  <a href="#s1">1. All of them</a>
+  <a href="#s2">2. The naive fix</a>
+  <a href="#s3">3. The step</a>
+  <a href="#s4">4. Why it works</a>
+  <a href="#s5">5. The method</a>
+  <a href="#s6">6. The limit</a>
+  <a href="#s7">7. Sources</a>
+</nav>
+
+<h1>QR Iteration</h1>
+<p class="hero">Power iteration finds one eigenvalue and destroys every other direction. One
+  reorthogonalising step fixes that — and costs almost nothing.</p>
+
+<!-- ============================== 1. QUESTION ============================== -->
+<h2 id="s1">1. One eigenvalue is easy. How do we get all of them?</h2>
+<div class="callout"><strong>Question:</strong> we can already find the <em>largest</em> eigenvalue
+  by iterating a single vector. The matrix below has four. What do we have to do to get the
+  other three out of it?</div>
+
+<p>Start with something we can check by hand. Build a matrix from a diagonal matrix
+\(\Lambda=\mathrm{diag}(5,3,2,1)\) and four Givens rotations whose cosines and sines are
+rational, then form the symmetric product</p>
+
+<div class="eq">\[ S \;=\; Q\,\Lambda\,Q^{\mathsf T},\qquad
+  Q=G_{01}\!\left(\tfrac35,\tfrac45\right)G_{23}\!\left(\tfrac5{13},\tfrac{12}{13}\right)
+     G_{12}\!\left(\tfrac8{17},\tfrac{15}{17}\right)G_{03}\!\left(\tfrac45,\tfrac35\right). \]</div>
+
+<p>Because \(Q\) is orthogonal the eigenvalues of \(S\) are exactly \(5,3,2,1\) — but \(S\)
+itself is a dense matrix of fractions, with no visible structure:</p>
+
+<div class="eq">\[ S=\begin{bmatrix}
+  2.703330 & 0.642502 & -1.191146 & 0.136449\\
+  0.642502 & 3.078123 & -1.322025 & 0.820740\\
+  -1.191146 & -1.322025 & 2.490081 & 0.120194\\
+  0.136449 & 0.820740 & 0.120194 & 2.728466
+\end{bmatrix} \]</div>
+
+<p>Two facts about \(S\) are worth holding on to. Its trace is \(11\), and its determinant is
+\(30\): consistent with \(5+3+2+1\) and \(5\cdot3\cdot2\cdot1\), but neither tells us which
+four numbers they are. And the moduli \(5,3,2,1\) are <em>all distinct</em>, so every pair of
+neighbouring eigenvalues has a gap we can point at:</p>
+
+<div class="eq">\[ \frac{|\lambda_2|}{|\lambda_1|}=\frac35=0.600,\qquad
+  \frac{|\lambda_3|}{|\lambda_2|}=\frac23=0.667,\qquad
+  \frac{|\lambda_4|}{|\lambda_3|}=\frac12=0.500. \]</div>
+
+<p>Those three numbers will turn out to be the whole theory. Keep them in view.</p>
+
+<figure class="figure">
+  <svg viewBox="0 0 760 240" role="img" aria-label="The four eigenvalues 5, 3, 2 and 1 placed on a magnitude axis, with three arcs marking the ratios 3/5, 2/3 and 1/2 between neighbours.">
+    <rect x="0" y="0" width="760" height="240" fill="#ffffff"/>
+    <line x1="70" y1="150" x2="710" y2="150" stroke="#5b564b" stroke-width="2"/>
+    <g font-family="Georgia,serif" font-size="15" fill="#5b6673">
+      <line x1="110" y1="150" x2="110" y2="158" stroke="#5b564b"/>
+      <line x1="250" y1="150" x2="250" y2="158" stroke="#5b564b"/>
+      <line x1="410" y1="150" x2="410" y2="158" stroke="#5b564b"/>
+      <line x1="690" y1="150" x2="690" y2="158" stroke="#5b564b"/>
+      <text x="110" y="176" text-anchor="middle">1</text>
+      <text x="250" y="176" text-anchor="middle">2</text>
+      <text x="410" y="176" text-anchor="middle">3</text>
+      <text x="690" y="176" text-anchor="middle">5</text>
+      <text x="390" y="206" text-anchor="middle" font-size="14">eigenvalue magnitude</text>
+    </g>
+    <g>
+      <circle cx="110" cy="150" r="8" fill="#1f4e79"/>
+      <circle cx="250" cy="150" r="8" fill="#1f4e79"/>
+      <circle cx="410" cy="150" r="8" fill="#1f4e79"/>
+      <circle cx="690" cy="150" r="8" fill="#1f4e79"/>
+    </g>
+    <g fill="none" stroke="#2b7a8c" stroke-width="2">
+      <path d="M110 118 Q180 60 250 118"/>
+      <path d="M250 118 Q330 60 410 118"/>
+      <path d="M410 118 Q550 42 690 118"/>
+    </g>
+    <g font-family="Georgia,serif" font-size="14" fill="#1f4e79">
+      <text x="180" y="58" text-anchor="middle">1/2</text>
+      <text x="330" y="58" text-anchor="middle">2/3</text>
+      <text x="550" y="40" text-anchor="middle">3/5</text>
+    </g>
+    <text x="70" y="30" font-family="Georgia,serif" font-size="16" fill="#17212b">Each gap sets one convergence rate</text>
+  </svg>
+  <figcaption class="figure-caption"><b>Figure 1.</b> The four eigenvalues of the running example
+    on a magnitude axis. The three arcs are the ratios \(|\lambda_{i+1}|/|\lambda_i|\); each one
+    governs how fast a different part of the matrix resolves.</figcaption>
+</figure>
+
+<p>Power iteration on \(S\) works and gives us \(5\). It also quietly makes every other
+direction useless, which is the subject of the next section.</p>
+
+<div class="callout intuition"><strong>Intuition:</strong> a matrix is a set of directions with
+  different stretch factors. Power iteration amplifies the most-stretched direction until the
+  others are lost in the rounding; we want to amplify <em>all</em> of them and keep them apart.</div>
+<div class="callout takeaway"><strong>Takeaway:</strong> the target is the full spectrum of a
+  matrix whose eigenvalues are known to us and invisible in its entries. The three ratios
+  0.600, 0.667, 0.500 are the only numbers we have to explain the convergence.</div>
+
+<hr>
+
+<!-- ============================== 2. NEED ================================= -->
+<h2 id="s2">2. Why can we not simply iterate on all four directions at once?</h2>
+<div class="callout"><strong>Question:</strong> power iteration works on one vector, so run it on
+  four — apply \(S\) to the identity and watch each column. Why does that not give four
+  eigenvalues?</div>
+
+<p>Take the columns of the identity as four starting vectors and apply \(S\) repeatedly,
+rescaling each column so it does not overflow. Nothing is orthogonalised. Measure the worst
+absolute cosine between any two columns — \(1.0\) means two columns have become the same
+direction:</p>
+
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Sweep</th><th>Worst |cos| between columns</th><th>What it means</th></tr></thead>
+    <tbody>
+      <tr><td>0</td><td class="mono">0.000000</td><td>the four columns are orthogonal</td></tr>
+      <tr><td>1</td><td class="mono">0.757250</td><td>already badly aligned</td></tr>
+      <tr><td>2</td><td class="mono">0.957995</td><td></td></tr>
+      <tr><td>4</td><td class="mono">0.998704</td><td></td></tr>
+      <tr><td>8</td><td class="mono">0.999995</td><td>four copies of the dominant direction</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<figure class="figure">
+  <svg viewBox="0 0 760 250" role="img" aria-label="Left panel: four arrows start spread out and collapse onto one direction over eight sweeps. Right panel: with reorthonormalisation each sweep the four arrows stay spread out.">
+    <rect x="0" y="0" width="760" height="250" fill="#ffffff"/>
+    <g font-family="Georgia,serif" font-size="15" fill="#17212b">
+      <text x="30" y="26">no reorthonormalisation</text>
+      <text x="420" y="26">reorthonormalised every sweep</text>
+    </g>
+    <g stroke="#cbd5e1" stroke-width="1">
+      <circle cx="180" cy="150" r="92" fill="none"/>
+      <circle cx="580" cy="150" r="92" fill="none"/>
+    </g>
+    <!-- left: collapse -->
+    <g stroke="#1f4e79" stroke-width="2">
+      <line x1="180" y1="150" x2="272" y2="150"/>
+    </g>
+    <g stroke="#2b7a8c" stroke-width="1.6" opacity="0.85">
+      <line x1="180" y1="150" x2="241" y2="88"/>
+      <line x1="180" y1="150" x2="180" y2="60"/>
+      <line x1="180" y1="150" x2="119" y2="88"/>
+    </g>
+    <g stroke="#b45309" stroke-width="2.6">
+      <line x1="180" y1="150" x2="271" y2="149"/>
+      <line x1="180" y1="150" x2="271" y2="148"/>
+      <line x1="180" y1="150" x2="271" y2="147"/>
+    </g>
+    <text x="180" y="232" text-anchor="middle" font-family="Georgia,serif" font-size="13" fill="#5b6673">all four become the same arrow</text>
+    <!-- right: spread -->
+    <g stroke="#2b7a8c" stroke-width="2.6">
+      <line x1="580" y1="150" x2="672" y2="150"/>
+      <line x1="580" y1="150" x2="641" y2="88"/>
+      <line x1="580" y1="150" x2="580" y2="60"/>
+      <line x1="580" y1="150" x2="519" y2="88"/>
+    </g>
+    <g fill="#1f4e79">
+      <circle cx="672" cy="150" r="4"/>
+      <circle cx="641" cy="88" r="4"/>
+      <circle cx="580" cy="60" r="4"/>
+      <circle cx="519" cy="88" r="4"/>
+    </g>
+    <text x="580" y="232" text-anchor="middle" font-family="Georgia,serif" font-size="13" fill="#5b6673">cosines stay exactly 0</text>
+  </svg>
+  <figcaption class="figure-caption"><b>Figure 2.</b> Applying \(S\) to all four basis directions
+    at once (left) sends them all to the dominant eigendirection: the worst |cos| runs
+    0.757, 0.958, 0.9997, 1.0000. Re-orthonormalising after every application (right) keeps them
+    exactly orthogonal, so the smaller eigendirections survive.</figcaption>
+</figure>
+
+<p>The failure is not rounding. Four vectors amplified by \(S\) are \(S^k\) applied to the
+identity, and if the eigenvalues had strictly different moduli then</p>
+
+<div class="eq">\[ S^k \;=\; Q\,\Lambda^k Q^{-1}
+  \;\longrightarrow\; \text{a rank-one matrix in direction }\boldsymbol q_1, \]</div>
+
+<p>because only the \(\lambda_1^k\) term survives once \(|\lambda_1|^k\) dwarfs all the others.
+Four columns, one rank: three eigenvalues have been thrown away. Saving them means stopping the
+collapse — after each application, take the four columns and replace them by an orthonormal
+basis for the same subspace.</p>
+
+<p>So the requirement is now concrete. We need a step that</p>
+<ol>
+  <li><strong>advances</strong> all \(n\) directions by the action of \(S\), and</li>
+  <li><strong>re-orthonormalises</strong> them before the small ones vanish.</li>
+</ol>
+
+<p>Doing that with a dense QR factorisation costs \(O(n^3)\) <em>per sweep</em>, which at this
+size is already more work than it took to write \(S\) down. Retaining the orthogonality is the
+part that must be paid for; the question is whether the payment can be made cheaper.</p>
+
+<div class="callout takeaway"><strong>Takeaway:</strong> the obstacle is not the iteration, it is
+  the collapse: without re-orthonormalisation the iteration is rank-one in the limit. Anything
+  that keeps the columns orthogonal has to be worth its cost.</div>
+
+<hr>
+
+<!-- ============================== 3. IDEA ================================= -->
+<h2 id="s3">3. What single step advances and re-orthonormalises at once?</h2>
+<div class="callout"><strong>Question:</strong> we want one operation that both applies \(S\) and
+  hands back an orthonormal basis. Which factorisation gives us that, and what does the matrix
+  look like afterwards?</div>
+
+<p>Write \(V_k\) for an orthonormal basis of \(n\) vectors and apply \(S\), then factor the
+result:</p>
+
+<div class="formula-label">Simultaneous iteration</div>
+<div class="eq">\[ S\,V_k \;=\; V_{k+1}\,R_{k+1},\qquad V_{k+1}\text{ orthogonal},\ R_{k+1}
+  \text{ upper triangular}. \]</div>
+
+<p>This is exactly the requirement from the last section: \(V_{k+1}\) is an orthonormal
+basis for the subspace \(S V_k\) spans, and if \(S V_k\) has full column rank then \(V_{k+1}\)
+carries the same information without the collapse. No directions are lost.</p>
+
+<p>Now here is the step that makes it cheap. Multiply the relation by \(V_k^{\mathsf T}\) and
+undo the ordering:</p>
+
+<div class="eq">\[ A_{k+1} \;:=\; V_{k+1}^{\mathsf T} S\,V_{k+1}
+  \;=\; R_{k+1}\,V_k^{\mathsf T} S\,V_{k+1} \;=\; R_{k+1}\,Q_{k+1}, \]</div>
+
+<p>where \(Q_{k+1}=V_k^{\mathsf T}V_{k+1}\) is again orthogonal. Read the two ends together:
+<strong>the similarity transform of \(S\) by the new basis is the reversed product of its own
+factorisation.</strong> Write it as one line:</p>
+
+<div class="callout"><strong>Claim:</strong> if \(S=QR\) is a QR factorisation of \(S\), then
+  \(RQ\) is orthogonally similar to \(S\), and \(RQ\) is the result of one step of simultaneous
+  iteration on the basis of \(S\).</div>
+<p class="small">Reason: \(RQ = Q^{\mathsf T}(QR)Q = Q^{\mathsf T} S Q\), since
+  \(Q^{\mathsf T}Q=I\). The spectral content is untouched and the basis has been rotated into the
+  one that iteration would have produced anyway.</p>
+
+<p>That single substitution — factor, swap the factors, repeat — is the QR iteration. Before
+using it we have to deal with a practical problem: one QR step on the dense \(S\) produces a
+dense result, with mass \(0.763\) still sitting below the first subdiagonal. Applying the step
+repeatedly would cost \(O(n^3)\) every time and would show no triangular structure to read
+eigenvalues from.</p>
+
+<p>The fix is to pay an \(O(n^3)\) cost <em>once</em>. Householder reflectors turn \(S\) into an
+upper Hessenberg matrix — zero below the first subdiagonal — and crucially the QR step preserves
+that shape: the zero pattern below the subdiagonal is exactly what the rotations never disturb.
+Write \(H_0=Q_0^{\mathsf T}SQ_0\). One sweep from there gives</p>
+
+<div class="formula-label">One unshifted sweep from H₀</div>
+<div class="eq">\[ A_1=\begin{bmatrix}
+  4.011953 & -1.328889 & 0.000000 & 0.000000\\
+ -1.328889 &  3.051130 & 0.641731 & 0.000000\\
+  0.000000 &  0.641731 & 2.250117 & -0.815778\\
+  0.000000 &  0.000000 & -0.815778 & 1.686800
+\end{bmatrix},\qquad A_1=Q_1^{\mathsf T}H_0Q_1. \]</div>
+
+<p>Everything below the first subdiagonal is zero and stays zero under every later sweep, at a
+cost of \(O(n^2)\) per sweep rather than \(O(n^3)\). The subdiagonal entries
+\(1.328889, 0.641731, 0.815778\) are now the whole story — as they shrink toward zero the matrix
+approaches triangular form, and once \(A\) is triangular its diagonal <em>is</em> the spectrum.
+So the question becomes how fast those entries decay.</p>
+
+<div class="callout intuition"><strong>Intuition:</strong> the QR step does not chase scalars, it
+  rotates the basis. Each rotation is chosen to re-orthogonalise what the previous rotation
+  stretched, and every rotation carries the matrix closer to triangular form, where the
+  eigenvalues sit on the diagonal in plain sight.</div>
+<div class="callout takeaway"><strong>Takeaway:</strong> one \(QR\) factorization followed by an
+  \(RQ\) product is a similarity that performs one step of simultaneous iteration, and it
+  rotates \(S\) toward triangular form.</div>
+
+<hr>
+
+<!-- ============================== 4. WHY ================================== -->
+<h2 id="s4">4. Why must the subdiagonal decay, and how fast?</h2>
+<div class="callout"><strong>Question:</strong> the entries below the diagonal are shrinking.
+  Where does their decay rate come from, and can we predict it before running anything?</div>
+
+<p>Run the unshifted sweep, starting from \(H_0\), and print the three subdiagonal magnitudes
+\(h_{21},h_{32},h_{43}\) as the sweeps accumulate. What we are looking at is each entry's ratio
+to its value on the previous sweep:</p>
+
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Sweep</th><th>|h<sub>21</sub>| ratio</th><th>|h<sub>32</sub>| ratio</th><th>|h<sub>43</sub>| ratio</th></tr></thead>
+    <tbody>
+      <tr><td>10</td><td class="mono">0.5991</td><td class="mono">0.6686</td><td class="mono">0.4993</td></tr>
+      <tr><td>20</td><td class="mono">0.6000</td><td class="mono">0.6667</td><td class="mono">0.5000</td></tr>
+      <tr><td>40</td><td class="mono">0.6000</td><td class="mono">0.6667</td><td class="mono">0.5000</td></tr>
+      <tr><td>60</td><td class="mono">0.6000</td><td class="mono">0.6667</td><td class="mono">0.5000</td></tr>
+      <tr><td><em>predicted</em></td><td class="mono">3/5 = 0.6000</td><td class="mono">2/3 = 0.6667</td><td class="mono">1/2 = 0.5000</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<p>The ratios are the numbers from Figure 1, and they arrive in the right order without anything
+being tuned. To see why, recall from §3 that after \(k\) sweeps \(A_k=Q_k^{\mathsf T}SQ_k\) with
+\(Q_k\) the orthogonal factor of \(S^k\). Since the operators are similar, \(Q_k\) must be
+carrying the basis in which the action of \(S^k\) is ordered by size. Taking columns of the
+eigenvector matrix \(X\) and writing \(X^{\mathsf T}\) for its inverse,</p>
+
+<div class="eq">\[ S^k \;=\; X\,\Lambda^k X^{-1},\qquad
+  \big(S^k\big)_{ij} \;=\; \sum_{t} x_{it}\,\lambda_t^k\,(X^{-1})_{tj}, \]</div>
+
+<p>so the diagonal term \(\lambda_i^k\) dominates the \((i,i)\) entry once \(k\) is large, while
+the \((i+1,i)\) entry is dominated by the first term that has not been cancelled — the one
+carrying \(\lambda_{i+1}^k\). Their quotient is what survives:</p>
+
+<div class="eq">\[ |h_{i+1,i}^{(k)}| \;\sim\; \left|\frac{\lambda_{i+1}}{\lambda_i}\right|^{k}
+  \qquad (k\to\infty). \]</div>
+
+<figure class="figure">
+  <svg viewBox="0 0 760 300" role="img" aria-label="Log plot of the three subdiagonal magnitudes against sweep number, each a straight line with slope log of the corresponding eigenvalue ratio.">
+    <rect x="0" y="0" width="760" height="300" fill="#ffffff"/>
+    <line x1="70" y1="255" x2="720" y2="255" stroke="#5b564b" stroke-width="2"/>
+    <line x1="70" y1="255" x2="70" y2="30" stroke="#5b564b" stroke-width="2"/>
+    <g font-family="Georgia,serif" font-size="13" fill="#5b6673">
+      <text x="18" y="60">10⁰</text><text x="18" y="120">10⁻¹</text>
+      <text x="18" y="180">10⁻²</text><text x="18" y="240">10⁻³</text>
+      <text x="395" y="288" text-anchor="middle" font-size="14">sweep</text>
+      <text x="14" y="150" font-size="14" transform="rotate(-90 14 150)" text-anchor="middle">subdiagonal magnitude</text>
+      <text x="70" y="272" text-anchor="middle">0</text>
+      <text x="330" y="272" text-anchor="middle">8</text>
+      <text x="590" y="272" text-anchor="middle">15</text>
+    </g>
+    <g stroke="#d8dee6" stroke-width="1" stroke-dasharray="3 4">
+      <line x1="70" y1="67.5" x2="720" y2="67.5"/>
+      <line x1="70" y1="105" x2="720" y2="105"/>
+      <line x1="70" y1="142.5" x2="720" y2="142.5"/>
+      <line x1="70" y1="180" x2="720" y2="180"/>
+      <line x1="70" y1="217.5" x2="720" y2="217.5"/>
+    </g>
+    <!-- measured log10 subdiagonals from H0, 16 frames, computed by verify_qr_iteration.py -->
+    <polyline fill="none" stroke="#1f4e79" stroke-width="2.2"
+      points="70,62.5 102,62.9 134,71.0 166,81.4 198,91.4 230,100.8 262,109.6 294,118.2 326,126.6 358,135.0 390,143.3 422,151.7 454,160.0 486,168.3 518,176.6 550,185.0"/>
+    <polyline fill="none" stroke="#2b7a8c" stroke-width="2.2"
+      points="70,66.5 102,74.7 134,77.3 166,78.6 198,81.3 230,85.7 262,91.2 294,97.3 326,103.7 358,110.2 390,116.7 422,123.3 454,129.9 486,136.5 518,143.1 550,149.7"/>
+    <polyline fill="none" stroke="#b45309" stroke-width="2.2"
+      points="70,71.6 102,70.8 134,79.6 166,92.6 198,105.6 230,117.9 262,129.7 294,141.3 326,152.7 358,164.0 390,175.4 422,186.7 454,198.0 486,209.2 518,220.5 550,231.8"/>
+    <g font-family="Georgia,serif" font-size="14">
+      <text x="560" y="188" fill="#1f4e79">|h₂₁|, slope 3/5</text>
+      <text x="560" y="153" fill="#2b7a8c">|h₃₂|, slope 2/3</text>
+      <text x="560" y="235" fill="#b45309">|h₄₃|, slope 1/2</text>
+    </g>
+  </svg>
+  <figcaption class="figure-caption"><b>Figure 3.</b> The three subdiagonal magnitudes of the
+    running example under unshifted sweeps, on a log scale. Each is a straight line whose slope
+    is \(\log|\lambda_{i+1}/\lambda_i|\) — the decay law of §4 confirmed by measurement. All
+    numbers from <span class="mono">scripts/verify_qr_iteration.py</span>.</figcaption>
+</figure>
+
+<div class="callout"><strong>Claim:</strong> for a matrix with a full set of eigenvectors and
+  \(|\lambda_1|>|\lambda_2|>\cdots>|\lambda_n|\), the unshifted QR iteration satisfies
+  \(|h_{i+1,i}^{(k)}|\sim|\lambda_{i+1}/\lambda_i|^{k}\). The convergence is therefore
+  <em>linear</em>, at a rate set by the eigenvalue ratios.</div>
+<p class="small">The ratio is not an accident of one example: it is the ratio of the two terms
+  that survive in the \((i+1,i)\) entry of \(S^k\), which is the same quantity the ratio in Figure
+  1 measures. Equal moduli are excluded — the cancellation argument above needs a strict
+  ordering, and §6 shows what happens when it is absent.</p>
+
+<p>Linear is not good enough. The ratio \(|\lambda_2/\lambda_1|\) here is \(0.6\), so reaching
+\(10^{-11}\) takes \(67\) sweeps: that is the measured count in the next section. The rate is
+fixed by the input; the next question is whether the <em>step</em> can be changed so the rate
+improves.</p>
+
+<div class="callout takeaway"><strong>Takeaway:</strong> convergence is linear with ratio
+  \(|\lambda_{i+1}/\lambda_i|\), which we can now predict, and which is far too slow when two
+  eigenvalues are close in magnitude.</div>
+
+<hr>
+
+<!-- ============================== 5. METHOD =============================== -->
+<h2 id="s5">5. What does the procedure cost, and what does it produce here?</h2>
+<div class="callout"><strong>Question:</strong> can the fixed rate be improved without changing
+  the step, and what does the resulting procedure actually cost per sweep?</div>
+
+<p>The ratio \(|\lambda_{i+1}/\lambda_i|\) is fixed, but the <em>matrix</em> we iterate on is not.
+Replace \(S\) by \(S-\sigma I\) for a number \(\sigma\) and the eigenvalues become
+\(\lambda_i-\sigma\); the iterated ratios become</p>
+
+<div class="eq">\[ \frac{|\lambda_{i+1}-\sigma|}{|\lambda_i-\sigma|}. \]</div>
+
+<p>If \(\sigma\) is close to \(\lambda_i\), the numerator is small and the denominator is not:
+the rate collapses toward zero. The matrix is restored afterwards by adding \(\sigma I\) back,
+which changes nothing about the structure. Choosing \(\sigma\) — the <strong>shift</strong> — is
+the entire practical content of the algorithm, and the cheapest useful choice reads it off the
+matrix itself: take the current bottom-right entry \(\sigma=h_{mm}\).</p>
+
+<p>This is the algorithm. Reduce once, then repeat on a shrinking block:</p>
+
+<ol>
+  <li><strong>Reduce.</strong> Bring \(S\) to upper Hessenberg form \(H_0=Q_0^{\mathsf T}SQ_0\)
+    with Householder reflectors. One-time cost \(O(n^3)\).</li>
+  <li><strong>Sweep.</strong> With the current block of size \(m\), set
+    \(\sigma=h_{mm}\), factor \(H-\sigma I=QR\) (rotations only, because \(H\) is Hessenberg),
+    and set \(H\leftarrow RQ+\sigma I\).</li>
+  <li><strong>Chase the entry.</strong> Repeat until \(|h_{m,m-1}|\) falls below a threshold;
+    then set it to zero, record \(h_{mm}\) as an eigenvalue, and shrink the block to \(m-1\).</li>
+  <li><strong>Stop.</strong> When the block reaches \(1\times1\) (or a \(2\times2\) block that will
+    not split — see §6) the diagonal holds the spectrum.</li>
+</ol>
+
+<p>Step 2 is where the cost claim lives. Because a Hessenberg matrix already has zeros below the
+first subdiagonal, a Givens rotation acting on rows \(j,j+1\) touches only two rows of \(O(n)\)
+entries, and there are \(n-1\) of them. Measured multiply-adds per sweep, growing as \(n^2\) and
+not \(n^3\):</p>
+
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>n</th><th>Multiply-adds per sweep</th><th>n²</th><th>Ratio</th></tr></thead>
+    <tbody>
+      <tr><td>8</td><td class="mono">364</td><td class="mono">64</td><td class="mono">5.688</td></tr>
+      <tr><td>64</td><td class="mono">24 444</td><td class="mono">4 096</td><td class="mono">5.968</td></tr>
+      <tr><td>512</td><td class="mono">1 571 836</td><td class="mono">262 144</td><td class="mono">5.996</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<p>Roughly \(6n^2\) per sweep, with the constant converging as \(n\) grows. That is the payoff of
+step 1: the reduction is expensive but happens once, and every subsequent sweep is one order of
+\(n\) cheaper than a dense factorisation.</p>
+
+<p>On the running example (starting from \(H_0\), threshold \(10^{-11}\), whole spectrum found)
+the counts are:</p>
+
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Shift</th><th>Sweeps to finish</th><th>Order eigenvalues appear</th></tr></thead>
+    <tbody>
+      <tr><td>none</td><td class="mono">67</td><td class="mono">1, 2, 3</td></tr>
+      <tr><td>σ = h<sub>mm</sub></td><td class="mono">12</td><td class="mono">3, 2, 1</td></tr>
+      <tr><td>Wilkinson</td><td class="mono">7</td><td class="mono">3, 2, 1</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<p>Sixty-seven sweeps become seven, at the same cost per sweep. The reason is visible in the
+shift sequence: \(\sigma\) starts at \(2.433069\) and reaches \(3.000000\) by the eighth sweep,
+so it is <em>hunting</em> an eigenvalue rather than guessing at random.</p>
+
+<div class="demo">
+  <div class="demo-controls">
+    <label for="sweep">Sweep
+      <input type="range" id="sweep" min="0" max="13" step="1" value="0"></label>
+    <output id="sweep-out" class="mono" for="sweep">0</output>
+    <label for="mode"><input type="checkbox" id="mode"> use shifts (σ = h<sub>mm</sub>)</label>
+  </div>
+  <div class="demo-grid">
+    <canvas id="view" width="760" height="470" aria-label="Subdiagonal magnitudes of the active block on a log scale, at the selected sweep, for the unshifted or shifted iteration"></canvas>
+    <dl class="metrics">
+      <dt>active block</dt><dd id="m-block">4</dd>
+      <dt>shift σ</dt><dd id="m-sigma">0.000000</dd>
+      <dt>bottom |h|</dt><dd id="m-h">1.36e+00</dd>
+      <dt>eigenvalues found</dt><dd id="m-found">0 of 4</dd>
+    </dl>
+  </div>
+  <p class="small">Watch the leftmost bar. Unshifted it creeps down by a fixed factor every
+    sweep; with the shift on, the bar it aims at plunges and the block shrinks underneath it.
+    Snapshots and all numbers on this page come from
+    <span class="mono">scripts/verify_qr_iteration.py</span>.</p>
+</div>
+<script>
+/* DEMO-GUARD */
+var DEMO=document.querySelector('.demo');if(!DEMO){/* skeleton — no demo on this page */}else{
+var UNSHIFTED=[[0.134,0.025,-0.108],[0.123,-0.193,-0.088],[-0.094,-0.262,-0.324],
+  [-0.371,-0.295,-0.669],[-0.638,-0.368,-1.015],[-0.887,-0.486,-1.344],
+  [-1.123,-0.633,-1.660],[-1.352,-0.795,-1.968],[-1.577,-0.965,-2.272],
+  [-1.800,-1.138,-2.575],[-2.022,-1.313,-2.876],[-2.245,-1.488,-3.178],
+  [-2.467,-1.664,-3.479],[-2.688,-1.840,-3.780],[-2.910,-2.016,-4.081],
+  [-3.132,-2.192,-4.382]];
+var SHIFTED=[
+  {m:4,sigma:null,sub:[1.3602e+00,1.0602e+00,7.7912e-01]},
+  {m:4,sigma:2.433069,sub:[1.4794e+00,5.5206e-01,5.4535e-01]},
+  {m:4,sigma:2.502407,sub:[9.5689e-01,2.0353e-01,5.0381e-01]},
+  {m:4,sigma:2.536664,sub:[6.1421e-01,6.6954e-02,4.8790e-01]},
+  {m:4,sigma:2.611708,sub:[4.1949e-01,2.2185e-02,4.0259e-01]},
+  {m:4,sigma:2.796578,sub:[3.4326e-01,8.8386e-03,1.2693e-01]},
+  {m:4,sigma:2.983622,sub:[3.3776e-01,4.3465e-03,2.1485e-03]},
+  {m:4,sigma:2.999995,sub:[3.3775e-01,2.1733e-03,9.9181e-09]},
+  {m:3,sigma:3.000000,sub:[3.3775e-01,1.0866e-03]},
+  {m:3,sigma:1.999999,sub:[1.1331e-01,1.2667e-09]},
+  {m:2,sigma:2.000000,sub:[3.7796e-02]},
+  {m:2,sigma:1.000357,sub:[3.3755e-06]},
+  {m:1,sigma:1.000000,sub:[]}
+];
+var SCALE=[1.3602414745,1.0602260439,0.7791182522];
+var sweepEl=DEMO.querySelector("#sweep"),
+    modeEl=DEMO.querySelector("#mode"),
+    outEl=DEMO.querySelector("#sweep-out"),
+    view=DEMO.querySelector("#view"),
+    mBlock=DEMO.querySelector("#m-block"),
+    mSigma=DEMO.querySelector("#m-sigma"),
+    mH=DEMO.querySelector("#m-h"),
+    mFound=DEMO.querySelector("#m-found");
+
+function frame(idx, shifted){
+  if (!shifted){
+    var row=UNSHIFTED[Math.min(idx,UNSHIFTED.length-1)];
+    return {m:4, sigma:null, logs:row.slice(), sub:row.map(function(v){return Math.pow(10,v);}),
+            found:0};
+  }
+  var f=SHIFTED[Math.min(idx,SHIFTED.length-1)];
+  var logs=f.sub.map(function(v){return Math.log10(v);});
+  return {m:f.m, sigma:f.sigma, logs:logs, sub:f.sub.slice(), found:4-f.m};
+}
+
+function drawDemo(){
+  var idx=parseInt(sweepEl.value,10);
+  var shifted=modeEl.checked;
+  var fr=frame(idx,shifted);
+  outEl.textContent=String(idx);
+  mBlock.textContent=String(fr.m);
+  mSigma.textContent=(fr.sigma!==null? fr.sigma.toFixed(6) : "—");
+  mH.textContent=(fr.sub.length? fr.sub[fr.sub.length-1].toExponential(2) : "—");
+  mFound.textContent=fr.found+" of 4";
+
+  var ctx=view.getContext("2d");
+  ctx.clearRect(0,0,view.width,view.height);
+  var padL=78,padR=36,padT=48,padB=84;
+  var x0=padL,y0=view.height-padB;
+  var plotH=y0-padT, plotW=view.width-padL-padR;
+  var top=1, bottom=-5;   /* log10 range */
+  function yOf(v){ return y0-(v-bottom)/(top-bottom)*plotH; }
+
+  ctx.strokeStyle="#d8dee6"; ctx.lineWidth=1;
+  ctx.fillStyle="#5b6673"; ctx.font="12px ui-monospace, Menlo, monospace";
+  ctx.textAlign="right"; ctx.textBaseline="middle";
+  for (var d=top; d>=bottom; d--){
+    var y=yOf(d);
+    ctx.beginPath(); ctx.moveTo(x0,y); ctx.lineTo(x0+plotW,y); ctx.stroke();
+    ctx.fillText("1e"+d, x0-8, y);
+  }
+  ctx.strokeStyle="#5b564b"; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(x0,padT-10); ctx.lineTo(x0,y0); ctx.lineTo(x0+plotW,y0); ctx.stroke();
+
+  ctx.textAlign="center"; ctx.textBaseline="top";
+  ctx.fillStyle="#5b6673"; ctx.font="13px Georgia, serif";
+  ctx.fillText("subdiagonal entry of the active block", x0+plotW/2, y0+34);
+  ctx.textAlign="left"; ctx.fillStyle="#17212b"; ctx.font="15px Georgia, serif";
+  ctx.fillText(shifted? "shifted sweep "+idx : "unshifted sweep "+idx, x0, 14);
+
+  var n=fr.logs.length;
+  var bw=Math.min(76, plotW/(n+1));
+  var gap=(plotW-bw*n)/(n+1);
+  for (var i=0;i<n;i++){
+    var bx=x0+gap+(bw+gap)*i;
+    var by=yOf(Math.max(bottom,Math.min(top,fr.logs[i])));
+    var grad=ctx.createLinearGradient(0,by,0,y0);
+    grad.addColorStop(0, shifted? "#2b7a8c" : "#1f4e79");
+    grad.addColorStop(1, shifted? "#9fc6cf" : "#a9c1d8");
+    ctx.fillStyle=grad;
+    ctx.fillRect(bx,by,bw,y0-by);
+    ctx.strokeStyle=shifted? "#1c5f70" : "#173b5c"; ctx.lineWidth=1;
+    ctx.strokeRect(bx,by,bw,y0-by);
+    ctx.fillStyle="#17212b"; ctx.font="12px ui-monospace, Menlo, monospace";
+    ctx.textAlign="center"; ctx.textBaseline="bottom";
+    ctx.fillText(fr.sub[i].toExponential(1), bx+bw/2, by-6);
+    ctx.textBaseline="top";
+    ctx.fillStyle="#5b6673"; ctx.font="13px Georgia, serif";
+    ctx.fillText("h"+(i+2)+(i+1), bx+bw/2, y0+14);
+  }
+  ctx.textAlign="left"; ctx.textBaseline="top";
+  ctx.fillStyle="#5b6673"; ctx.font="12px Georgia, serif";
+  if (n===0){
+    ctx.fillText("all eigenvalues found — every block has deflated", x0, y0+56);
+  } else {
+    ctx.fillText("bars below the axis floor have collapsed past 1e-5", x0, view.height-22);
+  }
+}
+
+sweepEl.addEventListener("input",drawDemo);
+modeEl.addEventListener("change",drawDemo);
+drawDemo();
+} /* end DEMO-GUARD */
+</script>
+
+<p class="small">The shifted curve is a snapshot of the <em>active block</em> as it shrinks, so
+bars disappear when the block below them has been deflated — that is the algorithm finishing,
+not a gap in the data.</p>
+
+<div class="callout takeaway"><strong>Takeaway:</strong> shifting the matrix before each
+  factorisation turns a fixed linear rate into a rate that improves as the shift closes on an
+  eigenvalue: 67 sweeps become 7, while each sweep stays at \(O(n^2)\).</div>
+
+<hr>
+
+<!-- ============================== 6. LIMITS =============================== -->
+<h2 id="s6">6. What breaks when a pair of eigenvalues shares a magnitude?</h2>
+<div class="callout"><strong>Question:</strong> §4 assumed the eigenvalue moduli were strictly
+  ordered. Change that one thing — suppose two of the eigenvalues share a modulus —
+  here a complex conjugate pair — and which quantity stops moving?</div>
+
+<p>Take the companion matrix of \((x-5)(x^2+2x+5)=x^3-3x^2-5x-25\), whose spectrum is
+\(\{5,\,-1+2i,\,-1-2i\}\). The pair has modulus \(\sqrt5\) and the real eigenvalue has modulus
+\(5\), so the ordering that §4 needed is absent at the bottom of the block. Run the best real
+shift available:</p>
+
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Sweep</th><th>|h<sub>32</sub>|</th><th>|h<sub>21</sub>|</th><th>Trailing 2×2 trace</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td class="mono">2.26e+00</td><td class="mono">5.92e-01</td><td class="mono">−1.500000</td></tr>
+      <tr><td>10</td><td class="mono">9.71e-01</td><td class="mono">2.83e-04</td><td class="mono">−2.000478</td></tr>
+      <tr><td>40</td><td class="mono">9.40e-01</td><td class="mono">1.60e-16</td><td class="mono">−2.000000</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<p>The real eigenvalue \(5\) is gone — \(|h_{21}|\) reaches machine zero — and the 2×2 trace has
+converged to \(-2\), which is exactly the trace of the pair. But \(|h_{32}|\) never falls. It
+oscillates around \(0.9\), and no real shift can do better, for a structural reason: a real
+\(2\times2\) block with complex eigenvalues is \(\alpha I+\beta J\), and no real orthogonal
+similarity can make a matrix of that shape triangular. The memory of the imaginary part has
+nowhere to go. A real shift \(\sigma\) is at distance at least \(|\mathrm{Im}\,\lambda|=2\) from
+the pair, so the ratio \(|\lambda_{\text{pair}}-\sigma|/|\lambda_{\text{other}}-\sigma|\) never
+becomes small.</p>
+
+<figure class="figure">
+  <svg viewBox="0 0 760 250" role="img" aria-label="Complex plane showing the eigenvalues 5 and minus 1 plus or minus 2 i, with the real axis marked as the only place a real shift may sit.">
+    <rect x="0" y="0" width="760" height="250" fill="#ffffff"/>
+    <line x1="60" y1="130" x2="720" y2="130" stroke="#5b564b" stroke-width="2"/>
+    <line x1="330" y1="30" x2="330" y2="225" stroke="#5b564b" stroke-width="2"/>
+    <g font-family="Georgia,serif" font-size="13" fill="#5b6673">
+      <text x="714" y="152" text-anchor="end">Re</text>
+      <text x="342" y="42">Im</text>
+    </g>
+    <circle cx="600" cy="130" r="8" fill="#1f4e79"/>
+    <text x="600" y="112" text-anchor="middle" font-family="Georgia,serif" font-size="15" fill="#1f4e79">5</text>
+    <circle cx="294" cy="82" r="8" fill="#b45309"/>
+    <circle cx="294" cy="178" r="8" fill="#b45309"/>
+    <text x="294" y="62" text-anchor="middle" font-family="Georgia,serif" font-size="15" fill="#b45309">−1+2i</text>
+    <text x="294" y="206" text-anchor="middle" font-family="Georgia,serif" font-size="15" fill="#b45309">−1−2i</text>
+    <line x1="294" y1="130" x2="294" y2="178" stroke="#b45309" stroke-width="1.4" stroke-dasharray="4 4"/>
+    <text x="304" y="160" font-family="Georgia,serif" font-size="13" fill="#b45309">|Im λ| = 2</text>
+    <line x1="60" y1="130" x2="720" y2="130" stroke="#cbd5e1" stroke-width="6" opacity="0.35"/>
+    <text x="150" y="120" font-family="Georgia,serif" font-size="14" fill="#1f4e79">a real shift can only sit on this axis</text>
+  </svg>
+  <figcaption class="figure-caption"><b>Figure 4.</b> A real shift is a point on the real axis,
+    at least \(|\mathrm{Im}\,\lambda|\) away from a complex eigenvalue. That distance floors the
+    achievable ratio and is why \(|h_{32}|\) stalls in the table above.</figcaption>
+</figure>
+
+<div class="callout intuition"><strong>What changes:</strong> the subdiagonal \(|h_{32}|\) stops
+  decaying, and no real shift can rescue it. <strong>Why:</strong> the real eigenvalue is
+  isolated as usual, but what remains is a \(2\times2\) block whose eigenvalues are complex, and
+  a real orthogonal similarity cannot make such a block triangular.</div>
+
+<p>The standard repair is to aim at <em>both</em> members of the pair in one step. Take the two
+shifts \(\sigma_1,\sigma_2\) from the trailing \(2\times2\) block and use their real quadratic
+\(p(x)=(x-\sigma_1)(x-\sigma_2)\). Applying \(p\) at once keeps the arithmetic real, and the
+step is implemented implicitly: instead of forming the degree-four product \(p(H)\), compute
+only its first column</p>
+
+<div class="eq">\[ p(H)\boldsymbol e_1 \;=\; H^2\boldsymbol e_1 - s\,H\boldsymbol e_1 + t\,\boldsymbol e_1,
+  \qquad s=\sigma_1+\sigma_2,\quad t=\sigma_1\sigma_2, \]</div>
+
+<p>which is three numbers, and chase the resulting bulge back to Hessenberg form. Verified on the
+running example: \(p(H)\boldsymbol e_1\) has its fourth entry equal to
+\(1.4\times10^{-16}\) — genuinely confined to three coordinates — and the first column of the
+implicit step's \(Q\) makes an angle of \(8.5\times10^{-7}\) degrees with it. Factorising
+\(p(H)\) explicitly and comparing the two steps gives \(\|H_{\text{implicit}}-H_{\text{explicit}}\|_{\max}=
+1.1\times10^{-15}\), so the implicit route produces the same step for \(O(n^2)\) work instead of
+\(O(n^3)\). This is the <strong>Francis double shift</strong>, and the \(s,t\) that specify it are
+exactly the two numbers a real code stores.</p>
+
+<p>On the complex example the double shift isolates the pair and leaves a \(2\times2\) block
+whose trace is \(-2.00000000\) and determinant is \(+5.00000000\) — the pair \(-1\pm2i\), read
+off without any complex arithmetic. The block cannot shrink any further; that residual block is
+what the <strong>real Schur form</strong> means. Avoiding complex arithmetic costs that \(2\times
+2\) block; using it instead would roughly double storage and quadruple the multiplies in the
+inner loop, which is why production codes stay real.</p>
+
+<p>Two further limits are worth stating plainly, because both appear in shipped code. Shifts can
+be pathological: if the trailing \(2\times2\) is nilpotent, the shift it produces is zero, and
+the sweep makes no progress at all. LAPACK's <span class="mono">dlahqr</span> handles this with
+an explicit exceptional-shift branch before falling back to the Francis double shift. And
+convergence is guaranteed only under conditions that are genuinely hard to certify — the
+eigenvalue ratio must not be too close to one <em>and</em> the eigenvectors must not be too
+nearly parallel. Rapid convergence of the shifted iteration on non-symmetric matrices was only
+proved in the 2020s, for matrices of bounded eigenvector condition number with an extra
+exceptional-shift rule, and the guarantees remain more delicate than the symmetric case.</p>
+
+<div class="callout takeaway"><strong>Takeaway:</strong> the guarantee in §4 is conditional on a
+  strict modulus ordering. Breaking it does not break the algorithm — it changes its output from a
+  triangular matrix to a quasi-triangular one, leaves a real \(2\times2\) block where a complex
+  pair lives, and requires the double shift to get that far.</div>
+
+<hr>
+
+<!-- ============================== 7. SOURCES ============================== -->
+<h2 id="s7">7. Sources and further reading</h2>
+<p>J. G. F. Francis, <em>The QR Transformation: A Unitary Analogue to the LR Transformation</em>,
+  Parts 1 and 2, The Computer Journal 4 (1961/62),
+  <a href="https://doi.org/10.1093/comjnl/4.3.265">10.1093/comjnl/4.3.265</a> and
+  <a href="https://doi.org/10.1093/comjnl/4.4.332">10.1093/comjnl/4.4.332</a> — grounds the QR
+  step itself, the double shift, and the version of the method that runs in real arithmetic (§3,
+  §6).</p>
+<p>V. N. Kublanovskaya, <em>On some algorithms for the solution of the complete eigenvalue
+  problem</em>, USSR Computational Mathematics and Mathematical Physics 1 (1962),
+  <a href="https://doi.org/10.1016/0041-5553(63)90168-X">10.1016/0041-5553(63)90168-X</a> — the
+  independent discovery of the same iteration; grounds the attribution of the method (§1).</p>
+<p>B. N. Parlett, <em>Convergence of the QR algorithm</em>, Numerische Mathematik 7 (1965),
+  <a href="https://doi.org/10.1007/BF01397692">10.1007/BF01397692</a> — grounds the linear
+  convergence law \(|h_{i+1,i}|\sim|\lambda_{i+1}/\lambda_i|^k\) and its ordering assumptions
+  (§4).</p>
+<p>J. H. Wilkinson, <em>Global convergence of tridiagonal QR algorithm with origin shifts</em>,
+  Linear Algebra and its Applications 1 (1968),
+  <a href="https://doi.org/10.1016/0024-3795(68)90017-7">10.1016/0024-3795(68)90017-7</a> — grounds
+  the shifted iteration's convergence and the shift strategy named after him (§5).</p>
+<p>D. S. Watkins, <em>Understanding the QR Algorithm</em>, SIAM Review 24 (1982),
+  <a href="https://doi.org/10.1137/1024100">10.1137/1024100</a> — the reading of QR as simultaneous
+  iteration used throughout §2 and §3, including \(A_k=Q_k^{\mathsf T}AQ_k\).</p>
+<p>D. S. Watkins, <em>The QR Algorithm Revisited</em>, SIAM Review 50 (2008),
+  <a href="https://doi.org/10.1137/060659454">10.1137/060659454</a> — the pedagogical route that
+  goes straight to the implicit multishift form used in practice (§5, §6).</p>
+<p>J. Banks, J. Garza-Vargas and N. Srivastava, <em>Global Convergence of Hessenberg Shifted
+  QR I: Exact Arithmetic</em>, arXiv:2111.07976 — grounds the statement that rapid convergence for
+  non-symmetric matrices is recent and conditional on bounded eigenvector condition number, with an
+  exceptional shift to escape stagnation. Companion papers arXiv:2205.06810 (finite arithmetic)
+  and arXiv:2205.06804 (computing the Ritz values) cover the stability side (§6).</p>
+<p>LAPACK Working Note / Reference LAPACK, <a href="https://github.com/Reference-LAPACK/lapack/blob/master/SRC/dlahqr.f"><span class="mono">dlahqr.f</span></a>
+  — grounds the exceptional-shift branch and the Francis double-shift loop as they are actually
+  written (§6).</p>
+<p class="small">Suggested further reading, not consulted for this note: G. H. Golub and C. F. Van
+  Loan, <em>Matrix Computations</em>, 4th ed., Johns Hopkins, 2013, ch. 7–8; J. H. Wilkinson,
+  <em>The Algebraic Eigenvalue Problem</em>, Oxford, 1965. The generalized problem
+  \(Ax=\lambda Bx\) &mdash; where the same double shift appears inside a two-matrix chase &mdash;
+  is treated by the QZ algorithm and is out of scope here.</p>
+<div class="callout takeaway"><strong>Takeaway:</strong> one step — factor, swap, repeat — moves
+  all \(n\) directions at once without letting them collapse; its rate is the eigenvalue ratio,
+  a shift destroys that ratio, and a complex pair costs a \(2\times2\) block rather than an
+  eigenvalue.</div>
+
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+  if (window.renderMathInElement){
+    renderMathInElement(document.body,{
+      delimiters:[
+        {left:"\\(",right:"\\)",display:false},
+        {left:"\\[",right:"\\]",display:true}
+      ],
+      throwOnError:false
+    });
+  }
+
+  /* Sticky table of contents with active-section highlighting. Do not rewrite this. */
+  var links=Array.prototype.slice.call(document.querySelectorAll("nav.toc a[href^='#']"));
+  var items=links.map(function(a){
+    var el=document.querySelector(a.getAttribute("href"));
+    return el?{a:a,el:el}:null;
+  }).filter(Boolean);
+  function updateToc(){
+    var ref=110,current=items[0]||null;
+    items.forEach(function(it){
+      if (it.el.getBoundingClientRect().top<=ref) current=it;
+    });
+    items.forEach(function(it){
+      var active=it===current;
+      it.a.classList.toggle("active",active);
+      if (active) it.a.setAttribute("aria-current","true");
+      else it.a.removeAttribute("aria-current");
+    });
+  }
+  window.addEventListener("scroll",updateToc,{passive:true});
+  window.addEventListener("resize",updateToc);
+  window.addEventListener("load",updateToc);
+  window.addEventListener("hashchange",updateToc);
+  updateToc();
+  requestAnimationFrame(updateToc);
+});
+</script>
+</main>
+</body>
+</html>
