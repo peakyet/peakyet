@@ -331,69 +331,77 @@
 
     <div class="grid" id="grid">
 
-      <a class="card" href="Algebra/householder-transformations/householder-transformations.html" data-category="algebra" data-field="Numerical Linear Algebra" data-tags="linear-algebra householder reflector orthogonal qr least-squares tridiagonalization elimination numerics">
+      <a class="card" href="Algebra/qr-iteration/qr-iteration.html" data-category="algebra control" data-field="Numerical Linear Algebra" data-tags="linear-algebra eigenvalues qr-iteration qr-algorithm simultaneous-subspace-iteration hessenberg shift rayleigh wilkinson double-shift complex-pair schur numerical-methods">
         <div class="toprow">
-          <span class="tag amber">Orthogonal Elimination</span>
+          <span class="tag amber">Eigenvalue Algorithms</span>
           <span class="read"></span>
         </div>
-        <h3>Householder Transformations: Zeroing Out with a Mirror</h3>
-        <p>Every serious solver reflects the coordinate system instead of eliminating rows. Why \(H = I-2vv^{\mathsf T}/v^{\mathsf T}v\) is its own inverse, the sign choice that makes it stable, how one mirror clears a whole column, and why the same atom gives QR, tridiagonalization, and bidiagonalization.</p>
+        <h3>QR Iteration</h3>
+        <p>Power iteration finds one eigenvalue and collapses every other direction. Re-orthonormalising the whole basis after each application is <em>one factorization followed by swapping its factors</em> &mdash; and how fast the subdiagonal decays turns out to be exactly the ratio of neighbouring eigenvalue magnitudes.</p>
         <div class="tags">
           <span class="tag-pill">linear-algebra</span>
-          <span class="tag-pill">householder</span>
-          <span class="tag-pill">orthogonal</span>
-          <span class="tag-pill">qr</span>
-          <span class="tag-pill">least-squares</span>
-          <span class="tag-pill">tridiagonalization</span>
-          <span class="tag-pill">numerics</span>
+          <span class="tag-pill">eigenvalues</span>
+          <span class="tag-pill">qr-iteration</span>
+          <span class="tag-pill">qr-algorithm</span>
+          <span class="tag-pill">simultaneous-subspace-iteration</span>
+          <span class="tag-pill">hessenberg</span>
+          <span class="tag-pill">shift</span>
+          <span class="tag-pill">rayleigh</span>
+          <span class="tag-pill">wilkinson</span>
+          <span class="tag-pill">double-shift</span>
+          <span class="tag-pill">complex-pair</span>
+          <span class="tag-pill">schur</span>
+          <span class="tag-pill">numerical-methods</span>
         </div>
         <span class="go">Read the note</span>
         <span class="foot"><span class="field"><i></i>Numerical Linear Algebra</span></span>
       </a>
 
-      <a class="card" href="Algebra/qz-algorithm/qz-algorithm.html" data-category="algebra control optimization" data-field="Numerical Linear Algebra" data-tags="linear-algebra eigenvalues generalized-eigenvalue qz francis double-shift hessenberg hessenberg-triangular bulge-chase schur numerical-methods slides">
+      <a class="card" href="Control/qz-algebraic-riccati/qz-algebraic-riccati.html" data-category="control algebra" data-field="Numerical Linear Algebra" data-tags="control riccati lqr qz generalized-schur matrix-pencil deflating-subspace stabilizing-solution schur numerical-methods">
         <div class="toprow">
-          <span class="tag amber">Eigenvalue Algorithms</span>
+          <span class="tag amber">Riccati Solvers</span>
           <span class="read"></span>
         </div>
-        <h3>QZ Algorithm and the Francis QR Step</h3>
-        <p>How a spectrum is computed without ever writing \(\sqrt{-1}\): reduce once to Hessenberg (or Hessenberg&ndash;triangular) form, then chase a degree-2 bulge with orthogonal reflectors &mdash; the Francis double-shift step for a matrix, and its alternating left/right cousin, the QZ step, for a pencil \(A-\lambda B\).</p>
+        <h3>The QZ Algorithm and the Algebraic Riccati Equation</h3>
+        <p>The discrete Riccati equation is quadratic in its unknown, so it has several answers, and an unstable plant forces you to pick the right one. Written as a matrix pencil, "which root?" becomes "which invariant plane?", and the generalized Schur decomposition computes that plane orthogonally. This note reads the gain off it, prices the whole procedure, and shows exactly where the guarantees run out.</p>
         <div class="tags">
-          <span class="tag-pill">linear-algebra</span>
-          <span class="tag-pill">eigenvalues</span>
+          <span class="tag-pill">control</span>
+          <span class="tag-pill">riccati</span>
+          <span class="tag-pill">lqr</span>
           <span class="tag-pill">qz</span>
-          <span class="tag-pill">francis</span>
-          <span class="tag-pill">double-shift</span>
-          <span class="tag-pill">bulge-chase</span>
+          <span class="tag-pill">generalized-schur</span>
+          <span class="tag-pill">matrix-pencil</span>
+          <span class="tag-pill">deflating-subspace</span>
+          <span class="tag-pill">stabilizing-solution</span>
           <span class="tag-pill">schur</span>
-          <span class="tag-pill">slides</span>
+          <span class="tag-pill">numerical-methods</span>
         </div>
-        <span class="go">Open the slides</span>
+        <span class="go">Read the note</span>
         <span class="foot"><span class="field"><i></i>Numerical Linear Algebra</span></span>
       </a>
 
-      <a class="card" href="Control/sda-algebraic-riccati/sda-algebraic-riccati-deck.html" data-category="control algebra" data-field="Control Theory" data-tags="control algebra riccati care dare sda doubling cayley symplectic numerical-methods slides">
+      <a class="card" href="Control/sda-algebraic-riccati/sda-algebraic-riccati.html" data-category="control algebra" data-field="Numerical Linear Algebra" data-tags="control riccati lqr care sda doubling symplectic matrix-equation numerical-methods optimal-control cayley">
         <div class="toprow">
-          <span class="tag teal">Riccati / SDA</span>
+          <span class="tag amber">Riccati Solvers</span>
           <span class="read"></span>
         </div>
-        <h3>SDA for the Algebraic Riccati Equation</h3>
-        <p>How the structure-preserving doubling algorithm solves a CARE: select the stabilizing invariant subspace, Cayley-transform into discrete time, and repeatedly square a normalized Riccati factorization so \(k\) updates cover \(2^k\) fixed-point steps.</p>
+        <h3>The Structure-Preserving Doubling Algorithm and the Algebraic Riccati Equation</h3>
+        <p>A continuous-time Riccati equation, an unstable mode, and a question about rate: the obvious fixed-point iteration shrinks its error by a constant factor that the problem picks for you. Rewriting the plant with a Cayley shift and then squaring the equation turns that factor into sigma^(2^k), so the digits of the answer double at every step -- a handful of n-by-n solves instead of hundreds.</p>
         <div class="tags">
           <span class="tag-pill">control</span>
-          <span class="tag-pill">algebra</span>
           <span class="tag-pill">riccati</span>
+          <span class="tag-pill">lqr</span>
           <span class="tag-pill">care</span>
-          <span class="tag-pill">dare</span>
           <span class="tag-pill">sda</span>
           <span class="tag-pill">doubling</span>
-          <span class="tag-pill">cayley</span>
           <span class="tag-pill">symplectic</span>
+          <span class="tag-pill">matrix-equation</span>
           <span class="tag-pill">numerical-methods</span>
-          <span class="tag-pill">slides</span>
+          <span class="tag-pill">optimal-control</span>
+          <span class="tag-pill">cayley</span>
         </div>
-        <span class="go">Open the slides</span>
-        <span class="foot"><span class="field"><i></i>Control Theory</span></span>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Numerical Linear Algebra</span></span>
       </a>
 
       <a class="card" href="Control/h2-control/h2-control.html" data-category="control" data-field="Control Theory" data-tags="control h2 lqr optimal-control kalman state-space frequency lyapunov">
@@ -532,13 +540,13 @@
         <span class="foot"><span class="field"><i></i>Control Theory</span></span>
       </a>
 
-      <a class="card" href="Control/pomdp/pomdp.html" data-category="control ai" data-field="Control Theory" data-tags="control ai pomdp partial-observability belief-state decision-making planning reinforcement-learning">
+      <a class="card" href="Control/pomdp/pomdp.html" data-category="control ai" data-field="Control Theory" data-tags="control ai pomdp partial-observability belief-state decision-making planning reinforcement-learning value-of-information tiger alpha-vectors solvers">
         <div class="toprow">
           <span class="tag teal">Decision Making</span>
           <span class="read"></span>
         </div>
-        <h3>POMDPs: Reasoning and Planning Under Partial Observability</h3>
-        <p>How a controller plans when the state is hidden: belief updates, value of information, the tiger problem, alpha vectors, and practical POMDP solvers.</p>
+        <h3>POMDPs: How to Decide When You Cannot See the State</h3>
+        <p>Turn a hidden state into a belief distribution, predict it through actions, correct it with observations, and choose actions for both their effect and the information they create &mdash; with the tiger problem, alpha vectors, and practical solvers.</p>
         <div class="tags">
           <span class="tag-pill">control</span>
           <span class="tag-pill">ai</span>
@@ -547,18 +555,22 @@
           <span class="tag-pill">belief-state</span>
           <span class="tag-pill">planning</span>
           <span class="tag-pill">decision-making</span>
+          <span class="tag-pill">value-of-information</span>
+          <span class="tag-pill">tiger</span>
+          <span class="tag-pill">alpha-vectors</span>
+          <span class="tag-pill">solvers</span>
         </div>
         <span class="go">Read the note</span>
         <span class="foot"><span class="field"><i></i>Control Theory</span></span>
       </a>
 
-      <a class="card" href="Control/acados-nmpc/acados-nmpc.html" data-category="control optimization" data-field="Control Theory" data-tags="control mpc model-predictive-control nmpc qp sqp real-time embedded">
+      <a class="card" href="Control/acados-nmpc/acados-nmpc.html" data-category="control optimization" data-field="Control Theory" data-tags="control mpc model-predictive-control nmpc qp sqp real-time embedded code-generation blasfeo riccati condensing">
         <div class="toprow">
           <span class="tag teal">MPC</span>
           <span class="read"></span>
         </div>
         <h3>Inside acados: a real-time NMPC solver</h3>
-        <p>How the open-source NMPC solver acados squeezes a nonlinear optimal-control problem into a millisecond budget &mdash; discretization, Gauss&ndash;Newton SQP, structure-exploiting QP, real-time iteration.</p>
+        <p>How an open-source NMPC solver squeezes a nonlinear optimal-control problem into a 1&nbsp;millisecond budget: discretization, Gauss&ndash;Newton SQP, structure-exploiting QP solving, the real-time iteration, and the code-generation stack underneath.</p>
         <div class="tags">
           <span class="tag-pill">control</span>
           <span class="tag-pill">mpc</span>
@@ -568,6 +580,10 @@
           <span class="tag-pill">sqp</span>
           <span class="tag-pill">real-time</span>
           <span class="tag-pill">embedded</span>
+          <span class="tag-pill">code-generation</span>
+          <span class="tag-pill">blasfeo</span>
+          <span class="tag-pill">riccati</span>
+          <span class="tag-pill">condensing</span>
         </div>
         <span class="go">Read the note</span>
         <span class="foot"><span class="field"><i></i>Control Theory</span></span>
@@ -633,13 +649,13 @@
         <span class="foot"><span class="field"><i></i>Optimization</span></span>
       </a>
 
-      <a class="card" href="Optimization/quasi-newton-method/quasi-newton-method.html" data-category="optimization" data-field="Optimization" data-tags="optimization quasi-newton bfgs l-bfgs dfp sr1 hessian line-search numerical-methods">
+      <a class="card" href="Optimization/quasi-newton-method/quasi-newton-method.html" data-category="optimization" data-field="Optimization" data-tags="optimization quasi-newton bfgs l-bfgs dfp sr1 hessian curvature secant-equation line-search wolfe interactive convergence numerical-methods">
         <div class="toprow">
           <span class="tag amber">Quasi-Newton</span>
           <span class="read"></span>
         </div>
-        <h3>Quasi-Newton Methods</h3>
-        <p>How BFGS learns a Newton-like curvature model from gradient differences &mdash; and how limited memory makes the idea scale.</p>
+        <h3>Quasi-Newton Methods: Learning Curvature from Gradients</h3>
+        <p>Two gradients hide one curvature measurement. BFGS turns a sequence of them into a Newton-like inverse-Hessian model &mdash; with an interactive lab, the line-search conditions that make it practical, the DFP/SR1/L-BFGS family, and the guarantees and failure modes that decide when it works.</p>
         <div class="tags">
           <span class="tag-pill">optimization</span>
           <span class="tag-pill">quasi-newton</span>
@@ -648,8 +664,35 @@
           <span class="tag-pill">dfp</span>
           <span class="tag-pill">sr1</span>
           <span class="tag-pill">hessian</span>
+          <span class="tag-pill">curvature</span>
+          <span class="tag-pill">secant-equation</span>
+          <span class="tag-pill">line-search</span>
+          <span class="tag-pill">wolfe</span>
+          <span class="tag-pill">interactive</span>
+          <span class="tag-pill">convergence</span>
+          <span class="tag-pill">numerical-methods</span>
+        </div>
+        <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Optimization</span></span>
+      </a>
+
+      <a class="card" href="Optimization/conjugate-gradient/conjugate-gradient.html" data-category="optimization algebra" data-field="Optimization" data-tags="optimization conjugate-gradient krylov linear-solver iterative a-orthogonal conjugacy steepest-descent spd line-search numerical-methods question-map">
+        <div class="toprow">
+          <span class="tag teal">Question Map</span>
+          <span class="read"></span>
+        </div>
+        <h3>Conjugate Gradients from Zero</h3>
+        <p>Six questions on a 2&times;2 system you can check by hand: what a descent direction has to satisfy, why the greedy one cannot deliver it, how the right directions are built from residuals alone, what is being minimised, and what breaks the moment the matrix stops being positive definite. Answers are deliberately withheld &mdash; the note is the question map.</p>
+        <div class="tags">
+          <span class="tag-pill">optimization</span>
+          <span class="tag-pill">conjugate-gradient</span>
+          <span class="tag-pill">krylov</span>
+          <span class="tag-pill">linear-solver</span>
+          <span class="tag-pill">a-orthogonal</span>
+          <span class="tag-pill">steepest-descent</span>
           <span class="tag-pill">line-search</span>
           <span class="tag-pill">numerical-methods</span>
+          <span class="tag-pill">question-map</span>
         </div>
         <span class="go">Read the note</span>
         <span class="foot"><span class="field"><i></i>Optimization</span></span>
