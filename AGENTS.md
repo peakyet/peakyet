@@ -1,16 +1,23 @@
 # AGENTS
 
 This is a GitHub Pages site serving a personal **math knowledge base**. It is hand-written,
-static HTML (no framework, no build step). Each page is self-contained and carries its own
-CSS in `<head>`; there is no shared stylesheet or build pipeline.
+static content with one exception: a new teaching note is written in Typst and compiled once with
+the `typst` CLI, because GitHub Pages runs no build step of its own. There is no framework and no
+shared stylesheet. Network access is assumed, so pages may load external CDN assets or external
+figures.
 
 ## Layout
 
 - `index.html` — the landing page / front door. Lists and links to every note.
-- `<Category>/<topic-slug>/<topic-slug>.html` — one folder (and one file) per note. A note is its
-  own folder so it can bundle figures alongside the prose. The top-level `Category` is the field
-  the note belongs to: `Algebra`, `Control`, `Optimization`, `Robotics`, `Mathematics`,
-  `AI-ML`, or `Tools`.
+- `<Category>/<topic-slug>/` — one folder per note, so it can bundle figures alongside the prose.
+  The top-level `Category` is the field the note belongs to: `Algebra`, `Control`, `Optimization`,
+  `Robotics`, `Mathematics`, `AI-ML`, or `Tools`.
+- `<Category>/<topic-slug>/<topic-slug>.typ` and `<topic-slug>.pdf` — a new note: Typst source plus
+  the compiled PDF the site serves. `refs.bib` and `assets/` join them once the note cites a source
+  or includes an exported figure, and a `<topic-slug>-demo.html` sidecar is allowed only under the
+  simplicity ceiling in the skill.
+- `<Category>/<topic-slug>/<topic-slug>.html` — the repository's existing notes, hand-written HTML.
+  They stay as they are; new notes are not written this way.
 - `LICENSE` — the repository license.
 
 When adding a note, create it under the matching category folder (its own topic subfolder), then
@@ -30,13 +37,14 @@ add a matching `<a class="card" href="<Category>/...">` to `#grid` and set:
   counted in every class it lists in the Fields section.
 - `data-field` — a human-readable field label shown as the card footer and counted in the hero.
 - `data-tags` — a space-separated list of searchable tags, also rendered as pills on the card.
-  Cover field, subtopic, method, and relevant tools (e.g. `control riccati lqr schur qz
+  Cover field, subtopic, method, and relevant tools (e.g. `control riccati lqr schur
   numerical-methods`). The search box matches the title, description, and these tags, and a
   multi-word query must match every token.
 
-Keep every `href` pointing at a real note file so the grid never dangles. The search, filter,
-reading-time estimate, and stat counts are all driven by that grid, so keep the structure
-(`.card`, `data-category`, `data-field`) intact.
+Keep every `href` pointing at a real note file — a compiled `.pdf` for a new note, a `.html` for an
+existing one — so the grid never dangles. Publish one card per topic, and no card for a `summary.md`
+or a demo. The search, filter, reading-time estimate, and stat counts are all driven by that grid, so
+keep the structure (`.card`, `data-category`, `data-field`) intact.
 
 The hero stats (`#stat-notes`, `#stat-fields`) and the per-field counts in the section
 (`#cnt-algebra`, `#cnt-control`, `#cnt-optimization`, `#cnt-robotics`, `#cnt-math`, `#cnt-ai`,
@@ -45,28 +53,33 @@ class `soon` and be excluded from those counts.
 
 ## Note pages
 
-Notes follow a consistent academic style. Match the existing notes unless there's a reason not
-to change it for the whole series:
+New teaching notes are Typst, built from the skill's `typst-template/note.typ` on the `ilm` package
+template. Each is a question-led document with one numbered level-1 section per deep question, a
+`#question` callout opening every teaching section, `#figure` blocks, numbered display equations, and
+an 'Ilm cover page, contents page, and page-numbered footer. Teaching deep links are
+`<topic-slug>.pdf#page=N`, one section at a time, and the note itself stays answer-free: the expected
+insights live in `summary.md` and in chat, not in the document. Build from the repository root with
+`typst compile --root .` and ship a warning-free build. Do not write a new teaching page in HTML; a
+simple interactive demo is the only sanctioned exception.
+
+The existing HTML notes follow a consistent academic style. Match them when editing them, unless
+there's a reason to change it for the whole series:
 
 - Font: a serif stack such as `"Source Serif Pro", Georgia, "Times New Roman", serif`.
-- Palette: paper background `#fdfcf8`, amber/gold accent `#d4a72c`. Keep the serif/paper look
+- Palette: journal-style white background `#ffffff`, navy accent `#1f4e79`. Keep the serif/paper look
   distinct from the landing page.
 - Math: use the **same** renderer already used in the note being edited — KaTeX inlined or the
   MathJax CDN. Do not mix or drop it. If using MathJax, keep the `window.MathJax` config.
 - Displayed equations live in `.eq`; inline math uses the active renderer's syntax.
-- Short side notes use `.callout`, with `.takeaway` (green) and `.intuition` (blue) variants.
-- Figures are inline SVG inside a `.figure` block (with a `.figure-caption`). Keep diagrams
-  self-contained SVG, not external images.
+- Short side notes use `.callout`, with `.takeaway` (teal) and `.intuition` (blue) variants.
+- Figures live inside a `.figure` block (with a `.figure-caption`). Use inline SVG for diagrams
+  or an external asset when that is clearer.
 - A sticky table of contents uses `.toc`, with active-section highlighting.
 - Use `hr` as section dividers; keep the page responsive below ~700px.
 
-Every new teaching page is a Beamer-style deck built from `templates/beamer-deck.html`,
-and it is taught from the frames rather than in chat. A deck uses a fixed 1280x720 frame
-with tinted head and foot bands, `.block` boxes, and overlays, while keeping the same
-`.eq`, `.figure`, and `.callout` vocabulary as the list above; below ~700px its frames
-stack into readable pages. File a deck as `<Category>/<slug>/<slug>.html`, or
-`<Category>/<slug>/<slug>-deck.html` when a page already owns that name. The list above
-still governs the repository's existing long-form notes, which have no template file.
+Update one of those pages in place from the file itself; there is no HTML template file to copy any
+more. Long-form notes and legacy decks keep their current renderer and class names, and are never
+converted to Typst just to unify the series.
 
 ## Content principles
 
@@ -76,20 +89,27 @@ still governs the repository's existing long-form notes, which have no template 
 
 ## Housekeeping
 
-- Keep the repo statically servable by GitHub Pages. Commit only source HTML; generated/site
-  artifacts (`.gitignore` already covers `_site/`, `/vendor`, `Gemfile.lock`) should not be added.
+- Keep the repo statically servable by GitHub Pages. Commit source: HTML, Typst `.typ`,
+  `summary.md`, `refs.bib`, figures, demos, and the small scripts that reproduce on-page numbers.
+- Commit a note's compiled `.pdf` too. It is the artifact readers open, since Pages cannot run
+  Typst; it is not a disposable build dump. Keep out caches, downloaded papers, and generated
+  site artifacts (`.gitignore` already covers `_site/`, `/vendor`, `Gemfile.lock`).
 - The landing page is exempt from the note rules above; everything else should stay coherent with
   the existing patterns.
 
 ## Agent skills
 
 - `.agents/skills/` holds repo-local skills, checked in so they are available to any agent working
-  in this repository. `teach-an-engineer` is the one that matters here: it writes a new deck end to
-  end (audience calibration → research → frames → `summary.md` → landing-page card) and teaches one
-  section at a time from those frames, so the terminal carries a deep link and a question rather
-  than the lesson. It encodes the layout and style rules above. Its `references/repo-notes.md` is
-  the concrete checklist for where files go and how the card is registered, and
-  `templates/beamer-deck.html` is the skill's only page skeleton.
+  in this repository. `teach-an-engineer` is the one that matters here: it writes a new one-page
+  note end to end (audience calibration → research → question-led sections → `summary.md` →
+  landing-page card) and teaches one section at a time from the note's PDF page links, so the
+  terminal carries a deep link and a question rather than the lesson. It encodes the layout and
+  style rules above.
+  Its `references/repo-notes.md` is the concrete checklist for where files go, how the card is
+  registered, the simplicity ceiling for an interactive demo, and the commands that verify a build.
+  Its `typst-template/note.typ` is the default page shell and `typst-template/teaching.typ` the
+  shared partial, described by `templates/README.md`; `typst-template/ilm/` is the vendored
+  template whose own document lists the available options.
   Its research step cites papers through the `arxiv-mcp-server` and `paper-search-mcp` MCP servers
   rather than from memory -- see its `references/sources.md` -- records what each source grounds in
   the note's `summary.md`, and keeps downloaded PDFs out of the repo.

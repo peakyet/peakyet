@@ -36,8 +36,10 @@ an artificial failure. Resolve the puzzle instead of extending suspense for its 
 
 Question → reader attempts an answer from prior knowledge → assess exactly what the attempt
 misses → targeted hint, counterexample, derivation, source, or demo → reader revises → next
-question. The HTML carries only the question and the setup needed to attempt it. Intuition and
-the key idea are the agent's expected answer and grading guide, not content printed on the page.
+question. The note carries only the question and the setup needed to attempt it. Intuition and
+the key idea are the agent's expected answer and grading guide, not content printed in the
+document. The reader is sent to a section by its `<slug>.pdf#page=N` link with the question
+quoted in chat, because a PDF has no anchors to highlight and no controls to operate.
 A failed attempt or misconception is optional, not a required performance; offer hints rather
 than demand unaided invention. Include the complete question chain in the question-map pass, but
 do not research, prove, or answer every link before teaching. Keep the response focused on the
@@ -48,9 +50,17 @@ unexplained conclusion.
 
 For example, instead of asking “What is matrix-vector multiplication?”, ask:
 “If every vector is a combination of two basis vectors, what must a transformation
-preserve for their two images to determine every other image?” The page can show the
+preserve for their two images to determine every other image?” The note can show the
 basis images and the question; after the reader attempts an answer, the chat can supply
 the vector-combination picture and use it to repair the missing idea.
+
+When understanding really depends on moving a parameter and watching the consequence, the
+note may gain the simple sidecar demo described in [repo-notes.md](repo-notes.md): one small
+HTML file, a couple of native controls, nothing that needs a build step. It is an instrument
+the reader operates, not a figure that performs the conclusion, so the same answer-free rule
+applies to its labels and its readout. If the interaction is bigger than that ceiling, prefer
+a static figure generated from a script with the numbers quoted in chat, because a demo that
+costs effort to build is a demo that will not get maintained.
 
 ## First-party sources consulted
 
