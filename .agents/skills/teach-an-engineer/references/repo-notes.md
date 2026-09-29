@@ -157,7 +157,7 @@ computed numbers, or external sources to validate, so do not create checks merel
 look complete.
 
 ```sh
-cd /home/chun/work/peakyet                      # typst needs the repository root as cwd
+cd "<repository-root>"                          # typst needs the repository root as cwd
 T=<Category>/<slug>/<slug>.typ; P=${T%.typ}.pdf
 # The grep checks below pass when they print nothing, so their non-zero exit is expected.
 

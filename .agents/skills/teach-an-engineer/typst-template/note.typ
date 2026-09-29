@@ -37,7 +37,9 @@
 // here only when the note needs it (see typst-template/ilm/main.typ for the list).
 #show: note-ilm.with(
   title: [FILL: Note title],
-  authors: "Weifeng Zeng",
+  // The author is the model that wrote the note, never the repository owner. Set this
+  // to the current session's model slug; change it when another model writes a note.
+  authors: "Qwen3.8-Flash-Next",
   abstract: [
     FILL: one line naming the problem and the chain of questions the note will ask.
     A preview of the questions, never an answer to any of them.
