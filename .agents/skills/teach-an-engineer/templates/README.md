@@ -119,8 +119,8 @@ alike.
 - 'Ilm on A4 at 12pt: a cover page (title, authors, date, abstract), a contents page, one section
   per page, and a footer carrying the page number and the section name. The contents page replaces
   the old sticky table of contents, and `<slug>.pdf#page=N` replaces `#sN`.
-  The cover `authors` slot names the model that wrote the note -- the current session's model slug,
-  never the repository owner or any person's name.
+  The cover `authors` slot names the agent that wrote the note -- the tool driving the session
+  (Amp, Codex CLI, Claude Code, ...), never the repository owner or any person's name.
 - Level-1 headings are navy `#1f4e79` and numbered; body text is the serif face 'Ilm selects. Change
   only the 'Ilm options the note genuinely needs (`paper-size: "us-letter"`, a `preface`, an
   `appendix`, a quieter `footer`), and record the reason in `summary.md`.
