@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Study Notes — Math, Control Theory, AI, Code &amp; More</title>
-<meta name="description" content="A knowledge base of notes spanning mathematics, numerical linear algebra, control theory, optimization, robotics, AI, and programming.">
+<title>Study Notes — Applied Mathematics, One Question at a Time</title>
+<meta name="description" content="A personal knowledge base of applied mathematics: control theory, optimization, numerical linear algebra, robotics, and AI, written as question-led notes.">
 <style>
   :root{
     --bg:#f6f5f8;
@@ -281,7 +281,7 @@
       <a href="#notes">Notes</a>
       <a href="#fields">Fields</a>
       <a href="#about">About</a>
-      <a class="cta" href="https://github.com/" rel="noopener">GitHub</a>
+      <a class="cta" href="https://github.com/peakyet/peakyet" rel="noopener">GitHub</a>
     </div>
   </div>
 </nav>
@@ -291,8 +291,8 @@
   <span class="floating f2">λ = α/β</span>
   <div class="wrap">
     <div class="kicker"><span class="dot"></span> Study Notes</div>
-    <h1>A knowledge base across many fields</h1>
-    <p class="sub">Notes on mathematics, control theory, optimization, robotics, AI, programming, and whatever else finds its way in — written to be understood, not just recorded.</p>
+    <h1>Applied mathematics, one question at a time</h1>
+    <p class="sub">Question-led notes on control theory, optimization, numerical linear algebra, robotics and the mathematics underneath them — written to be understood, not just recorded.</p>
     <div class="actions">
       <a class="btn primary" href="#notes">Browse the notes</a>
       <a class="btn ghost" href="#fields">See the fields</a>
@@ -331,41 +331,45 @@
 
     <div class="grid" id="grid">
 
-      <a class="card" href="Control/qz-algebraic-riccati/qz-algebraic-riccati.html" data-category="control algebra" data-field="Numerical Linear Algebra" data-tags="control riccati lqr qz generalized-schur matrix-pencil deflating-subspace stabilizing-solution schur numerical-methods">
+      <a class="card" href="Algebra/qz-riccati/qz-riccati.pdf" data-category="algebra control" data-field="Numerical Linear Algebra" data-tags="linear-algebra generalized-schur qz-algorithm matrix-pencil deflating-subspace generalized-eigenvalue hessenberg riccati lqr care dare numerical-methods question-map">
         <div class="toprow">
-          <span class="tag amber">Riccati Solvers</span>
+          <span class="tag amber">Matrix Pencils</span>
           <span class="read"></span>
         </div>
-        <h3>The QZ Algorithm and the Algebraic Riccati Equation</h3>
-        <p>The discrete Riccati equation is quadratic in its unknown, so it has several answers, and an unstable plant forces you to pick the right one. Written as a matrix pencil, "which root?" becomes "which invariant plane?", and the generalized Schur decomposition computes that plane orthogonally. This note reads the gain off it, prices the whole procedure, and shows exactly where the guarantees run out.</p>
+        <h3>The Pencil Behind the Riccati Equation</h3>
+        <p>A quadratic matrix equation, two exact solutions, and a linear problem of twice the size that returns both &mdash; the generalized Schur decomposition. Why the graph of a solution is a deflating subspace, why a pencil is asked for instead of a matrix, what a QZ run hands back before any choice is made, what its sweeps preserve, what the stages cost, and where the guarantee stops. Answers are deliberately withheld &mdash; the note is the question map.</p>
         <div class="tags">
-          <span class="tag-pill">control</span>
-          <span class="tag-pill">riccati</span>
-          <span class="tag-pill">lqr</span>
-          <span class="tag-pill">qz</span>
+          <span class="tag-pill">linear-algebra</span>
           <span class="tag-pill">generalized-schur</span>
+          <span class="tag-pill">qz-algorithm</span>
           <span class="tag-pill">matrix-pencil</span>
           <span class="tag-pill">deflating-subspace</span>
-          <span class="tag-pill">stabilizing-solution</span>
-          <span class="tag-pill">schur</span>
+          <span class="tag-pill">generalized-eigenvalue</span>
+          <span class="tag-pill">hessenberg</span>
+          <span class="tag-pill">riccati</span>
+          <span class="tag-pill">lqr</span>
+          <span class="tag-pill">care</span>
+          <span class="tag-pill">dare</span>
           <span class="tag-pill">numerical-methods</span>
+          <span class="tag-pill">question-map</span>
         </div>
-        <span class="go">Read the note</span>
+        <span class="go">Read the note (PDF)</span>
         <span class="foot"><span class="field"><i></i>Numerical Linear Algebra</span></span>
       </a>
 
-      <a class="card" href="Control/sda-algebraic-riccati/sda-algebraic-riccati.html" data-category="control algebra" data-field="Numerical Linear Algebra" data-tags="control riccati lqr care sda doubling symplectic matrix-equation numerical-methods optimal-control cayley">
+      <a class="card" href="Control/sda-algebraic-riccati/sda-algebraic-riccati.pdf" data-category="control algebra" data-field="Numerical Linear Algebra" data-tags="control riccati lqr care dare sda doubling symplectic matrix-equation numerical-methods optimal-control cayley question-map">
         <div class="toprow">
           <span class="tag amber">Riccati Solvers</span>
           <span class="read"></span>
         </div>
-        <h3>The Structure-Preserving Doubling Algorithm and the Algebraic Riccati Equation</h3>
-        <p>A continuous-time Riccati equation, an unstable mode, and a question about rate: the obvious fixed-point iteration shrinks its error by a constant factor that the problem picks for you. Rewriting the plant with a Cayley shift and then squaring the equation turns that factor into sigma^(2^k), so the digits of the answer double at every step -- a handful of n-by-n solves instead of hundreds.</p>
+        <h3>Structure-Preserving Doubling for the Algebraic Riccati Equations</h3>
+        <p>Six questions about computing the one solution of a quadratic matrix equation that a controller uses, without an eigensolver. Why the two obvious iterations buy only a fixed number of digits per step, what identity lets a power-of-two partial sum be assembled from the one before it, why the update written only in the data leaves the solution put, how a continuous-time plant enters a discrete-time doubling, and what fails first when the shift is bad. Answers are deliberately withheld &mdash; the note is the question map.</p>
         <div class="tags">
           <span class="tag-pill">control</span>
           <span class="tag-pill">riccati</span>
           <span class="tag-pill">lqr</span>
           <span class="tag-pill">care</span>
+          <span class="tag-pill">dare</span>
           <span class="tag-pill">sda</span>
           <span class="tag-pill">doubling</span>
           <span class="tag-pill">symplectic</span>
@@ -373,9 +377,84 @@
           <span class="tag-pill">numerical-methods</span>
           <span class="tag-pill">optimal-control</span>
           <span class="tag-pill">cayley</span>
+          <span class="tag-pill">question-map</span>
         </div>
-        <span class="go">Read the note</span>
+        <span class="go">Read the note (PDF)</span>
         <span class="foot"><span class="field"><i></i>Numerical Linear Algebra</span></span>
+      </a>
+
+      <a class="card" href="Control/symplectic-matrix/symplectic-matrix.pdf" data-category="control algebra" data-field="Control Theory" data-tags="control symplectic hamiltonian phase-space riccati lqr invariant-subspace eigenvalues structure-preserving numerical-methods optimal-control question-map">
+        <div class="toprow">
+          <span class="tag teal">Hamiltonian Systems</span>
+          <span class="read"></span>
+        </div>
+        <h3>Symplectic Matrices in Control</h3>
+        <p>One algebraic condition on a phase-space matrix &mdash; preserve the symplectic form &mdash; rigidifies a spectrum, forbids an undamped mechanical system from settling, and sits underneath the Riccati equation every LQR gain comes from. Six questions from zero, using a unit mass on a unit spring in phase space and then under an LQR cost. Answers are deliberately withheld &mdash; the note is the question map.</p>
+        <div class="tags">
+          <span class="tag-pill">control</span>
+          <span class="tag-pill">symplectic</span>
+          <span class="tag-pill">hamiltonian</span>
+          <span class="tag-pill">phase-space</span>
+          <span class="tag-pill">riccati</span>
+          <span class="tag-pill">lqr</span>
+          <span class="tag-pill">invariant-subspace</span>
+          <span class="tag-pill">eigenvalues</span>
+          <span class="tag-pill">structure-preserving</span>
+          <span class="tag-pill">numerical-methods</span>
+          <span class="tag-pill">optimal-control</span>
+          <span class="tag-pill">question-map</span>
+        </div>
+        <span class="go">Read the note (PDF)</span>
+        <span class="foot"><span class="field"><i></i>Control Theory</span></span>
+      </a>
+
+      <a class="card" href="Control/lmi-robust-control/lmi-robust-control.pdf" data-category="control optimization" data-field="Control Theory" data-tags="control lmi robust-control uncertainty lyapunov s-procedure multiplier semidefinite-programming d-scaling question-map">
+        <div class="toprow">
+          <span class="tag teal">Robust Control</span>
+          <span class="read"></span>
+        </div>
+        <h3>Linear Matrix Inequalities for Robust Control</h3>
+        <p>Six questions about certifying a plant whose matrices depend on an unknown bounded operator &mdash; what a certificate must quantify over, why no finite sample decides it, the multiplier that makes the "for all" constraint affine, and what changes when the uncertainty is structured. Answers are deliberately withheld &mdash; the note is the question map.</p>
+        <div class="tags">
+          <span class="tag-pill">control</span>
+          <span class="tag-pill">lmi</span>
+          <span class="tag-pill">robust-control</span>
+          <span class="tag-pill">uncertainty</span>
+          <span class="tag-pill">lyapunov</span>
+          <span class="tag-pill">s-procedure</span>
+          <span class="tag-pill">multiplier</span>
+          <span class="tag-pill">semidefinite-programming</span>
+          <span class="tag-pill">d-scaling</span>
+          <span class="tag-pill">question-map</span>
+        </div>
+        <span class="go">Read the note (PDF)</span>
+        <span class="foot"><span class="field"><i></i>Control Theory</span></span>
+      </a>
+
+      <a class="card" href="Control/tube-mpc/tube-mpc.pdf" data-category="control optimization" data-field="Control Theory" data-tags="control mpc model-predictive-control tube-mpc robust-control disturbance bounded-uncertainty invariance rpi constraint-tightening pontryagin recursive-feasibility question-map">
+        <div class="toprow">
+          <span class="tag amber">Tube MPC</span>
+          <span class="read"></span>
+        </div>
+        <h3>Tube Model Predictive Control</h3>
+        <p>Six questions about making a nominal MPC plan robust to a bounded disturbance &mdash; why the nominal plan guarantees nothing, what set keeps the deviation from drifting, how that set tightens the constraints, why feasibility survives, what sets the tube size, and what changes when the tube shape is chosen online. Answers are deliberately withheld &mdash; the note is the question map.</p>
+        <div class="tags">
+          <span class="tag-pill">control</span>
+          <span class="tag-pill">mpc</span>
+          <span class="tag-pill">model-predictive-control</span>
+          <span class="tag-pill">tube-mpc</span>
+          <span class="tag-pill">robust-control</span>
+          <span class="tag-pill">disturbance</span>
+          <span class="tag-pill">bounded-uncertainty</span>
+          <span class="tag-pill">invariance</span>
+          <span class="tag-pill">rpi</span>
+          <span class="tag-pill">constraint-tightening</span>
+          <span class="tag-pill">pontryagin</span>
+          <span class="tag-pill">recursive-feasibility</span>
+          <span class="tag-pill">question-map</span>
+        </div>
+        <span class="go">Read the note (PDF)</span>
+        <span class="foot"><span class="field"><i></i>Control Theory</span></span>
       </a>
 
       <a class="card" href="Control/h2-control/h2-control.html" data-category="control" data-field="Control Theory" data-tags="control h2 lqr optimal-control kalman state-space frequency lyapunov">
@@ -491,6 +570,30 @@
           <span class="tag-pill">bang-bang</span>
         </div>
         <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Control Theory</span></span>
+      </a>
+
+      <a class="card" href="Control/control-as-inference/control-as-inference.pdf" data-category="control ai" data-field="Control Theory" data-tags="control ai stochastic-optimal-control path-integral path-integral-control control-as-inference free-energy kl fokker-planck feynman-kac diffusion question-map">
+        <div class="toprow">
+          <span class="tag teal">Stochastic Control</span>
+          <span class="read"></span>
+        </div>
+        <h3>Control as Inference</h3>
+        <p>Six questions about planning with noisy trajectories instead of a nominal one &mdash; what a stochastic cost actually compares, the tilt that makes path weights computable, what the normalizer means, the change of variable that linearizes HJB, and which part of the weight makes Monte Carlo error grow with the horizon. Answers are deliberately withheld &mdash; the note is the question map.</p>
+        <div class="tags">
+          <span class="tag-pill">control</span>
+          <span class="tag-pill">ai</span>
+          <span class="tag-pill">stochastic-optimal-control</span>
+          <span class="tag-pill">path-integral</span>
+          <span class="tag-pill">control-as-inference</span>
+          <span class="tag-pill">free-energy</span>
+          <span class="tag-pill">kl</span>
+          <span class="tag-pill">fokker-planck</span>
+          <span class="tag-pill">feynman-kac</span>
+          <span class="tag-pill">diffusion</span>
+          <span class="tag-pill">question-map</span>
+        </div>
+        <span class="go">Read the note (PDF)</span>
         <span class="foot"><span class="field"><i></i>Control Theory</span></span>
       </a>
 
@@ -622,8 +725,6 @@
         <span class="go">Read the note</span>
         <span class="foot"><span class="field"><i></i>Optimization</span></span>
       </a>
-
-
 
       <a class="card" href="Optimization/snopt/snopt.html" data-category="optimization" data-field="Optimization" data-tags="optimization sqp nlp sparse constrained large-scale">
         <div class="toprow">
@@ -798,6 +899,29 @@
         <span class="foot"><span class="field"><i></i>Robotics</span></span>
       </a>
 
+      <a class="card" href="Robotics/lie-groups-state-estimation/lie-groups-state-estimation.pdf" data-category="robotics math" data-field="Robotics" data-tags="robotics lie-group lie-algebra manifold tangent-space exponential-map state-estimation eskf pose question-map">
+        <div class="toprow">
+          <span class="tag rose">Lie Groups</span>
+          <span class="read"></span>
+        </div>
+        <h3>Lie Groups for State Estimation in Robotics</h3>
+        <p>A robot's pose lives on a curved set, so averaging, subtracting and nudging it with vector arithmetic leave that set. Nine questions rebuild estimation on the manifold &mdash; the Lie algebra, the exp/log maps, the plus and minus operators, the adjoint, manifold Jacobians, covariance, and the error-state filter. Answers are deliberately withheld &mdash; the note is the question map.</p>
+        <div class="tags">
+          <span class="tag-pill">robotics</span>
+          <span class="tag-pill">lie-group</span>
+          <span class="tag-pill">lie-algebra</span>
+          <span class="tag-pill">manifold</span>
+          <span class="tag-pill">tangent-space</span>
+          <span class="tag-pill">exponential-map</span>
+          <span class="tag-pill">state-estimation</span>
+          <span class="tag-pill">eskf</span>
+          <span class="tag-pill">pose</span>
+          <span class="tag-pill">question-map</span>
+        </div>
+        <span class="go">Read the note (PDF)</span>
+        <span class="foot"><span class="field"><i></i>Robotics</span></span>
+      </a>
+
       <a class="card" href="Mathematics/ordinary-differential-equation/ordinary-differential-equation.html" data-category="math" data-field="Mathematics" data-tags="math ode differential-equation dynamics integration analysis">
         <div class="toprow">
           <span class="tag purple">ODE</span>
@@ -948,13 +1072,13 @@
       <div class="field" data-cat="algebra">
         <div class="ico" style="background:var(--amber-soft);color:var(--amber)">⬡</div>
         <h4>Algebra</h4>
-        <p>Numerical linear algebra and the matrix methods that sit underneath everything.</p>
+        <p>Matrix pencils, Schur and QZ forms, and the algebra underneath Riccati equations and structure-preserving solvers.</p>
         <div class="meta"><span class="num"><span id="cnt-algebra">0</span> notes</span><span class="status">● Live</span></div>
       </div>
       <div class="field" data-cat="control">
         <div class="ico" style="background:var(--teal-soft);color:var(--teal)">⎔</div>
         <h4>Control Theory</h4>
-        <p>Dynamics, feedback, identification, model-predictive and optimal control.</p>
+        <p>Feedback, identification, model-predictive, robust and stochastic optimal control.</p>
         <div class="meta"><span class="num"><span id="cnt-control">0</span> notes</span><span class="status">● Live</span></div>
       </div>
       <div class="field" data-cat="optimization">
@@ -966,25 +1090,25 @@
       <div class="field" data-cat="robotics">
         <div class="ico" style="background:var(--rose-soft);color:var(--rose)">⌁</div>
         <h4>Robotics</h4>
-        <p>Manipulation, motion planning, trajectory optimization and middleware.</p>
+        <p>Manipulation, motion planning, trajectory optimization, state estimation and middleware.</p>
         <div class="meta"><span class="num"><span id="cnt-robotics">0</span> notes</span><span class="status">● Live</span></div>
       </div>
       <div class="field" data-cat="math">
         <div class="ico" style="background:#e8eef7;color:#3f5f9a">∫</div>
         <h4>Mathematics</h4>
-        <p>ODEs, differential geometry, Lie theory and the analysis that underpins it.</p>
+        <p>ODEs, differential geometry, Lie theory, optimal transport and the analysis underneath.</p>
         <div class="meta"><span class="num"><span id="cnt-math">0</span> notes</span><span class="status">● Live</span></div>
       </div>
       <div class="field" data-cat="ai">
         <div class="ico" style="background:var(--accent-soft);color:var(--accent)">✦</div>
         <h4>AI &amp; ML</h4>
-        <p>From the math under the hood to the models that run on your GPU.</p>
+        <p>Diffusion models, variational inference, reinforcement learning and decision-making under uncertainty.</p>
         <div class="meta"><span class="num"><span id="cnt-ai">0</span> notes</span><span class="status">● Live</span></div>
       </div>
       <div class="field" data-cat="tools">
         <div class="ico" style="background:var(--teal-soft);color:var(--teal)">⌘</div>
         <h4>Programming &amp; Tools</h4>
-        <p>CLIs, languages and software craft that turn ideas into running code.</p>
+        <p>Computer algebra, languages and software craft that turn ideas into running code.</p>
         <div class="meta"><span class="num"><span id="cnt-tools">0</span> notes</span><span class="status">● Live</span></div>
       </div>
     </div>
@@ -996,8 +1120,10 @@
       <h3>What is this?</h3>
       <p>A personal, evolving knowledge base. The idea is to write down things the way I'd want them explained — with the motivation first, the reasoning laid out, and the details where they're actually needed.</p>
       <ul>
-        <li><strong>Breadth first.</strong> Notes span mathematics, control, optimization, robotics, AI, and code.</li>
+        <li><strong>Questions first.</strong> Each note is built around the questions it sets out to answer, and a new note is published as a question map before it is written up.</li>
         <li><strong>Intuition before formalism.</strong> Build the mental model, then nail the equations.</li>
+        <li><strong>Two formats.</strong> Recent notes are written in Typst and read as typeset PDFs, older ones are hand-written pages, and the grid above links both.</li>
+        <li><strong>Breadth is real.</strong> Control, optimization, numerical linear algebra, robotics, mathematics, AI, and tools.</li>
         <li><strong>Always growing.</strong> This is a living document, not a finished product.</li>
       </ul>
       <p>If something reads as unclear, it's probably a note that needs another pass — the gaps are as much part of the map as the notes themselves.</p>
@@ -1010,7 +1136,7 @@
   <div class="inner">
     <div>
       <div style="font-weight:800;color:var(--ink-2);margin-bottom:6px">Study Notes</div>
-      <div style="color:var(--soft);font-size:.9rem;max-width:280px">A knowledge base across many fields.</div>
+      <div style="color:var(--soft);font-size:.9rem;max-width:280px">Applied mathematics, one question at a time.</div>
     </div>
     <div class="cols">
       <div class="col">
@@ -1021,7 +1147,7 @@
       </div>
       <div class="col">
         <h5>Source</h5>
-        <a href="https://github.com/" rel="noopener">View on GitHub</a>
+        <a href="https://github.com/peakyet/peakyet" rel="noopener">View on GitHub</a>
         <a href="LICENSE">License</a>
       </div>
     </div>

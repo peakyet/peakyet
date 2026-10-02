@@ -359,6 +359,42 @@ print("  %d random problems, %s" % (24, "PASS" if not bad else "FAIL: %s" % bad[
 print("  self-test verdict:", "PASS" if not bad else "FAIL")
 R["selftest"] = "PASS" if not bad else "FAIL"
 
+# ================================================================ K. thresholds
+print()
+print("=" * 78)
+print("K.  Steps to a fixed relative error: the flow versus the plain recursion")
+print("=" * 78)
+# Re-run the flow on the transformed problem, recording the step count at which
+# each error threshold is first reached, and do the same for the plain recursion.
+targets = (4.0, 8.0, 12.0)                     # digits = -log10(relative error)
+def first_step(digit_series):
+    """Number of steps (1-based) at which each digit target is first reached."""
+    out = []
+    for t in targets:
+        out.append(next((i + 1 for i, d in enumerate(digit_series) if d >= t), None))
+    return out
+# flow: same RK4 as section E, on the continuous plant data (the Riccati flow is a
+# continuous-time object, so it integrates (A, G, Q), not the Cayley image).
+dtk, Tk = 0.02, 26.0
+Yk, tk, kk = zeros(2), 0.0, 0
+flow_digits = []
+while tk < Tk - 1e-12:
+    k1 = flow_rhs(Af, Gf, Qf, Yk)
+    k2 = flow_rhs(Af, Gf, Qf, ma(Yk, sc(k1, dtk / 2)))
+    k3 = flow_rhs(Af, Gf, Qf, ma(Yk, sc(k2, dtk / 2)))
+    k4 = flow_rhs(Af, Gf, Qf, ma(Yk, sc(k3, dtk)))
+    Yk = ma(Yk, sc(ma(ma(k1, sc(k2, 2)), ma(sc(k3, 2), k4)), dtk / 6))
+    tk += dtk; kk += 1
+    flow_digits.append(digits(Yk, Xf))
+rec_digits = [digits(fixed_point(A0, G0, Q0, j), Xf) for j in range(1, 40)]
+flow_steps, rec_steps = first_step(flow_digits), first_step(rec_digits)
+print("  target   | Riccati flow (RK4, dt=%.2f) | plain recursion" % dtk)
+for i, t in enumerate(targets):
+    print("  1e-%-3d   |        %5s steps        |     %3s steps" % (t, flow_steps[i], rec_steps[i]))
+print("  flow digits/step ~ %.4f ; recursion digits/step ~ %.3f (measured over the first 10 steps)"
+      % (flow_digits[-1] / len(flow_digits), (rec_digits[9] - rec_digits[0]) / 9))
+R["thresholds"] = dict(targets=targets, flow=flow_steps, recursion=rec_steps)
+
 if "--json" in sys.argv:
     print()
     print(json.dumps(R, indent=2, default=str))
