@@ -16,8 +16,9 @@
 // `#table`, and `#image("assets/<name>.svg")`. Note-local paths resolve against the
 // note, never with `../`, which would escape the project root.
 //
-// Nothing here prints an answer. The expected insight for each question lives in the
-// note's `summary.md`, not in the document.
+// Nothing here prints an answer. While a question is still open, its expected insight lives in
+// the note's `summary.md`, not in the document; once the reader closes that section, the note
+// carries the answer beneath the question and may use the callouts below.
 
 #import "@preview/ilm:2.1.1": *
 
@@ -61,8 +62,9 @@
 
 // The callout a teaching section opens with: one per teaching section, asking for a
 // mechanism, prediction, reason, transfer, or failure mode rather than a definition.
-// It stays answer-free. No `Intuition:`, `Takeaway:`, `Claim:`, or conclusion box
-// belongs in a question map.
+// While its section is open, nothing else in the section answers it. Once the reader
+// closes the section, the write-up follows below -- plain Typst, or an intuition/takeaway
+// callout if the note defines one.
 #let question(body) = block(
   inset: (x: 10pt, y: 8pt),
   stroke: (left: 3pt + rgb("#1f4e79")),

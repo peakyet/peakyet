@@ -1,0 +1,7 @@
+{
+  "$schema": "https://ampcode.com/cli-settings.schema.json",
+  "amp.tools.disable": [
+    "builtin:web_search",
+    "builtin:read_web_page"
+  ]
+}

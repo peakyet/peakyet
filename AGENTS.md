@@ -128,3 +128,7 @@ markup (`.callout` with its `.takeaway` and `.intuition` variants, `.eq`, `.figu
   the note's `summary.md`, and keeps downloaded PDFs out of the repo.
 - If the rules in this file and in that skill disagree, this file wins; update the skill rather than
   working around it.
+
+## Coding Environment
+
+- The python virtual environment is available by using 'uv'. You don't need to write any code by yourself if there exists some package. The needed package can be install in virtual environment after asking user and obtaining the approvement.
