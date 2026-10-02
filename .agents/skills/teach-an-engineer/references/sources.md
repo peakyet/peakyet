@@ -2,15 +2,15 @@
 
 ## When to research
 
-Do not perform a literature pass before teaching. Start with the question map and no
-external sources. Research only when a reader's answer, a request, or the expected insight
-needed to assess that answer requires external grounding. Research supports the assessment
-or follow-up; it does not go into the note as a revealed answer.
+Check the question's setup and grading guide before teaching. Use direct reasoning for routine
+mathematics; consult a source when an external claim or uncertainty needs grounding. Later,
+research only what the reader's response or requested explanation needs. Avoid a broad literature
+pass. Checking an answer privately does not require revealing it in an open section.
 
 Research when the claim depends on a named paper, book, technical blog, historical
 attribution, exact rate or number, disputed result, or current software behavior. Do not
-research routine algebra, calculus, definitions, a local derivation, or an idea the reader
-already understands.
+look up a source for routine algebra, calculus, or a derivation already settled by reasoning.
+The reader's confidence does not replace a check of a factual claim.
 
 ## Triage the claim
 
@@ -67,8 +67,9 @@ source, claim, or version changes, not merely because a new session began. Label
 further reading separately from sources actually consulted.
 
 If no source is adequate, qualify or remove the claim. If no external source has been
-consulted, say so explicitly rather than filling the section from memory. Record what a
-source grounds in `summary.md`; do not paste its conclusion into the question map.
+consulted, say so explicitly rather than filling the section from memory. Sources used only to
+check the grading guide stay in `summary.md` until the supported claim appears in the note.
+Cite setup facts immediately when needed; a citation in an open section must not reveal its answer.
 
 ## Keep the repository clean
 

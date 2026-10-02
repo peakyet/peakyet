@@ -1,16 +1,26 @@
 # Figures
 
-Figures are a primary teaching medium. Give each central idea one primary figure when a visual
-representation genuinely helps the reader inspect the mechanism or make a prediction; do not add
-several decorative variants just to satisfy a quota. Text around a figure motivates it and says what
-to inspect, while the expected answer stays out of the document.
+Figures are the default teaching medium, not an accessory. Show the idea before writing about it:
+give every central idea a primary figure when a visual representation can carry it, and keep prose
+for what the figure cannot say. Do not add several decorative variants just to satisfy a quota.
+Text around a figure motivates it and says what to inspect while its section is open; once the reader
+closes the section, the write-up's prose and captions may state the conclusion the figure supports.
+
+Choose the visual form first, then write the minimum prose around it:
+
+- Geometric, structural, or stateful idea -> a Typst drawing.
+- Comparison the reader should scan -> a `#table`.
+- Measured or dense curves -> a script in `scripts/` that generates one exported asset.
+- An idea the reader must operate to attempt the question -> the simple sidecar demo in
+  [repo-notes.md](repo-notes.md), filed with the question map.
 
 Build and verify figures with these rules (the surrounding contract is in
 [repo-notes.md](repo-notes.md)):
 
 - Wrap every figure as `#figure(caption: [...], <content>)`. Typst numbers it and owns the caption,
-  so the caption states what the figure shows or asks -- never the conclusion. `#figure` also carries
-  a `placement:` argument; leave figures in reading order so the section-to-page map stays honest.
+  so an open section's caption says what to inspect without revealing its answer; a closed
+  section's caption may explain the result. Leave figures in reading order using `placement:`
+  only when needed, so the section-to-page map stays honest.
 - Choose the representation that exposes the idea:
   - Typst's own drawing -- `line`, `curve`, `path`, `polygon`, `rect`, `circle`, `ellipse`, `arc`,
     `place`, `move` -- for geometry, state diagrams, axes, and annotated comparisons. Labels are

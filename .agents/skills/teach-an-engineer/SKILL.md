@@ -1,57 +1,80 @@
 ---
 name: teach-an-engineer
-description: "Teach an engineering topic through a section-by-section deep-question map in a one-page Typst note compiled to PDF. The note tests the reader's understanding without revealing the expected insight; deepen, research, or demonstrate only after the reader's answer requires it. Use for /teach-an-engineer, visual explanations, or requests to understand how something works in this knowledge base; not for ordinary prose-only answers."
+description: "Teaches engineering topics through guided questions and visual examples, recording explanations in a Typst/PDF note as sections close. Use for /teach-an-engineer or interactive teaching in this knowledge base; not for ordinary prose-only answers."
 ---
 
 # teach-an-engineer
 
-**Questions drive the lesson, and the note is a question map, not an answer key: every teaching section poses one deep, insight-testing question with only the setup needed to attempt it. Ask one section at a time, wait for the reader's answer, and never place the expected answer, solution path, or conclusion in the document.**
+Prepare → ask → assess → help → check understanding when needed → write up → continue.
 
-Assume an engineer new to the topic but comfortable with basic algebra and calculus. Adapt without a prerequisite interview. `AGENTS.md` takes precedence over this skill and its references.
+Assume an engineer new to the topic, comfortable with basic algebra and calculus. Adapt from their
+responses without a prerequisite interview. `AGENTS.md` takes precedence.
 
-A note is Typst on the `ilm` template, compiled to the PDF the site serves. Do not write a new teaching page in HTML; the only hand-written HTML a note may gain is the simple demo sidecar described in [repo notes](references/repo-notes.md), and the landing page stays HTML.
+## Note contract
 
-## Pass 1: publish the question map
+Publish one note with compact question sections, then add explanations as it is taught. An **open**
+section contains its question and only the example, assumptions, definitions, notation, and visual
+setup needed to attempt it; its expected answer stays in `summary.md`. A **closed** section keeps
+the question and gains the explanation beneath it. Close when the reader demonstrates the insight
+or requests an explanation or skips the exercise. Hints and prerequisite help may be given in chat
+while a section is open.
 
-- Read `AGENTS.md` and the [template router](templates/README.md) first; read [repo notes](references/repo-notes.md) when filing and verifying.
-- Copy [note.typ](typst-template/note.typ) to `<Category>/<slug>/<slug>.typ`. Read the copy once before filling it so you know which blocks exist; the shared partial, the `ilm` styling, the numbered-section contract, and the `#question` callout are fixed -- change content and uncommented optional blocks, never `teaching.typ` for one note's convenience.
-- Compile with `typst compile --root . <Category>/<slug>/<slug>.typ <Category>/<slug>/<slug>.pdf` from the repository root and keep the build warning-free.
-- Before teaching, write the shortest one-page note with one deep question per teaching section. Give the reader only the running example, facts, assumptions, definitions, and notation needed to attempt that question. Do not put the expected insight, explanation, solution, proof, method, result, conclusion, or leading hint in the document.
-- Make each question test understanding rather than recall or recognition. Ask for a mechanism, prediction, reason, transfer to a changed case, or failure mode; a reader should need the key idea or deep insight to answer it. Avoid yes/no, definition-only, or questions already answered by the setup.
-- Keep one running example. Let each question expose the next unresolved point in the chain, but do not display the answer that resolves the previous question. Setup may include approximate equations, objects, or a figure that presents the phenomenon to inspect; it must not state what the reader should conclude.
-- Do not research, build demos, or verify before the reader attempts the question. No intuition, takeaway, claim, proof, method-summary, worked-result, or overall-conclusion block belongs in the page. The Sources section may say that no external sources have been consulted yet; it must not reveal an expected answer.
-- File the `.typ`, the compiled `.pdf`, and the landing card immediately once the question map is usable. Fill [templates/summary.md](templates/summary.md) with the expected insight, likely misconception, assessment focus, unresolved claims, and route status for each question, plus the section-to-PDF-page map. These are teaching notes for the agent and must not be copied into the document.
+New notes use [note.typ](typst-template/note.typ) and compile to PDF; existing HTML notes keep their
+format and renderer. Preserve the shared styling. A simple HTML demo sidecar is allowed under the
+[repo notes](references/repo-notes.md) ceiling. Prefer a figure or table for geometric, structural,
+or comparative ideas; use prose for assumptions and what the visual cannot convey.
 
-## Ask and assess section by section
+## Prepare the question map
 
-The PDF is visible immediately, but it tests understanding rather than explaining the answer. Teach one connected question at a time from its section; keep chat to a deep link, the exact question, and the smallest clarification needed to attempt it.
+1. Read the [template router](templates/README.md) for a new note, or read the existing note in place.
+   Keep one running example and a connected chain of questions. Ask for a mechanism, prediction
+   with a reason, transfer, or failure mode rather than a definition or yes/no answer.
+2. Make every question attemptable with the stated background. Supply unfamiliar prerequisite
+   facts without giving away the target insight. Build the visual setup and any essential demo now;
+   keep captions and readouts consistent with the note contract.
+3. Check the setup and grading guide before teaching: reason through the answer, check any computed
+   numbers, and consult a source if an external claim or uncertainty requires it. Avoid a broad
+   literature pass. Use [sources.md](references/sources.md) for retrieval and attribution.
+4. Compile and inspect the map using the repo checks, then file the source, PDF, and one landing
+   card pointing at the real artifact. Fill [summary.md](templates/summary.md) with the question,
+   expected insight, likely misconception, and section-to-page map. The cover and contents are
+   additional pages; there is no one-page limit on the note.
 
-- Send the section's `<slug>.pdf#page=N` link from the handoff map, quote the question, then wait. Do not answer, hint, or expose the expected insight before the reader has attempted it.
-- If the reader demonstrates the expected insight, mark the section `skipped` or `closed` and move on without research, source checking, demonstration, or verification.
-- If the answer is partial, ask one narrower question about the missing distinction or give one hint. Deepen only if the reader still needs it.
-- If the answer reveals a misconception or a wrong mechanism, use a counterexample, prediction, or targeted question to expose the conflict before explaining. Give the expected insight only after the reader has had a real attempt, unless they explicitly ask to skip the exercise.
-- A request to explain, prove, source, illustrate, compute, or demonstrate deepens only the requested section and its immediate dependencies. Research and demos may be skipped entirely when the reader already has the idea.
+## Teach one section at a time
 
-## Research only what the response needs
+Send its `<slug>.pdf#page=N` link (or the existing HTML anchor), quote the question, link any demo,
+and wait. Keep each teaching turn focused on the current gap; use the note for longer derivations.
 
-- Keep the section question, expected insight, and the reader's attempt in view. Triage only the claim needed to assess the answer or prepare the smallest helpful follow-up; routine derivations, definitions, standard mathematical facts, and the reader's existing understanding need no external source.
-- Use one authoritative source for an attributed, historical, quoted, or borrowed result, and read the passage that directly supports the claim. Add a second source only when credible sources conflict, priority is disputed, or the claim is unusually consequential or current.
-- Use the `arxiv-mcp-server` and `paper-search-mcp` servers for scholarly discovery and metadata, not recalled citations. For software behavior, use official documentation. Follow [sources.md](references/sources.md) for retrieval, stopping, and attribution.
-- Stop once the exact sentence or equation is supported. Do not read whole papers, chase citation chains, or require an original plus a survey unless lineage or priority is the teaching point. Record what the source grounds in `summary.md`, and add the note's `refs.bib` entry only for a claim the document itself makes; the expected answer stays out of the document either way.
-- Metadata and abstracts may establish bibliographic facts or attribution, but not a detailed technical result. If support remains inadequate, qualify or remove the claim instead of searching indefinitely.
+- **Correct reasoning:** accept equivalent explanations, identify what the reader got right, and
+  close. Do not demand another demonstration when their answer already shows the mechanism.
+- **Partial answer:** acknowledge the correct part, then ask one narrower question or give a hint
+  about the missing distinction.
+- **Misconception:** use a small counterexample or prediction to expose the faulty assumption,
+  then help repair it. Do not prolong the puzzle after the conflict is clear.
+- **“I don't know how to start”:** treat this as diagnostic evidence. Supply the missing concept
+  or a small worked example, then ask the reader to complete or adapt it. Increase help if they
+  remain stuck; unaided invention is not a requirement.
+- **“Explain,” “show me how,” or “skip”:** explain directly and close the exercise. Record
+  `explained` separately from `demonstrated`; receiving an answer is not evidence of understanding.
 
-## Verify only what changed
+After help, when understanding remains uncertain, offer one short changed-case prediction or
+completion problem. Do not make it a gate for a reader who chose to skip. Later in the lesson,
+occasionally revisit an earlier idea without the answer visible; avoid testing every section again.
+Record useful evidence or an unresolved gap, not a transcript. See
+[teaching-patterns.md](references/teaching-patterns.md) for examples and pedagogical grounding.
 
-- Verify in service of the assessment: routine mathematics by direct reasoning; an external claim against its targeted passage; a computed number with one reproducible script run, using a second method only if results disagree or the claim is fragile; and a demo with one smoke test.
-- Every published revision passes the structural and rendering checks in [repo notes](references/repo-notes.md): a warning-free `typst compile`, no `FILL:` slots, one `#question` per teaching section, note-relative asset paths, and a refreshed section-to-PDF-page map whose pages are inspected as rendered images.
-- Check that the document remains answer-free: no intuition, takeaway, claim, solution, worked result, or concluding statement that would let the reader bypass the deep question.
-- A deepened section also runs only the checks relevant to what it added: the source passage, numeric script, demo, changed section page, or changed landing-card link. Do not repeat completed checks or re-verify a skipped section.
-- Disclose checks that could not run -- in particular a demo that no browser here could render. Do not build new verification infrastructure for routine page work.
+## Write up and deliver
 
-## Handoff and delivery
+On closing, add the mechanism, smallest checkable derivation, worked result, and any correction
+actually reached. Cite external claims where used. Recompile Typst notes and refresh the page map;
+update legacy HTML in place. Update the handoff's learning evidence and write-up status separately.
 
-- File the note, its compiled PDF, and the card using the repo notes, updating an existing page in place and keeping its format: a Typst note stays Typst, a legacy HTML note keeps its renderer and class names.
-- Keep `summary.md` short: stage, audience assumptions, question/expected-insight map with statuses and PDF page numbers, the demo path if any, current discussion point, running example, unresolved or research-needed claims, sources actually consulted, and checks actually performed.
-- Deliver the question-map PDF link and the current question's page link plus its question text. Keep research downloads and inspection artifacts out of the repository.
+Verify changed content before publishing: structural checks, warning-free compilation, rendered
+pages, quoted numbers and sources, changed links, and changed demo behavior as applicable. Follow
+the repo notes for commands; do not repeat unaffected checks or build new verification machinery.
+Check that open sections still satisfy the note contract, and disclose checks that could not run.
+
+Deliver the current section link and question, or its explanation link when closed. Keep the
+compiled PDF with its source, and keep research downloads and inspection artifacts out of commits.
 
 Topic: $ARGUMENTS

@@ -1,40 +1,21 @@
-// note.typ -- the default question-map shell for a teach-an-engineer note.
+// note.typ -- the default shell for a teach-an-engineer note.
 //
-// Copy this file to <Category>/<slug>/<slug>.typ and fill it in place; do not redesign
-// it. The 'Ilm template, the shared partial, and the two lines that wire them together
-// are fixed, so the import below needs no editing after the copy: the note sits exactly
-// two folders deep, and the repository-absolute path is what makes that true.
+// Copy to <Category>/<slug>/<slug>.typ. Teaching behavior: ../SKILL.md.
+// Filling and math syntax: ../templates/README.md. Checks: ../references/repo-notes.md.
 //
 //   cp .agents/skills/teach-an-engineer/typst-template/note.typ <Category>/<slug>/<slug>.typ
 //   typst compile --root . <Category>/<slug>/<slug>.typ <Category>/<slug>/<slug>.pdf
 //
-// Rules for filling it:
-//   - Replace every visible FILL: and act on every commented FILL: instruction.
-//   - One `= Title <sN>` teaching section per deep question, labelled s1, s2, ... in
-//     order. Keep headings plain text: the contents page and the section-to-PDF-page map
-//     both read them.
-//   - Each section opens with exactly one #question[...] and the prose under it supplies
-//     only the running example, facts, assumptions, definitions, and notation needed to
-//     attempt that question.
-//   - Never write the expected insight, explanation, solution, proof, method list,
-//     worked result, or conclusion in this file. Those go to summary.md.
-//   - Inline math is `$x_k$` with no inner spaces; a displayed equation is
-//     `$ ... $` with inner spaces and gets a number. Avoid `\[ ... \]`: it is verbatim
-//     math, and grouping like `x_{k+1}` does not parse there.
-//   - Note-local assets are relative to the note: `assets/<name>.svg`, `refs.bib`.
-//     Never `../`.
-//
-// This shell compiles as shipped: everything that needs a note-local file is commented,
-// so `typst compile --root . .agents/skills/teach-an-engineer/typst-template/note.typ
-// /tmp/shell.pdf` is a usable smoke test of the partial and the template.
+// Replace every FILL: and delete unused optional blocks. Keep only the questions needed,
+// with ordered <sN> labels and one #question per section. Add the answer on closing beneath
+// the question, then compile and refresh the handoff's page map. Preserve the import/preset.
+// This shell compiles as shipped; note-local assets remain commented until supplied.
 
 // `navy`, `teal`, and `gray` are the shared figure palette; drop them from the import if
 // the note ends up with no drawing or table of its own.
 #import "/.agents/skills/teach-an-engineer/typst-template/teaching.typ": note-ilm, question, navy, teal, gray
 
-// One deep question per teaching section; the page tests understanding, it does not
-// explain. `date` defaults to today and `paper-size` to A4 -- pass another 'Ilm option
-// here only when the note needs it (see typst-template/ilm/main.typ for the list).
+// `date` defaults to today and `paper-size` to A4. See ilm/main.typ for options.
 #show: note-ilm.with(
   title: [FILL: Note title],
   // The author is the agent that wrote the note, never the repository owner. Set this
@@ -56,28 +37,33 @@
 #question[FILL: ask for the mechanism, prediction, or reason that requires the key
   insight. Do not answer it here, and do not hint at the shape of the answer.]
 
-FILL: establish the running example with the facts, assumptions, definitions, and
-notation the reader needs to attempt the question. Do not state the expected answer.
+// On closing, add the explanation, derivation, and worked result beneath the question,
+// preserving the visual setup and definitions in a readable order.
 
-// A displayed equation may state the setup or the question. Label it when a later
-// section needs to point at it, then write #ref(<eq:setup>).
-//
-// $ x_(k+1) = "FILL"(x_k) $ <eq:setup>
-
-// A figure exposes a phenomenon, object, or contrast to interpret. The caption says what to
-// inspect, not what conclusion to draw. Prefer Typst's own vector drawing so labels stay
-// typeset; references/figures.md has a verified pattern with axes and two series.
+// Lead with the visual. A figure exposes a phenomenon, object, or contrast to interpret; the
+// caption says what to inspect, not what conclusion to draw. Prefer Typst's own vector drawing so
+// labels stay typeset; references/figures.md has a verified pattern with axes and two series.
 //
 // #figure(
 //   caption: [FILL: what to inspect or predict here.],
 //   image("assets/<name>.svg", width: 100%),
 // )
 
-// If this section needs a simple sidecar demo, name its path in monospace; the PDF
-// cannot link it reliably. Ceiling and checks: references/repo-notes.md.
+// If the question only becomes attemptable by moving a parameter, name the sidecar demo's path in
+// monospace -- the PDF cannot link it reliably. File the demo with this question map, not later.
+// Ceiling and checks: references/repo-notes.md.
 //
 // Open #raw("<slug>-demo.html") beside this note to move FILL and watch the same
 // quantity as it changes.
+
+FILL: keep prose to what the visual cannot say -- the running example, facts, assumptions,
+definitions, and notation the reader needs to attempt the question. Do not state the expected
+answer.
+
+// A displayed equation may state the setup or the question. Label it when a later
+// section needs to point at it, then write #ref(<eq:setup>).
+//
+// $ x_(k+1) = "FILL"(x_k) $ <eq:setup>
 
 // =============================== 2. NEED ==================================
 
@@ -113,11 +99,11 @@ supply the proof, claim, or conclusion.
 
 = FILL: what does the method produce? <s5>
 
-#question[FILL: ask what procedure follows and what the reader predicts it produces on
-  the running example. Do not list the procedure or its result.]
+#question[FILL: ask what procedure follows from the ideas already taught, or what the
+  reader predicts it produces on the running example.]
 
-FILL: specify the inputs, outputs, and stopping question only. Do not provide steps,
-computed values, or a worked result.
+FILL: specify inputs, outputs, and prerequisite facts needed to attempt the question.
+Keep this section's target insight out until it closes.
 
 // ============================== 6. LIMITS =================================
 
@@ -133,10 +119,12 @@ state where the guarantee ends or which alternative wins.
 
 = Sources and further reading
 
-// Truthful for the current stage. Before any research, say so; after research, list only
-// what was actually consulted, and never use a citation to disclose an expected answer.
+// Truthful for the current stage. Before any research, say so; once a section is written up and
+// cites a source, list only what was actually consulted. A citation in a still-open section must
+// not disclose that section's expected answer.
 
-FILL: no external sources have been consulted yet; this note makes no external claims.
+FILL: list sources used for claims in the note, or state truthfully that none were consulted.
+Sources used only to check the grading guide are recorded in summary.md until their claims appear here.
 
 // Suggested further reading stays separate and labelled as not consulted.
 //

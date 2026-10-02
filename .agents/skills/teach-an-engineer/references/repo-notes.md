@@ -76,41 +76,18 @@ Copy the shape of an existing card; the parts and their roles:
 
 ## Document contract
 
-New notes are Typst, built from `typst-template/note.typ` on the `ilm` template, and change only
-their content:
-
-- Build from the repository root, and ship a warning-free build:
-
-  ```sh
-  typst compile --root . <Category>/<slug>/<slug>.typ <Category>/<slug>/<slug>.pdf
-  ```
-
-  `--root .` is what makes the note's `#import "/.agents/skills/teach-an-engineer/typst-template/teaching.typ"`
-  resolve, so the import line is identical in every note at any depth. Note-local paths
-  (`assets/<name>.svg`, `refs.bib`) stay relative to the note; `../` escapes the project root.
-- One `= Title <sN>` level-1 heading per deep question, labelled `s1`, `s2`, ... in order, and one
-  `#question[...]` callout opening each teaching section. The setup under it carries only the
-  running example, facts, assumptions, definitions, and notation needed to attempt the question.
-- No intuition, takeaway, claim, proof, method-summary, worked-result, or conclusion block in a
-  question map. Those live in `summary.md` or in chat.
-- Displayed math is `$ ... $` with inner spaces and is numbered; inline math is `$x_k$` with no
-  inner spaces. Avoid `\[ ... \]` -- verbatim math, where `x_{k+1}` does not parse. Label an
-  equation `<eq:name>` when another section points at it with `#ref(<eq:name>)`.
-- Figures and tables are `#figure(...)` / `#table(...)`; see [figures.md](figures.md).
-- 'Ilm supplies the cover page, contents page, one section per page, and the page-numbered footer.
-  Pass another 'Ilm option only when the note needs it, and say why in `summary.md`.
-- Teaching deep links are `<slug>.pdf#page=N`, where `N` comes from the section-to-page map below.
-  Typst emits no named destinations, so `#page=` is the fragment that works; a PDF cannot reliably
-  carry a relative link out to a demo, so the note names the demo path in monospace instead.
-
-Math renderer: Typst's own. Legacy HTML notes keep KaTeX or MathJax; never mix the two on one page,
-and never "upgrade" an HTML note to Typst just to unify the series.
+Use [SKILL.md](../SKILL.md) for teaching behavior and open/closed content, and the
+[template router](../templates/README.md) for Typst layout, filling, and math syntax.
+Teaching links are `<slug>.pdf#page=N`, with `N` from the page map below. Name the demo path in
+monospace in the PDF and send a clickable demo link in chat; relative links out of PDFs are unreliable.
 
 ## Simple interactive demos
 
 A PDF cannot be poked at, so an interactive demonstration stays hand-written HTML. That is the one
-sanctioned exception to "do not create HTML to teach", and it is worth nothing unless a reader
-really has to move something to attempt the question. Ceiling, all of it required:
+sanctioned exception to "do not create HTML to teach". File it with the question map whenever a
+section's question only becomes attemptable by moving something, not only after the reader replies.
+It is worth nothing unless a reader really has to move something to attempt the question. Ceiling,
+all of it required:
 
 - Filed as `<Category>/<slug>/<slug>-demo.html`, one per note, second one only if the reader asks
   mid-session. Add no landing card; the note names it and `summary.md` records it.
@@ -122,51 +99,35 @@ really has to move something to attempt the question. Ceiling, all of it require
   a real `<label>`, plus one monospace numeric readout. Redraw on input; no animation loop,
   worker, `fetch`, or storage.
 - Journal styling only: serif stack, white background, navy `#1f4e79`. It is exempt from the Typst
-  contract above and from the landing page's rules, but not from the answer-free rule: labels and
-  any adjacent text say what to inspect, never what the sweep shows.
+  contract above and from the landing page's rules, but not from the open-section rule: while its
+  section is open, labels and any adjacent text say what to inspect, never what the sweep shows. Once
+  the section is written up, the prose around the demo may say what it shows.
 - When the idea needs more than that ceiling -- synchronized views, a legend, exported plots, 3D, a
   solver loop -- do not build it. Use a static generated figure plus a script in `scripts/`, or run
   the investigation in chat.
 
 ## summary.md
 
-Fill [../templates/summary.md](../templates/summary.md) rather than designing one. Keep a short
-handoff: stage, the `Artifact:` line naming the `.typ` and `.pdf`, audience assumptions, the
-question / expected-insight map with its `PDF page` column, the demo path when one exists, the
-current discussion point, the running example, unresolved or research-needed claims, sources
-actually consulted, and checks actually performed or unavailable. Record useful learning evidence
-without a transcript, mandatory explain-back, or prerequisite-status table. Follow
-[sources.md](sources.md) when a section is deepened and research is actually needed.
-
-The first artifact is a question map with the complete question chain and only the setup needed to
-attempt each question. File it, compile it, and add the landing card immediately; the card points
-at a real, readable PDF even though expected insights, proofs, citations, demos, and exact results
-stay in the handoff or chat. Mark the handoff `question map`, record expected insights, likely
-misconceptions, assessment focus, and precision-sensitive claims under the handoff headings, and
-deepen the response during teaching without researching ahead or writing the answer into the note.
-
-Refresh the section-to-page map after every compile: page numbers move when prose or figures are
-added, and a stale map sends the reader to the wrong page.
+Fill [../templates/summary.md](../templates/summary.md). Keep learning evidence separate from
+write-up status: an explained section is written up but does not imply demonstrated understanding.
+Refresh the section-to-page map after every compile; added prose or figures can move later sections.
 
 ## Verify
 
-Checks are proportional to the pass. Every published revision checks the structural contract,
-compiles clean, and inspects the rendered pages it changed. A deepened section checks only what it
-added; a skipped or unchanged section is not rechecked. The question-map pass has no scripts,
-computed numbers, or external sources to validate, so do not create checks merely to make the note
-look complete.
+Check the setup and grading guide before teaching. Every published revision compiles cleanly and
+checks changed content: structure, rendered pages, numbers, cited passages, links, and demo behavior
+as applicable. An explanation given after skipping still needs those checks. Do not repeat checks
+of unaffected content.
 
 ```sh
 cd "<repository-root>"                          # typst needs the repository root as cwd
 T=<Category>/<slug>/<slug>.typ; P=${T%.typ}.pdf
 # The grep checks below pass when they print nothing, so their non-zero exit is expected.
 
-# Structural contract: no leftover slots, one question box per teaching section,
-# no answer-revealing box, no upward paths.
+# Structural contract: no leftover slots, one question box per teaching section, no upward paths.
 grep -n 'FILL:' "$T"
-sections=$(grep -c '^= ' "$T"); boxes=$(grep -c '^#question\[' "$T")
-echo "sections=$sections boxes=$boxes"; test "$boxes" -eq $((sections - 1))   # -1 for Sources
-grep -nE '^#(takeaway|intuition|claim)' "$T"
+sections=$(grep -cE '^= .*<s[0-9]+>' "$T"); boxes=$(grep -c '^#question\[' "$T")
+echo "sections=$sections boxes=$boxes"; test "$boxes" -eq "$sections"
 grep -nE '"\.\./' "$T"
 
 # Build clean, then confirm the artifact exists.
@@ -184,7 +145,9 @@ pdftoppm -png -r 110 -f <page> -l <page> "$P" /tmp/<slug>-p && ls -l /tmp/<slug>
 Inspect every rasterized page that changed: heading and question box in place, math and figures
 laid out, nothing clipped or wider than the text column, and the footer page number agreeing with
 the map. The map is the Nth value for `<sN>`, so verify a section other than `s1` after any
-heading or prose change.
+heading or prose change when one exists. Review content against the handoff: open sections carry
+setup without their expected answer; written-up sections carry explanations. A global ban on
+intuition or takeaway callouts would incorrectly reject closed sections.
 
 For a demo, run its ceiling checks and then drive it:
 
@@ -204,12 +167,10 @@ print(f"{len(src.splitlines())} lines, {len(scripts)} inline script(s) parse")
 PY
 ```
 
-No browser is on `PATH` in this environment, so a demo's behavior is confirmed by opening it --
-`python3 -m http.server 8000` at the repository root and
-`http://localhost:8000/<Category>/<slug>/<slug>-demo.html` -- and moving each control. If no
-browser is available, record in `summary.md` that the demo was parse-checked but not rendered,
-instead of implying it was. Where a headless browser does exist, a screenshot of the demo page is
-the better check:
+Use an available browser to move each control and inspect the result. Serve with
+`python3 -m http.server 8000` at the repository root if needed. A screenshot alone does not test
+control behavior; inspect the capture as well. If no browser is available, record that the demo
+was parse-checked but not rendered. For example, where Firefox is installed:
 
 ```sh
 firefox --headless --screenshot=/tmp/<slug>-demo.png --window-size=1280,900 \
@@ -222,10 +183,10 @@ a re-render with `?v=$(date +%s)`. Use absolute paths and `ls` the output after 
 because a missing file is the only signal that a command did nothing. Disclose any check that could
 not run, and do not build new verification infrastructure for routine page work.
 
-For a deepened section, run only its relevant checks: confirm the exact passage for a sourced
-claim; one reproducible script for a computed number; the demo smoke test; a changed deep link or
-landing-card link. Keep the result in the assessment or handoff, and do not add the expected answer
-to the question map. Do not repeat a completed check, read a whole paper, or re-verify a claim
+For a section written up on closing, run only its relevant checks: the answer's rendered page, the
+refreshed section-to-page map, one reproducible script for any number it quotes, the exact passage
+for any claim it now cites, the demo smoke test, and a changed deep link or landing-card link. For a
+deepened section, the same. Do not repeat a completed check, read a whole paper, or re-verify a claim
 already supported unless the source, claim, or version changed.
 
 ## Legacy HTML notes
@@ -235,8 +196,10 @@ more. When asked to update one, work from the file itself and keep its contract:
 `#ffffff` with navy `#1f4e79`, a centered `h1` and italic `p.hero`, numbered `h2 id="sN"` sections
 divided by `hr`, `nav.toc` with its scroll-spy script, `.eq` for displayed math with the page's own
 renderer (`\( ... \)` inline, `\[ ... \]` displayed), `.figure` with `.figure-caption`, `.demo` for
-an interactive widget, and the responsive rules below ~700px. Legacy pages may use `Intuition:` and
-`Takeaway:` callouts; a question map may not.
+an interactive widget, and the responsive rules below ~700px. A legacy note is written up exactly as
+a Typst one is: the closed section keeps its `Question:` callout and gains the answer beneath it, in
+this page's own markup -- `.callout` (with its `.takeaway` and `.intuition` variants), `.eq`, and
+`.figure`. A still-open section uses only the plain `Question:` callout.
 
 Verify those pages the way they were built -- structural grep plus two renders:
 

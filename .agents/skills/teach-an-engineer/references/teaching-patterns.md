@@ -29,38 +29,32 @@ The linked video's public description grounds this summary, not a full-video ana
 
 **Adaptation:** invite a prediction and its reason, show the specific observation or
 counterexample it must explain, and identify exactly which assumption needs repair.
-If the prediction was right, ask why it works or where its validity ends; do not force
-an artificial failure. Resolve the puzzle instead of extending suspense for its own sake.
+If a correct prediction lacks reasoning, ask why it works or where its validity ends;
+otherwise accept it. Resolve the puzzle instead of extending suspense for its own sake.
 
-## Combined route, not a mandatory checklist
+## Guided discovery and later practice
 
-Question → reader attempts an answer from prior knowledge → assess exactly what the attempt
-misses → targeted hint, counterexample, derivation, source, or demo → reader revises → next
-question. The note carries only the question and the setup needed to attempt it. Intuition and
-the key idea are the agent's expected answer and grading guide, not content printed in the
-document. The reader is sent to a section by its `<slug>.pdf#page=N` link with the question
-quoted in chat, because a PDF has no anchors to highlight and no controls to operate.
-A failed attempt or misconception is optional, not a required performance; offer hints rather
-than demand unaided invention. Include the complete question chain in the question-map pass, but
-do not research, prove, or answer every link before teaching. Keep the response focused on the
-question that exposed the gap.
-After the reader has handled a question, the conversation can close it, vary one condition, or
-move to the next question. A surprising observation may appear as a question, not as an
-unexplained conclusion.
+Use the teaching loop in [SKILL.md](../SKILL.md). A failed attempt is optional; missing background
+calls for help, not repeated demands to invent the method. Accept an explanation request directly.
 
-For example, instead of asking “What is matrix-vector multiplication?”, ask:
-“If every vector is a combination of two basis vectors, what must a transformation
-preserve for their two images to determine every other image?” The note can show the
-basis images and the question; after the reader attempts an answer, the chat can supply
-the vector-combination picture and use it to repair the missing idea.
+For example, show two basis vectors and their images and ask: “What must a transformation
+preserve for those two images to determine every other image?” If the reader cannot start, work
+through how a sum is transformed, then ask them to complete the scalar-multiple case. If they ask
+for the explanation, provide it. When understanding is uncertain, change the transformation to
+an affine map and ask what extra information is needed. Later, ask them to reconstruct the basis
+argument without looking at the answer. These are possible follow-ups, not a mandatory sequence.
 
-When understanding really depends on moving a parameter and watching the consequence, the
-note may gain the simple sidecar demo described in [repo-notes.md](repo-notes.md): one small
-HTML file, a couple of native controls, nothing that needs a build step. It is an instrument
-the reader operates, not a figure that performs the conclusion, so the same answer-free rule
-applies to its labels and its readout. If the interaction is bigger than that ceiling, prefer
-a static figure generated from a script with the numbers quoted in chat, because a demo that
-costs effort to build is a demo that will not get maintained.
+The learning-science sources below motivate guidance and later retrieval. Their abstracts were
+consulted; they do not establish an ideal number of hints, a mastery threshold, or a fixed schedule:
+
+- Alfieri et al. (2011), [Does discovery-based instruction enhance learning?](https://doi.org/10.1037/a0021017):
+  two meta-analyses distinguish unassisted from assisted discovery. The reported results favor
+  explicit instruction over unassisted discovery, and assisted discovery over comparison
+  instruction. This supports scaffolding, feedback, and worked examples; effects vary by context.
+- Karpicke and Roediger (2008), [The critical importance of retrieval for learning](https://pubmed.ncbi.nlm.nih.gov/18276894/):
+  repeated retrieval after an initially correct answer improved delayed recall of vocabulary.
+  This motivates occasional later retrieval; it does not demonstrate engineering transfer or make
+  one correct response a general mastery criterion.
 
 ## First-party sources consulted
 
@@ -73,4 +67,4 @@ costs effort to build is a demo that will not get maintained.
 
 These sources ground this skill's pedagogy; they are not automatic citations for
 future notes. Cite sources relevant to a note's subject only when a section makes a claim
-that needs external grounding. An intuition pass may have no sources yet.
+that needs external grounding. A question map may need no external sources.
