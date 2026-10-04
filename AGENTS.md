@@ -54,24 +54,28 @@ class `soon` and be excluded from those counts.
 ## Note pages
 
 New teaching notes are Typst, built from the skill's `typst-template/note.typ` on the `ilm` package
-template. Each is a question-led document with one numbered level-1 section per deep question, a
-`#question` callout opening every teaching section, `#figure` blocks, numbered display equations, and
-an 'Ilm cover page, contents page, and page-numbered footer. Teaching deep links are
-`<topic-slug>.pdf#page=N`, one section at a time.
+template. A new note helps the reader reconstruct an idea: what problem prompted it, why its
+objects are useful, and how its essential formulas follow. Use a connected progression around a
+central question, with successive annotated pictures where they explain the mechanism. Sections
+have no prescribed count, beat sequence, or mandatory callout. A `#hook` is optional; a `#check`
+exercise is optional and always has its answer visibly below it. Numbered display equations, an
+'Ilm cover page, a contents page, and a page-numbered footer are shared with the rest of the site.
+Teaching deep links are `<topic-slug>.pdf#page=N`.
 
-A note is published first as a **question map** and then **written up as it is taught**. An *open*
-section carries only the running example, assumptions, definitions, notation, and visual setup
-needed to attempt its question. The moment the reader closes that section — they demonstrated the
-expected insight, requested an explanation, or asked to skip the exercise — its answer is written
-into that section of the note, in the note's own format: a Typst note gains the derivation and is
-recompiled to PDF, a legacy HTML note gains it in place with the page's own renderer and classes.
-The `#question` callout stays at the top of the section as its lead-in and the explanation follows
-it. A note therefore need not
-remain a question map; its finished state is an ordinary teaching note whose sections each open with
-the question they answer. Only an insight belonging to a section that is *still open* is kept out of
-the document, in `summary.md` and in chat. Build from the repository root with
-`typst compile --root .` and ship a warning-free build. Do not write a new teaching page in HTML; a
-simple interactive demo is the only sanctioned exception.
+Before producing the full note, explain its hardest conceptual bridge in a short visual sample
+and revise from the reader's feedback. This is feedback on the explanation, not a learner test or
+a separate outline-approval stage. If feedback is unavailable, retain the sample as a review draft
+and say that comprehension is unassessed; do not infer approval from silence. A request to write
+the full note directly overrides this discussion stage. Published notes contain complete
+explanations and visible answers; publication never depends on passing a quiz. Explain directly
+when help is requested, and revise published notes whenever the reader asks.
+
+This skill does not handle any existing question-led notes; they are older documents, edited only
+if a user asks for a change (their `#question` callout still renders because the shared
+`teaching.typ` keeps the function for backward compatibility).
+
+Build from the repository root with `typst compile --root .` and ship a warning-free build. Do not
+write a new teaching page in HTML; a simple interactive demo is the only sanctioned exception.
 
 The existing HTML notes follow a consistent academic style. Match them when editing them, unless
 there's a reason to change it for the whole series:
@@ -89,10 +93,8 @@ there's a reason to change it for the whole series:
 - Use `hr` as section dividers; keep the page responsive below ~700px.
 
 Update one of those pages in place from the file itself; there is no HTML template file to copy any
-more. Long-form notes and legacy decks keep their current renderer and class names, and are never
-converted to Typst just to unify the series. A legacy note is written up the same way a Typst one is:
-the closed section keeps its `Question:` callout and gains the answer below it, in this page's own
-markup (`.callout` with its `.takeaway` and `.intuition` variants, `.eq`, `.figure`).
+more. Long-form notes and old decks keep their current renderer and class names, and are never
+converted to Typst just to unify the series.
 
 ## Content principles
 
@@ -113,16 +115,19 @@ markup (`.callout` with its `.takeaway` and `.intuition` variants, `.eq`, `.figu
 ## Agent skills
 
 - `.agents/skills/` holds repo-local skills, checked in so they are available to any agent working
-  in this repository. `teach-an-engineer` writes one note with compact question sections, checks
-  the setup and grading guide, and teaches one section at a time from PDF page links. It adapts
-  hints and prerequisite help to the reader, answers explanation requests directly, and writes
-  each section up once it closes. Its `summary.md` separates learning evidence from write-up
-  status. It encodes the layout and style rules above.
+  in this repository. `teach-an-engineer` writes one note at a time: it establishes the learning
+  goal, verifies the mechanism, tests a visual explanation of the hardest bridge with the reader,
+  then writes and verifies the complete note. Its checks distinguish mathematical and visual
+  correctness from whether the explanation works for this reader.
+  It encodes the layout and style rules above. It handles only new notes; the already-published
+  question-led notes under `Control/` are not its concern (their `#question` callout is kept in
+  the shared `teaching.typ` purely so they still recompile).
   Its `references/repo-notes.md` is the concrete checklist for where files go, how the card is
   registered, the simplicity ceiling for an interactive demo, and the commands that verify a build.
   Its `typst-template/note.typ` is the default page shell and `typst-template/teaching.typ` the
-  shared partial, described by `templates/README.md`; `typst-template/ilm/` is the vendored
-  template whose own document lists the available options.
+  shared partial (exporting `note-ilm`, the `hook`/`check`/`question` callouts, and the palette),
+  described by `templates/README.md`; `typst-template/ilm/` is the vendored template whose own
+  document lists the available options.
   Its research step cites papers through the `arxiv-mcp-server` and `paper-search-mcp` MCP servers
   rather than from memory -- see its `references/sources.md` -- records what each source grounds in
   the note's `summary.md`, and keeps downloaded PDFs out of the repo.

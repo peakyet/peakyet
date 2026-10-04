@@ -2,10 +2,10 @@
 
 ## When to research
 
-Check the question's setup and grading guide before teaching. Use direct reasoning for routine
+Preflight the topic privately before writing anything: use direct reasoning for routine
 mathematics; consult a source when an external claim or uncertainty needs grounding. Later,
-research only what the reader's response or requested explanation needs. Avoid a broad literature
-pass. Checking an answer privately does not require revealing it in an open section.
+research only what the reader's feedback or a follow-up question needs. Avoid a broad literature
+pass.
 
 Research when the claim depends on a named paper, book, technical blog, historical
 attribution, exact rate or number, disputed result, or current software behavior. Do not
@@ -41,6 +41,10 @@ priority, or genuine risk, not for accumulating confidence.
 - Read only the deciding passage. If retrieval fails, try one authoritative alternative
   and then qualify or remove the claim; do not broaden the search indefinitely. Search
   snippets and abstracts are discovery aids, not evidence for a detailed proof.
+- For a borrowed construction, read its definitions, assumptions, and boundary conventions
+  as well as its formula. Check that the explanatory interpretation matches them. A citation
+  to correct update rules does not validate a claimed physical or geometric meaning. Derive
+  the promised mechanism in the explanation even when its result has been sourced.
 
 ## Stop and cite
 
@@ -67,9 +71,8 @@ source, claim, or version changes, not merely because a new session began. Label
 further reading separately from sources actually consulted.
 
 If no source is adequate, qualify or remove the claim. If no external source has been
-consulted, say so explicitly rather than filling the section from memory. Sources used only to
-check the grading guide stay in `summary.md` until the supported claim appears in the note.
-Cite setup facts immediately when needed; a citation in an open section must not reveal its answer.
+consulted, say so explicitly rather than filling the section from memory. Cite setup facts
+immediately where they are used.
 
 ## Keep the repository clean
 

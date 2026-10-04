@@ -1,80 +1,96 @@
 ---
 name: teach-an-engineer
-description: "Teaches engineering topics through guided questions and visual examples, recording explanations in a Typst/PDF note as sections close. Use for /teach-an-engineer or interactive teaching in this knowledge base; not for ordinary prose-only answers."
+description: "Teaches engineering ideas through reconstructible visual explanations, sample feedback, and complete Typst/PDF notes. Use for /teach-an-engineer or new teaching notes in this knowledge base; not for ordinary prose-only answers."
 ---
 
 # teach-an-engineer
 
-Prepare → ask → assess → help → check understanding when needed → write up → continue.
+Help the reader reconstruct an idea: what problem prompted it, why its objects are useful,
+and how its essential formulas follow. Develop the explanation in the spirit of 3Blue1Brown's
+lessons, using pictures and examples to make the reasoning accessible. A polished document,
+a memorable metaphor, or correct numerical output does not establish understanding.
 
-Assume an engineer new to the topic, comfortable with basic algebra and calculus. Adapt from their
-responses without a prerequisite interview. `AGENTS.md` takes precedence.
+The reader is the repository owner. `AGENTS.md` takes precedence. Existing notes are revised
+only when requested; preserve their format and the shared callouts' compatibility.
 
-## Note contract
+## Establish the goal and verify the mechanism
 
-Publish one note with compact question sections, then add explanations as it is taught. An **open**
-section contains its question and only the example, assumptions, definitions, notation, and visual
-setup needed to attempt it; its expected answer stays in `summary.md`. A **closed** section keeps
-the question and gains the explanation beneath it. Close when the reader demonstrates the insight
-or requests an explanation or skips the exercise. Hints and prerequisite help may be given in chat
-while a section is open.
+1. Use the request and available context to establish what the reader wants to reconstruct.
+   Ask at most a couple of relevant questions when necessary. Familiar terminology is not
+   evidence of a familiar mechanism. Rebuild a missing prerequisite where it is needed;
+   do not conduct a prerequisite interview or require unaided discovery.
+2. Privately work the essential derivation through before designing its story. Give each
+   quantity a precise meaning, with assumptions and boundary or initial conditions. Check
+   a small example and a case that could expose a wrong interpretation. For numerical
+   work, retain the reproducing script. Source technical claims as needed using
+   [sources.md](references/sources.md); do not replace an explanation with a citation.
+3. Choose the smallest example that preserves the mechanism. A scalar example may establish
+   meaning, but verify its extension to matrices or general objects: scalar commutativity,
+   a special symmetry, or a convenient boundary must not hide the difficult step. Mark
+   approximations and scope limits honestly.
+4. Sketch a connected progression around one central question. Identify the hardest bridge:
+   the step where the reader must adopt a new representation, understand a construction,
+   or connect the picture to the essential algebra. Plan how to explain that step before
+   committing to a full note. Craft guidance: [teaching-patterns.md](references/teaching-patterns.md).
 
-New notes use [note.typ](typst-template/note.typ) and compile to PDF; existing HTML notes keep their
-format and renderer. Preserve the shared styling. A simple HTML demo sidecar is allowed under the
-[repo notes](references/repo-notes.md) ceiling. Prefer a figure or table for geometric, structural,
-or comparative ideas; use prose for assumptions and what the visual cannot convey.
+## Explain the hardest bridge first
 
-## Prepare the question map
+Produce a short, complete visual sample of that bridge, including the local prerequisites
+that make it understandable. Give answers and reasoning directly. Use successive annotated
+pictures when they carry the argument; a static result diagram with a persuasive caption
+is insufficient. See [figures.md](references/figures.md).
 
-1. Read the [template router](templates/README.md) for a new note, or read the existing note in place.
-   Keep one running example and a connected chain of questions. Ask for a mechanism, prediction
-   with a reason, transfer, or failure mode rather than a definition or yes/no answer.
-2. Make every question attemptable with the stated background. Supply unfamiliar prerequisite
-   facts without giving away the target insight. Build the visual setup and any essential demo now;
-   keep captions and readouts consistent with the note contract.
-3. Check the setup and grading guide before teaching: reason through the answer, check any computed
-   numbers, and consult a source if an external claim or uncertainty requires it. Avoid a broad
-   literature pass. Use [sources.md](references/sources.md) for retrieval and attribution.
-4. Compile and inspect the map using the repo checks, then file the source, PDF, and one landing
-   card pointing at the real artifact. Fill [summary.md](templates/summary.md) with the question,
-   expected insight, likely misconception, and section-to-page map. The cover and contents are
-   additional pages; there is no one-page limit on the note.
+Present the rendered sample and invite feedback on where the thread is lost. Revise the
+explanation there: a simpler representation, a missing intermediate step, or a better example
+may help more than additional prose. Do not merely repeat the same explanation more slowly.
+When the reader accepts the approach, proceed to the complete note; there is no separate
+outline-approval ceremony or quiz gate. A request to write the full note directly overrides
+this sample discussion. If feedback is unavailable, deliver a review draft and report
+comprehension as unassessed; silence is not approval.
 
-## Teach one section at a time
+The sample is a draft, not a partially published lesson: keep it in review artifacts rather
+than replacing an existing note or adding a landing-page card. Follow the environment's
+artifact location; in this workspace use `.amp/in/artifacts/` with `/.amp/in/` locally excluded.
 
-Send its `<slug>.pdf#page=N` link (or the existing HTML anchor), quote the question, link any demo,
-and wait. Keep each teaching turn focused on the current gap; use the note for longer derivations.
+## Write the complete explanation
 
-- **Correct reasoning:** accept equivalent explanations, identify what the reader got right, and
-  close. Do not demand another demonstration when their answer already shows the mechanism.
-- **Partial answer:** acknowledge the correct part, then ask one narrower question or give a hint
-  about the missing distinction.
-- **Misconception:** use a small counterexample or prediction to expose the faulty assumption,
-  then help repair it. Do not prolong the puzzle after the conflict is clear.
-- **“I don't know how to start”:** treat this as diagnostic evidence. Supply the missing concept
-  or a small worked example, then ask the reader to complete or adapt it. Increase help if they
-  remain stuck; unaided invention is not a requirement.
-- **“Explain,” “show me how,” or “skip”:** explain directly and close the exercise. Record
-  `explained` separately from `demonstrated`; receiving an answer is not evidence of understanding.
+Use [note.typ](typst-template/note.typ) and the [template router](templates/README.md).
+Sections address obstacles to understanding. There is no required section count, beat sequence,
+opening callout, failed attempt, escalation, or closing tease.
 
-After help, when understanding remains uncertain, offer one short changed-case prediction or
-completion problem. Do not make it a gate for a reader who chose to skip. Later in the lesson,
-occasionally revisit an earlier idea without the answer visible; avoid testing every section again.
-Record useful evidence or an unresolved gap, not a transcript. See
-[teaching-patterns.md](references/teaching-patterns.md) for examples and pedagogical grounding.
+- Start from an understandable problem. A plausible attempt can expose why a new construction
+  helps, but do not manufacture a failure or claim the construction is the only possible choice.
+- Give objects meaning before relying on them. Explain what a symbol represents, what operation
+  it allows, and why it is useful here. Naming a matrix in one sentence is not explaining it.
+- Keep essential derivations in the main explanation. Explain each substantive transition in
+  the picture and algebra, at a pace suited to this reader. Do not substitute a citation,
+  "extra bookkeeping", or an exercise for a central step. Adjacent equations alone do not
+  explain their relationship. Rebuild prerequisites when that relationship needs them.
+- Preserve the example across views where useful. If the example or representation changes,
+  explicitly connect the old and new objects. Distinguish evidence on an example from a
+  general argument; verify the promoted argument independently.
+- Put secondary proofs and implementation details in optional extensions. Declare a prerequisite
+  result taken as given, but never move the promised mechanism outside the explanation.
+- Write conversationally and precisely. Spread new notation across the reasoning rather than
+  collecting definitions up front. A `#hook` is optional. A `#check` exercise is optional and
+  always has its answer visibly below it. Nothing in a published note is hidden or gated.
 
-## Write up and deliver
+## Review evidence and deliver
 
-On closing, add the mechanism, smallest checkable derivation, worked result, and any correction
-actually reached. Cite external claims where used. Recompile Typst notes and refresh the page map;
-update legacy HTML in place. Update the handoff's learning evidence and write-up status separately.
+Keep a small private review record: assumed starting knowledge, essential transitions, and the
+actual passage or figure explaining each transition. Read the draft through that chain. Check
+the mathematics, boundary cases, diagram coordinates, and exact displayed runnable snippets;
+a separate correct script cannot validate a broken code listing. Use the general review patterns
+in [teaching-patterns.md](references/teaching-patterns.md) to check that the review catches gaps.
 
-Verify changed content before publishing: structural checks, warning-free compilation, rendered
-pages, quoted numbers and sources, changed links, and changed demo behavior as applicable. Follow
-the repo notes for commands; do not repeat unaffected checks or build new verification machinery.
-Check that open sections still satisfy the note contract, and disclose checks that could not run.
+Compile warning-free, inspect rendered pages, and perform the applicable numerical, citation,
+link, and demo checks in [repo-notes.md](references/repo-notes.md). Checks establish artifact
+quality, not learner comprehension. Report the reader's feedback without claiming mastery
+from approval; if none has arrived, comprehension remains unassessed.
 
-Deliver the current section link and question, or its explanation link when closed. Keep the
-compiled PDF with its source, and keep research downloads and inspection artifacts out of commits.
+Fill [templates/summary.md](templates/summary.md) with scope, explanation progression, source
+support, checks, and the next revision. It is a production log, not a learner dossier; keep
+private review and conversational details out of public notes and summaries. Add a landing-page
+card only for a complete published note, and deliver PDF page links. Apply later feedback in place.
 
 Topic: $ARGUMENTS

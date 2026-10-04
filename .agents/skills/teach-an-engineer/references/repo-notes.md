@@ -6,10 +6,10 @@ authoritative; this file only restates it as steps. Read `AGENTS.md` too, becaus
 ## Tree
 
 ```text
-index.html                                      landing page: every note is a card in #grid
-<Category>/<topic-slug>/<topic-slug>.typ        the note source: one question-led section per deep question
+index.html                                      landing page: every published note is a card in #grid
+<Category>/<topic-slug>/<topic-slug>.typ        complete explanation, sections as the idea needs
 <Category>/<topic-slug>/<topic-slug>.pdf        the compiled note; this is what the card links to
-<Category>/<topic-slug>/summary.md              short teaching handoff, sources, current discussion point
+<Category>/<topic-slug>/summary.md              scope, explanation progression, sources, checks
 <Category>/<topic-slug>/refs.bib                bibliography, only once a claim needs grounding
 <Category>/<topic-slug>/assets/                 figures the note includes (never reached with ../)
 <Category>/<topic-slug>/<topic-slug>-demo.html  optional simple interactive sidecar
@@ -20,6 +20,11 @@ Copy `typst-template/note.typ` to the plain page name above and fill it in place
 the PDF beside it. A new topic owns that name. Publish exactly one card per topic, pointing at
 that topic's published file -- the `.pdf` for a Typst note, the `.html` for a legacy note -- so
 the grid counts topics rather than files.
+
+Keep sample explanations and private review evidence in the environment's review-artifact
+directory. In this workspace that is `.amp/in/artifacts/`, with `/.amp/in/` in the repository-local
+exclude file. Drafts have no card and do not replace an existing published note. A sample may
+contain a complete local derivation without being the complete promised topic.
 
 Treat any other layout as frozen. Notes already filed as `<slug>.html`, and deck-shaped files
 (`-deck` suffixes, frame or slide markup, `#/N` deep links), are legacy pages that keep their own
@@ -76,7 +81,7 @@ Copy the shape of an existing card; the parts and their roles:
 
 ## Document contract
 
-Use [SKILL.md](../SKILL.md) for teaching behavior and open/closed content, and the
+Use [SKILL.md](../SKILL.md) for the writing workflow, and the
 [template router](../templates/README.md) for Typst layout, filling, and math syntax.
 Teaching links are `<slug>.pdf#page=N`, with `N` from the page map below. Name the demo path in
 monospace in the PDF and send a clickable demo link in chat; relative links out of PDFs are unreliable.
@@ -84,9 +89,8 @@ monospace in the PDF and send a clickable demo link in chat; relative links out 
 ## Simple interactive demos
 
 A PDF cannot be poked at, so an interactive demonstration stays hand-written HTML. That is the one
-sanctioned exception to "do not create HTML to teach". File it with the question map whenever a
-section's question only becomes attemptable by moving something, not only after the reader replies.
-It is worth nothing unless a reader really has to move something to attempt the question. Ceiling,
+sanctioned exception to "do not create HTML to teach". Use successive static pictures by default;
+add a demo when manipulating an object materially helps explain the relationship. Ceiling,
 all of it required:
 
 - Filed as `<Category>/<slug>/<slug>-demo.html`, one per note, second one only if the reader asks
@@ -99,35 +103,41 @@ all of it required:
   a real `<label>`, plus one monospace numeric readout. Redraw on input; no animation loop,
   worker, `fetch`, or storage.
 - Journal styling only: serif stack, white background, navy `#1f4e79`. It is exempt from the Typst
-  contract above and from the landing page's rules, but not from the open-section rule: while its
-  section is open, labels and any adjacent text say what to inspect, never what the sweep shows. Once
-  the section is written up, the prose around the demo may say what it shows.
+  contract above and from the landing page's rules. The demo's labels and prose may state what
+  the reader will see, since nothing is hidden.
 - When the idea needs more than that ceiling -- synchronized views, a legend, exported plots, 3D, a
   solver loop -- do not build it. Use a static generated figure plus a script in `scripts/`, or run
   the investigation in chat.
 
 ## summary.md
 
-Fill [../templates/summary.md](../templates/summary.md). Keep learning evidence separate from
-write-up status: an explained section is written up but does not imply demonstrated understanding.
-Refresh the section-to-page map after every compile; added prose or figures can move later sections.
+Fill [../templates/summary.md](../templates/summary.md): scope, explanation progression, next
+revision, sources, and checks. It is a production log, not an understanding state or learner
+dossier. Keep the sample discussion and private review evidence in artifacts. Refresh the page
+column after every compile.
 
 ## Verify
 
-Check the setup and grading guide before teaching. Every published revision compiles cleanly and
-checks changed content: structure, rendered pages, numbers, cited passages, links, and demo behavior
-as applicable. An explanation given after skipping still needs those checks. Do not repeat checks
-of unaffected content.
+Before drafting a sample, check the mechanism, each quantity's meaning, assumptions, boundary
+conditions, and essential derivation. Choose a case where a plausible wrong implementation or
+interpretation would produce a different answer. Check extensions from scalar to matrix examples
+and distinguish example evidence from general proof. Inspect exact source passages supporting
+borrowed interpretations, not merely the final formulas.
+
+Before delivery, follow the private evidence chain from assumed start through each essential
+transition to its actual passage or figure. Confirm that the reader can follow the sequence
+without adopting unexplained machinery. Execute exact displayed runnable snippets, including
+initialization, stopping branches, and quoted outputs. A working helper script is insufficient
+when the published listing differs. Every delivered revision also checks applicable structure,
+rendered pages, numerical results, citations, and links. Do not repeat unaffected checks.
 
 ```sh
 cd "<repository-root>"                          # typst needs the repository root as cwd
 T=<Category>/<slug>/<slug>.typ; P=${T%.typ}.pdf
 # The grep checks below pass when they print nothing, so their non-zero exit is expected.
 
-# Structural contract: no leftover slots, one question box per teaching section, no upward paths.
+# Structural contract: no leftover slots or upward asset paths. Callouts are optional.
 grep -n 'FILL:' "$T"
-sections=$(grep -cE '^= .*<s[0-9]+>' "$T"); boxes=$(grep -c '^#question\[' "$T")
-echo "sections=$sections boxes=$boxes"; test "$boxes" -eq "$sections"
 grep -nE '"\.\./' "$T"
 
 # Build clean, then confirm the artifact exists.
@@ -142,12 +152,18 @@ pdftotext -f <page> -l <page> -layout "$P" - | head -3
 pdftoppm -png -r 110 -f <page> -l <page> "$P" /tmp/<slug>-p && ls -l /tmp/<slug>-p*.png
 ```
 
-Inspect every rasterized page that changed: heading and question box in place, math and figures
-laid out, nothing clipped or wider than the text column, and the footer page number agreeing with
-the map. The map is the Nth value for `<sN>`, so verify a section other than `s1` after any
-heading or prose change when one exists. Review content against the handoff: open sections carry
-setup without their expected answer; written-up sections carry explanations. A global ban on
-intuition or takeaway callouts would incorrectly reject closed sections.
+Inspect every changed rasterized page using a media viewer with an objective naming the expected
+result. Check sequential panels, mathematical coordinates, arrows and labels, readable equations,
+clipping, and footer/page-map agreement. The map is the Nth value for `<sN>` when all teaching
+sections use sequential labels and other numbered headings follow them; verify the actual heading
+page before sending its link. Optional `#check` exercises always have visible answers.
+
+For content review, verify the essential derivations and the correspondence between mathematical
+objects and pictures. A one-line introduction does not explain a quantity; an adjacent display
+does not justify its transition. Phrase searches and callout counts cannot certify coverage.
+Use the general review patterns in [teaching-patterns.md](teaching-patterns.md) to check for gaps.
+Technical checks establish artifact quality. Reader feedback establishes whether the explanation
+works for them; neither approval nor correct numerical output proves comprehension.
 
 For a demo, run its ceiling checks and then drive it:
 
@@ -183,11 +199,11 @@ a re-render with `?v=$(date +%s)`. Use absolute paths and `ls` the output after 
 because a missing file is the only signal that a command did nothing. Disclose any check that could
 not run, and do not build new verification infrastructure for routine page work.
 
-For a section written up on closing, run only its relevant checks: the answer's rendered page, the
-refreshed section-to-page map, one reproducible script for any number it quotes, the exact passage
-for any claim it now cites, the demo smoke test, and a changed deep link or landing-card link. For a
-deepened section, the same. Do not repeat a completed check, read a whole paper, or re-verify a claim
-already supported unless the source, claim, or version changed.
+When only part of a note changed, run only its relevant checks: the changed rendered page, the
+refreshed section-to-page map, one reproducible script for any quoted number, the exact passage
+for any newly cited claim, the demo smoke test, and any changed deep or landing-card link. Do not
+repeat a completed check, read a whole paper, or re-verify a claim already supported unless the
+source, claim, or version changed.
 
 ## Legacy HTML notes
 
@@ -196,10 +212,9 @@ more. When asked to update one, work from the file itself and keep its contract:
 `#ffffff` with navy `#1f4e79`, a centered `h1` and italic `p.hero`, numbered `h2 id="sN"` sections
 divided by `hr`, `nav.toc` with its scroll-spy script, `.eq` for displayed math with the page's own
 renderer (`\( ... \)` inline, `\[ ... \]` displayed), `.figure` with `.figure-caption`, `.demo` for
-an interactive widget, and the responsive rules below ~700px. A legacy note is written up exactly as
-a Typst one is: the closed section keeps its `Question:` callout and gains the answer beneath it, in
-this page's own markup -- `.callout` (with its `.takeaway` and `.intuition` variants), `.eq`, and
-`.figure`. A still-open section uses only the plain `Question:` callout.
+an interactive widget, and the responsive rules below ~700px. Their existing `Question:` callouts,
+`.callout` (with its `.takeaway` and `.intuition` variants), `.eq` blocks, and `.figure` blocks
+are part of their own markup -- edit them in place from the file's own conventions.
 
 Verify those pages the way they were built -- structural grep plus two renders:
 

@@ -10,15 +10,14 @@
 //
 //   typst compile --root . <Category>/<slug>/<slug>.typ <Category>/<slug>/<slug>.pdf
 //
-// This file exports the preset, the one callout, and the three palette colors below.
+// This file exports the preset, three callouts, and the three palette colors below.
 // Everything else a note needs is plain Typst:
 // `$ ... $` for math (no inner spaces inline, inner spaces to display it), `#figure`,
 // `#table`, and `#image("assets/<name>.svg")`. Note-local paths resolve against the
 // note, never with `../`, which would escape the project root.
 //
-// Nothing here prints an answer. While a question is still open, its expected insight lives in
-// the note's `summary.md`, not in the document; once the reader closes that section, the note
-// carries the answer beneath the question and may use the callouts below.
+// Published notes contain complete explanations. Callouts are optional: no section
+// needs a `#hook`, and an optional `#check` is always answered visibly below it.
 
 #import "@preview/ilm:2.1.1": *
 
@@ -60,14 +59,31 @@
   body
 }
 
-// The callout a teaching section opens with: one per teaching section, asking for a
-// mechanism, prediction, reason, transfer, or failure mode rather than a definition.
-// While its section is open, nothing else in the section answers it. Once the reader
-// closes the section, the write-up follows below -- plain Typst, or an intuition/takeaway
-// callout if the note defines one.
+// Compatibility: several already-published notes still open their sections with
+// `#question[...]`; recompiling any of them must still produce the same rendering, so
+// the function remains. New notes may use `#hook` when a callout helps.
 #let question(body) = block(
   inset: (x: 10pt, y: 8pt),
   stroke: (left: 3pt + rgb("#1f4e79")),
   fill: rgb("#f8fafc"),
   width: 100%,
 )[*Question:* #body]
+
+// An optional callout for a concrete question or phenomenon. The explanation gives
+// the answer in the prose that follows; no per-section callout count is required.
+#let hook(body) = block(
+  inset: (x: 10pt, y: 8pt),
+  stroke: (left: 3pt + rgb("#1f4e79")),
+  fill: rgb("#f8fafc"),
+  width: 100%,
+)[*Hook:* #body]
+
+// An optional transfer exercise ending a narrative section: one changed case or boundary
+// for the reader to try. Its short answer must always be written visibly below the
+// callout, in the prose that follows; the note never waits on the reader.
+#let check(body) = block(
+  inset: (x: 10pt, y: 8pt),
+  stroke: (left: 3pt + rgb("#0f766e")),
+  fill: rgb("#f5fbfa"),
+  width: 100%,
+)[*Try it:* #body]

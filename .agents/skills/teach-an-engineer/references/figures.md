@@ -1,25 +1,42 @@
 # Figures
 
-Figures are the default teaching medium, not an accessory. Show the idea before writing about it:
-give every central idea a primary figure when a visual representation can carry it, and keep prose
-for what the figure cannot say. Do not add several decorative variants just to satisfy a quota.
-Text around a figure motivates it and says what to inspect while its section is open; once the reader
-closes the section, the write-up's prose and captions may state the conclusion the figure supports.
+Use pictures to expose the operation or relationship the reader needs to understand. There is
+no quota: an equation, table, or short paragraph can be clearer when geometry adds nothing.
+A result plot demonstrates an outcome; it does not automatically explain the mechanism.
 
-Choose the visual form first, then write the minimum prose around it:
+## Turn movement into a readable sequence
+
+For a central visual bridge, show the relevant states before, during, and after the operation.
+These can be panels in one figure or successive figures. Keep axes, scale, labels, and object
+colors consistent; mark the change rather than requiring the reader to discover it in two
+unrelated drawings. Connect the changed part to the corresponding equation in nearby prose.
+When a representation changes, show the correspondence explicitly.
+
+State what arrows mean: transformed vectors, velocity, trajectory, or information flow.
+For instance, negative eigenvalues describe decay of a continuous-time flow but do not imply
+that multiplying by its generator contracts a vector. Show actual intermediate objects,
+not simply boxes whose labels repeat the algorithm's name. A caption may explain a conclusion,
+but the geometry and annotations must supply the relationship supporting it.
+
+Use a small demo only when manipulating the object materially helps; the existing ceiling
+in [repo-notes.md](repo-notes.md) still applies. Static sequences remain the default PDF medium.
+
+## Build
+
+Choose the representation that explains the relationship, then write the supporting prose:
 
 - Geometric, structural, or stateful idea -> a Typst drawing.
 - Comparison the reader should scan -> a `#table`.
 - Measured or dense curves -> a script in `scripts/` that generates one exported asset.
-- An idea the reader must operate to attempt the question -> the simple sidecar demo in
-  [repo-notes.md](repo-notes.md), filed with the question map.
+- An idea clarified by manipulating the object -> the simple sidecar demo in
+  [repo-notes.md](repo-notes.md), filed with the note itself.
 
 Build and verify figures with these rules (the surrounding contract is in
 [repo-notes.md](repo-notes.md)):
 
-- Wrap every figure as `#figure(caption: [...], <content>)`. Typst numbers it and owns the caption,
-  so an open section's caption says what to inspect without revealing its answer; a closed
-  section's caption may explain the result. Leave figures in reading order using `placement:`
+- Wrap every figure as `#figure(caption: [...], <content>)`. Typst numbers it and owns the caption:
+  the caption may state the result the figure supports, since nothing is hidden. Leave figures in
+  reading order using `placement:`
   only when needed, so the section-to-page map stays honest.
 - Choose the representation that exposes the idea:
   - Typst's own drawing -- `line`, `curve`, `path`, `polygon`, `rect`, `circle`, `ellipse`, `arc`,
@@ -89,9 +106,11 @@ numbers; this compiles clean on the preset and is the layout most teaching figur
 
 ## Verify
 
-Look at the rendered page rather than assuming it: recompile, rasterize the pages the figure sits
-on, and check that elements sit where they belong, nothing overlaps or clips, and every visible
-equation, axis, tick, label, and legend is correct. Fix problems instead of leaving them.
+First verify the mathematical geometry: points, slopes, scales, transformations, and labeled
+relationships must match the example's equations. Then recompile, rasterize the pages the figure
+sits on, and inspect with a media viewer using an objective naming the expected relationship.
+Check intermediate and final panels, not just the final result. Confirm that nothing overlaps
+or clips and each axis, tick, label, arrow, and legend has the correct meaning.
 
 ```sh
 typst compile --root . <Category>/<slug>/<slug>.typ <Category>/<slug>/<slug>.pdf

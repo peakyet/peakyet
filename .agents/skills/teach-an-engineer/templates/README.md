@@ -1,15 +1,17 @@
 # Templates
 
-Use this router when creating a Typst note. Teaching behavior and the open/closed section rule
-live in [SKILL.md](../SKILL.md); filing, demos, and verification commands live in
+Use this router when creating a Typst note. The writing workflow lives in
+[SKILL.md](../SKILL.md); filing, demos, and verification commands live in
 [repo-notes.md](../references/repo-notes.md).
 
 ## Files
 
-- `typst-template/note.typ` — copyable shell; also compiles as a smoke test.
-- `typst-template/teaching.typ` — shared 'Ilm preset, question callout, and navy/teal/gray palette.
+- `typst-template/note.typ` — minimal note shell; also compiles as a smoke test.
+- `typst-template/teaching.typ` — shared 'Ilm preset, `hook`/`check` callouts (plus a
+  `#question` kept unchanged for the already-published question-led notes), and the
+  navy/teal/gray palette.
 - `typst-template/ilm/main.typ` — documents the vendored template's options.
-- `templates/summary.md` — short handoff with grading guide, learning evidence, and page map.
+- `templates/summary.md` — the production summary for a note.
 
 Existing HTML notes are edited in place with their current renderer and classes.
 
@@ -26,16 +28,22 @@ Run from the repository root. The `/`-absolute import resolves against `--root .
 use `assets/<name>.svg` and `refs.bib`. Keep those paths relative to the note without `../`.
 
 - Replace all `FILL:` slots, including commented instructions; delete unused optional blocks.
-- Use one plain-text `= Title <sN>` heading and one opening `#question[...]` per teaching section.
-  Labels run `s1`, `s2`, … in order; renumber if sections change. The six shell sections are a
-  starting route: keep only the questions the topic needs.
-- Put the visual setup after the question; see [figures.md](../references/figures.md).
+- Use plain-text `= Title <sN>` headings. Labels run `s1`, `s2`, … in order; renumber if
+  sections change. Add, remove, or expand sections to explain the idea; there is no fixed count
+  or sequence of beats. The shell is a layout starting point, not a lesson outline.
+- A `#hook` callout is optional. A `#check` exercise is optional and always has its answer
+  visibly below it. The reasoning must be complete without either kind of callout.
+- Explain the hardest bridge in a review sample before producing the full note, following
+  [SKILL.md](../SKILL.md). No separate outline approval is required. Keep drafts outside the
+  topic's published path and landing grid until the complete note is ready.
+- Use successive annotated pictures when they explain the transformation; see
+  [figures.md](../references/figures.md). The review checks mathematical relationships as well
+  as appearance, including exact displayed runnable snippets.
 - Keep the import, preset, and shared styling. Change `teaching.typ` only for a series-wide change.
 - The cover's `authors` names the producing tool (Amp, Codex CLI, Claude Code, …).
 - Once needed, add `refs.bib`, enable `bibliography: bibliography("refs.bib")`, and cite with `@key`
   where the claim is used; see [sources.md](../references/sources.md). If none were consulted, say
-  so. If sources were consulted only for the grading guide, record them in the handoff and state
-  that distinction truthfully in the note until their supported claims appear there.
+  so.
 
 ## Typst math
 
@@ -64,9 +72,8 @@ symbols in the [Typst reference](https://typst.app/docs/reference/symbols/sym/).
 ## Layout and revision
 
 'Ilm supplies A4 at 12pt, a cover, contents, sections starting on new pages, and a footer with the
-page number and section name. Keep sections compact but allow a write-up to span pages. Headings
-are numbered and navy; body text is serif. Record any necessary preset option change in the handoff.
+page number and section name. Keep sections compact but allow prose and figures to span pages.
+Headings are numbered and navy; body text is serif. Record any preset change in the summary.
 
-On closing a section, keep its question and add the explanation beneath it. Compile without
-warnings, inspect changed pages, and refresh `summary.md`'s section-to-PDF-page map using the repo
-commands before sending another deep link.
+Revise in place after feedback, then compile without warnings, inspect changed pages, and refresh
+the summary's section-to-PDF-page map using the repo commands before sending another deep link.
