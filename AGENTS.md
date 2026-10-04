@@ -137,3 +137,7 @@ converted to Typst just to unify the series.
 ## Coding Environment
 
 - The python virtual environment is available by using 'uv'. You don't need to write any code by yourself if there exists some package. The needed package can be install in virtual environment after asking user and obtaining the approvement.
+
+## Tools
+
+- Use 'exa' or 'tavily' mcp to do web search and read page first instead of using the builtin tools.
