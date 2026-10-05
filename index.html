@@ -356,18 +356,20 @@
         <span class="foot"><span class="field"><i></i>Control Theory</span></span>
       </a>
 
-      <a class="card" href="Control/qz-riccati/qz-riccati.pdf" data-category="control algebra optimization" data-field="Control Theory" data-tags="control riccati lqr qz generalized-eigenvalue generalized-schur deflating-subspace hamiltonian pencil numerical-methods optimal-control">
+      <a class="card" href="Control/qz-riccati/qz-riccati.pdf" data-category="control algebra optimization" data-field="Control Theory" data-tags="control riccati lqr qz dare discrete-time generalized-eigenvalue generalized-schur deflating-subspace hamiltonian pencil numerical-methods optimal-control">
         <div class="toprow">
           <span class="tag amber">Numerical Control</span>
           <span class="read"></span>
         </div>
         <h3>Solving the Algebraic Riccati Equation with the QZ Algorithm</h3>
-        <p>A linear-quadratic regulator needs the stabilizing solution of an algebraic Riccati equation, and that solution is the graph of a stable invariant subspace. This note follows the route the libraries take: keep the plant and cost data unfactored in an extended Hamiltonian pencil, order it with the QZ algorithm, and read the solution off the stable deflating subspace. A unit mass on a unit spring with two cost knobs has a closed-form answer, so the note can measure what the pencil route buys, and where every route still inherits the Riccati equation's own conditioning.</p>
+        <p>A linear-quadratic regulator needs the stabilizing solution of an algebraic Riccati equation, and that solution is the graph of a stable invariant subspace. This note follows the route the libraries take: keep the plant and cost data unfactored in an extended Hamiltonian pencil, order it with the QZ algorithm, and read the solution off the stable deflating subspace. A unit mass on a unit spring with two cost knobs has a closed-form answer, so the note can measure what the pencil route buys, and where every route still inherits the Riccati equation's own conditioning. A closing section runs the same recipe on the discrete-time equation, where one block of the pencil changes and the half-plane becomes the unit circle.</p>
         <div class="tags">
           <span class="tag-pill">control</span>
           <span class="tag-pill">riccati</span>
           <span class="tag-pill">lqr</span>
           <span class="tag-pill">qz</span>
+          <span class="tag-pill">dare</span>
+          <span class="tag-pill">discrete-time</span>
           <span class="tag-pill">generalized-eigenvalue</span>
           <span class="tag-pill">generalized-schur</span>
           <span class="tag-pill">deflating-subspace</span>

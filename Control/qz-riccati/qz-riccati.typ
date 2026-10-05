@@ -3,8 +3,10 @@
 //
 // Every number quoted below is printed by scripts/verify_qz_riccati.m, which
 // also checks the closed forms, their residuals, the closed-loop spectra, and
-// the agreement of the three routes. Run it from the repository root with
+// the agreement of the three routes; section 6 and its figure and table come
+// from scripts/dare_sweeps.m. Run them from the repository root with
 //   octave --no-gui --quiet Control/qz-riccati/scripts/verify_qz_riccati.m
+//   octave --no-gui --quiet Control/qz-riccati/scripts/dare_sweeps.m
 
 #import "/.agents/skills/teach-an-engineer/typst-template/teaching.typ": note-ilm, check, navy, teal, gray
 
@@ -23,7 +25,9 @@
     with two cost knobs, each of which has a closed-form solution, so every route can be
     measured against an exact answer: the pencil route holds machine precision where the matrix
     route loses eight digits, and all routes inherit the same conditioning limit when an
-    eigenvalue approaches the imaginary axis.
+    eigenvalue approaches the imaginary axis. A closing section runs the same recipe on the
+    discrete-time equation, where one block of the pencil changes, the half-plane becomes the unit
+    circle, and the same code path solves it.
   ],
   bibliography: bibliography("refs.bib"),
 )
@@ -811,7 +815,192 @@ scipy's `solve_continuous_are` all call the same generalized Schur machinery. Th
 content is choosing the pencil and reading the deflating subspace; the QZ iteration itself is the
 one piece of this note one should *not* write by hand.
 
-= What this buys, and what it does not <s6>
+= Discrete time: the same recipe, a different pencil <s6>
+
+The discrete-time Riccati equation is not a different subject. It is the same deflating-subspace
+recipe with one block changed, and the changed block is where the difficulty of discrete time
+lives. The equation is
+
+$ A^T P A - P - A^T P B (R + B^T P B)^(-1) B^T P A + Q = 0, $ <eq:dare>
+
+with optimal input $u_k = -K x_k$, where $K = (R + B^T P B)^(-1) B^T P A$, and "stabilizing" now
+means that every eigenvalue of the closed loop $A - B K$ lies *inside the unit circle*. Two
+consequences drive everything below. First, the control cost moves with $P$: the $R^(-1)$ of
+#ref(<eq:care>) has become $(R + B^T P B)^(-1)$, so keeping $R$ as a block instead of forming its
+inverse is if anything more valuable here, and the extended pencil still does it. Second, "inside
+the unit circle" replaces "negative real part", so the selection rule becomes
+$abs(alpha) < abs(beta)$ in place of $"Re"(alpha \/ beta) < 0$.
+
+*The pencil.* Stack the state, its costate and the control as before. The two conditions are still
+the dynamics and the costate equation, but the costate advances by the same $A$ that the state
+does, so the identity block that sat beside $-A^T$ in #ref(<eq:pencil>) is gone:
+
+$ M - lambda N = mat(A, 0, B; -Q, I, 0; 0, 0, R) - lambda mat(I, 0, 0; 0, A^T, 0; 0, -B^T, 0). $ <eq:darepencil>
+
+Line that up with #ref(<eq:pencil>) and exactly one block differs: the $(2,2)$ entry of the second
+matrix is $A^T$ where the continuous pencil had $I$. That block is the whole difference, and it is
+also why the continuous reasoning does not transfer word for word -- there is no Hamiltonian
+half-plane to read the answer off any more, so the criterion has to come out of the pencil itself.
+
+*What the pencil's eigenvalues say.* Reading #ref(<eq:darepencil>) block row by block row, applied
+to a vector $(x, y, u)$, gives three conditions:
+
+$ A x + B u = lambda x, quad -Q x + y = lambda A^T y, quad R u = -lambda B^T y. $ <eq:dareblocks>
+
+The third of them is the one to look at: it forces $u = -lambda R^(-1) B^T y$, so the control
+coordinate of the pencil's stable eigenvector is *not* zero. The stable deflating subspace is
+spanned by
+
+$ mat(I_n; P; -lambda R^(-1) B^T P), $ <eq:darevec>
+
+and the deflation of #ref(<eq:deflate>) -- the same QR of the control block, done before anything
+is ordered -- removes that third slot, leaving the graph $[I_n; P]$. Written for the deflated pair
+$M_d - lambda N_d$, the invariance statement that remains is the discrete counterpart of
+#ref(<eq:graph>):
+
+$ M_d mat(I_n; P) = N_d mat(I_n; P)(A - B K). $ <eq:daregraph>
+
+#figure(
+  kind: "figure",
+  supplement: [Figure],
+  caption: [Why the discrete criterion is the unit circle, and what is read off. Left: the
+    eigenvalues of the deflated pencil for the double integrator below, drawn by
+    `scripts/dare_sweeps.m`; they come in reciprocal pairs about the unit circle, so selecting the
+    ones inside it is a complete rule, and each selected eigenvalue is exactly a closed-loop pole.
+    Right: the two eigenvector directions of the scalar pencil in the state plane. The stable
+    direction is the graph of $P$: its slope is the answer, and the dashed guides read that slope
+    off as $P = 2 + sqrt(5)$. The other direction is the unstable eigenvector, whose slope is the
+    other root's value $2 - sqrt(5)$.],
+  grid(columns: (1fr, 1fr), gutter: 0.8em,
+    [
+      #box(width: 100%, height: 4.7cm)[
+        #let r1 = 0.78cm
+        #let ca = 2.35cm
+        #let pa(re, im) = (ca + re * r1, ca - im * r1)
+        #let pi1 = pa(0.3780356, 0.1876951)
+        #let pi2 = pa(0.3780356, -0.1876951)
+        #let po1 = pa(2.1220301, 1.0538310)
+        #let po2 = pa(2.1220301, -1.0538310)
+        #place(top + left, dx: ca - r1, dy: ca - r1)[#circle(radius: r1, stroke: 0.7pt + gray, fill: none)]
+        #place(top + left)[#line(start: (0.25cm, ca), end: (4.45cm, ca), stroke: 0.5pt + gray)]
+        #place(top + left)[#line(start: (ca, 0.25cm), end: (ca, 4.45cm), stroke: 0.5pt + gray)]
+        #place(top + left, dx: po1.at(0), dy: po1.at(1))[#circle(radius: 1.7pt, fill: gray)]
+        #place(top + left, dx: po2.at(0), dy: po2.at(1))[#circle(radius: 1.7pt, fill: gray)]
+        #place(top + left, dx: pi1.at(0), dy: pi1.at(1))[#circle(radius: 1.7pt, fill: navy)]
+        #place(top + left, dx: pi2.at(0), dy: pi2.at(1))[#circle(radius: 1.7pt, fill: navy)]
+        #place(top + left)[#line(start: pi1, end: po1, stroke: (paint: gray, dash: "dashed", thickness: 0.5pt))]
+        #place(top + left)[#line(start: pi2, end: po2, stroke: (paint: gray, dash: "dashed", thickness: 0.5pt))]
+        #place(top + left, dx: 1.30cm, dy: 3.42cm)[#text(size: 8pt, fill: gray)[$abs(lambda) = 1$]]
+        #place(top + left, dx: 0.08cm, dy: 1.30cm)[#text(size: 8pt, fill: navy)[$0.3780 plus.minus 0.1877 i$]]
+        #place(top + left, dx: 2.70cm, dy: 0.32cm)[#text(size: 8pt, fill: gray)[$2.1220 plus.minus 1.0538 i$]]
+        #place(top + left, dx: 1.85cm, dy: 3.95cm)[#text(size: 8pt)[paired radii: $2.3692 times 0.4221 = 1$]]
+      ]
+    ],
+    [
+      #box(width: 100%, height: 4.7cm)[
+        #let sb = 0.34cm
+        #let ox = 1.05cm
+        #let oy = 3.85cm
+        #let pb(x1, x2) = (ox + x1 * sb, oy - x2 * sb)
+        #let apex = pb(1, 4.2360680)
+        #place(top + left)[#line(start: (0.35cm, oy), end: (4.45cm, oy), stroke: 0.5pt + gray)]
+        #place(top + left)[#line(start: (ox, 0.35cm), end: (ox, 4.45cm), stroke: 0.5pt + gray)]
+        #place(top + left)[#line(start: pb(-0.14, -0.5931), end: pb(1.0, 4.2360680), stroke: 1.2pt + navy)]
+        #place(top + left)[#line(start: pb(-1.55, 0.3659), end: pb(1.55, -0.3659), stroke: 1.2pt + gray)]
+        #place(top + left)[#line(start: apex, end: pb(1, 0), stroke: (paint: gray, dash: "dashed", thickness: 0.5pt))]
+        #place(top + left)[#line(start: apex, end: pb(0, 4.2360680), stroke: (paint: gray, dash: "dashed", thickness: 0.5pt))]
+        #place(top + left, dx: apex.at(0), dy: apex.at(1))[#circle(radius: 1.7pt, fill: navy)]
+        #place(top + left, dx: 1.28cm, dy: 3.95cm)[#text(size: 8pt)[$1$]]
+        #place(top + left, dx: 0.45cm, dy: 2.16cm)[#text(size: 8pt, fill: navy)[$P = 2 + sqrt(5)$]]
+        #place(top + left, dx: 1.78cm, dy: 4.02cm)[#text(size: 8pt, fill: gray)[$2 - sqrt(5)$]]
+        #place(top + left, dx: 2.10cm, dy: 4.32cm)[#text(size: 8pt)[$x_1$]]
+        #place(top + left, dx: 1.12cm, dy: 0.38cm)[#text(size: 8pt)[$x_2$]]
+      ]
+    ],
+  ),
+) <fig:recip>
+
+*One instance solved by hand.* For scalar data $a$, $b$, $q$, $r$ the three rows #ref(<eq:dareblocks>)
+are three scalar equations. With $x = 1$ they give the control coordinate and the graph slope, and
+then the condition that ties the two together:
+
+$ u = (lambda - a) \/ b, quad y = q \/ (1 - lambda a), quad r (lambda - a)(1 - lambda a) + lambda b^2 q = 0. $ <eq:darehand>
+
+For $a = 2$ and $b = q = r = 1$ the last line is $lambda^2 - 3 lambda + 1 = 0$, whose roots are
+$(3 plus.minus sqrt(5))\/2 = 2.6180339887$ and $0.3819660113$. Their product is $1$: this is the
+reciprocal pair of #ref(<fig:recip>), visible here as the palindromic coefficients of the
+quadratic. The stable root gives the answer,
+
+$ P = q \/ (1 - lambda a) = 1 \/ (sqrt(5) - 2) = 2 + sqrt(5) = 4.2360679775, $ <eq:dareclosed>
+
+and the ordered QZ route on #ref(<eq:darepencil>) returns the same number to every digit printed.
+The unstable root gives $y = 1\/(1 - 2(2.6180339887)) = 2 - sqrt(5)$, the other slope in
+#ref(<fig:recip>). Both rows the reader can check by hand reproduce the third one: $u = lambda - a =
+-1.6180340$ and $-lambda b y = -0.3819660 times 4.2360680 = -1.6180340$.
+
+#figure(
+  kind: "table",
+  supplement: [Table],
+  caption: [The pencil route for the discrete equation, from `scripts/dare_sweeps.m`. The residual
+    is the left side of #ref(<eq:dare>) at the computed $P$; the closed-loop radius is the largest
+    modulus of $A - B K$. The last row is the case the symplectic matrix cannot express: with $A$
+    singular there is no $A^(-1)$, yet the pencil is regular and the answer is exact.],
+  table(
+    columns: (auto, auto, auto, auto),
+    align: (left, left, right, left),
+    stroke: 0.4pt,
+    table.header([instance], [$P$ from the pencil], [residual], [cross-check]),
+    [scalar $a = 2$, $b = q = r = 1$],
+    [$2 + sqrt(5)$, exact],
+    [$0$],
+    [closed loop $2 - sqrt(5) = 0.3819660113$],
+    [double integrator, $A = mat(1, 1; 0, 1)$],
+    [$mat(2.9471, 2.3692; 2.3692, 4.6131)$],
+    [$9.3 times 10^(-15)$],
+    [radius $0.422082440385$; Riccati recursion agrees to $6.4 times 10^(-15)$; the symplectic matrix reproduces the pencil spectrum to $3.2 times 10^(-15)$],
+    [$A = mat(1, 1; 0, 0)$ singular],
+    [$mat(3, 2; 2, 3)$, exact],
+    [$1.9 times 10^(-15)$],
+    [radius $0.5$; $det A = 0$ so no $A^(-1)$, and the pencil is regular at 20 of 20 random probes],
+  ),
+) <fig:daretab>
+
+*No $A^(-1)$ needed.* The discrete Riccati equation is often introduced through the symplectic
+matrix
+
+$ S = mat(A + B R^(-1) B^T (A^T)^(-1) Q, -B R^(-1) B^T (A^T)^(-1); -(A^T)^(-1) Q, (A^T)^(-1)), $ <eq:sympl>
+
+whose blocks contain $(A^T)^(-1)$ and which therefore presupposes an invertible $A$.
+Where it exists it is genuinely symplectic -- the script measures
+$norm(S^T J S - J) = 0$ for the double integrator -- and its eigenvalues are the same $2n$ numbers
+as the deflated pencil's, to $3.2 times 10^(-15)$. But the pencil #ref(<eq:darepencil>) carries
+$A$ and $A^T$ as blocks and asks for no inverse, so it also covers the third row of
+#ref(<fig:daretab>): there $det A = 0$, $S$ cannot be written down at all, and the pencil returns
+$P = mat(3, 2; 2, 3)$ with a residual of $1.9 times 10^(-15)$ and a closed loop of radius $0.5$.
+This is the discrete echo of the deflation story of section 4: the formulation that keeps the data
+unfactored is the one that survives the edge cases.
+
+*Deflation, and eigenvalues at infinity.* The extended pencil has $m$ infinite eigenvalues coming
+from the control block -- one for each control -- and the deflation removes exactly those, which is
+what turns the pencil into the $2n times 2n$ pair $M_d - lambda N_d$ of #ref(<eq:daregraph>). A
+zero eigenvalue of $A$ brings its reciprocal, infinity, along with it -- that is the pairing of
+#ref(<fig:recip>) taken to its limit -- so the third row of #ref(<fig:daretab>) has two infinite
+eigenvalues where the first row has one, and the deflated $4 times 4$ pair keeps one of them. That
+costs nothing: an
+infinite pair has $beta = 0$, so it never satisfies $abs(alpha) < abs(beta)$ and is never selected
+-- the same harmless leftover as the $R = 0$ case of section 4.
+
+*The recipe, discrete.* Assemble #ref(<eq:darepencil>); balance it; deflate the control block by QR
+as in #ref(<eq:deflate>); run an ordered QZ with $abs(alpha) < abs(beta)$; set
+$P = U_(21) U_(11)^(-1)$ by substitution from the stable columns; symmetrize $P$ and check the
+antisymmetry defect. Steps and cost are those of the continuous recipe with one different sort key
+and one different block -- which is why a library routine needs no second algorithm for it. SciPy's
+`solve_discrete_are` is that recipe: it deflates "the pencil by the R column", calls `ordqz` with
+the sort key `iuc` ("inside the unit circle"), reads its answer by back-substitution from the
+leading block of the stable subspace, symmetrizes, and raises the same kind of `LinAlgError` when
+the pencil's eigenvalues come too close to the circle @scipy_dare.
+
+= What this buys, and what it does not <s7>
 
 *What it buys, stated so it can be checked.* For the running example with $Q = I$ and $R = rho$,
 forming $G = B R^(-1) B^T$ in double precision and running the ordered Schur route returns $P$
@@ -856,10 +1045,11 @@ solution is wanted to maximal accuracy, refine it by a Newton step, which Arnold
 the generalized problem @arnoldlaub1984generalized. Everything except the last solve is unitary,
 and the one matrix that must be inverted is the one the answer itself depends on.
 
-*What this note did not attempt.* The discrete-time equation (same deflating-subspace recipe with
-the symplectic pencil, and no $A^(-1)$), descriptor systems and the cross term $S$ (both are extra
-blocks in the same pencil), large sparse problems (a different class of methods), and error
-estimation for $P$ (SLICOT's `SB02RD` provides it; the defect of #ref(<fig:qzform>) is not it).
+*What this note did not attempt.* Descriptor systems and the cross term $S$ (both are extra blocks
+in the same pencil), large sparse problems (a different class of methods), and error estimation for
+$P$ (SLICOT's `SB02RD` provides it; the defect of #ref(<fig:qzform>) is not it). The discrete-time
+equation of section 6 is treated as a pencil and not as a system-theory subject: existence and
+uniqueness of its stabilizing solution, and the deadbeat case, are not developed.
 
 #figure(
   kind: "table",
@@ -881,7 +1071,7 @@ estimation for $P$ (SLICOT's `SB02RD` provides it; the defect of #ref(<fig:qzfor
   ),
 ) <fig:summary>
 
-= Sources and further reading <s7>
+= Sources and further reading <s8>
 
 The classical eigenvector route to #ref(<eq:elim>), the fragility of that basis, and the ordered
 Schur repair of section 2 are Laub's @laub1979schur; the same paper proves the symmetry of $P$ that
@@ -899,11 +1089,21 @@ and 5 -- the extended pencil with its $E$ and $S$ blocks, the deflation, `ordqz`
 left-half-plane sort, and the `LinAlgError` raised when the pencil's eigenvalues approach the axis
 -- is scipy's documentation and source @scipy_are, and the "standard eigenproblem if $G$ is given"
 statement is SLICOT's `SB02OD` documentation @slicot_sb02od. The structure-preserving alternative
-mentioned in section 6 is Benner, Mehrmann and Xu @benner1998numerically.
+mentioned in section 7 is Benner, Mehrmann and Xu @benner1998numerically. The discrete-time pencil
+of section 6, its reciprocal-pair spectrum and the graph property #ref(<eq:daregraph>) are the
+discrete-time specialization of Arnold and Laub's generalized framework for Riccati equations
+@arnoldlaub1984generalized; the deflation, the inside-the-circle sort `iuc`, the back-substitution
+from the leading block of the stable subspace, the symmetrization and the `LinAlgError` for
+eigenvalues near the circle are scipy's `solve_discrete_are` documentation and source @scipy_dare,
+and SLICOT's `SB02OD` documents the same continuous-or-discrete recipe @slicot_sb02od.
 
 Not consulted, and offered only as pointers for going further: Golub and Van Loan's *Matrix
 Computations* for the generalized Schur decomposition as textbook material, and the CAREX/DAREX
 benchmark collections (Abels and Benner, SLICOT working notes) for larger test problems.
 
 All quoted numbers come from `scripts/verify_qz_riccati.m`, which is also the check that the two
-closed forms of section 1 solve the Riccati equation for their own data.
+closed forms of section 1 solve the Riccati equation for their own data; section 6 and
+#ref(<fig:recip>) and #ref(<fig:daretab>) come from `scripts/dare_sweeps.m`, which solves the
+scalar instance twice, checks the double integrator against a Riccati recursion and against the
+symplectic matrix, and verifies the graph identity #ref(<eq:daregraph>) for both a nonsingular and a
+singular $A$.
