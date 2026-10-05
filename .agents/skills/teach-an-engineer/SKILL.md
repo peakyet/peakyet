@@ -30,15 +30,21 @@ only when requested; preserve their format and the shared callouts' compatibilit
    approximations and scope limits honestly.
 4. Sketch a connected progression around one central question. Identify the hardest bridge:
    the step where the reader must adopt a new representation, understand a construction,
-   or connect the picture to the essential algebra. Plan how to explain that step before
-   committing to a full note. Craft guidance: [teaching-patterns.md](references/teaching-patterns.md).
+   or connect the picture to the essential algebra. Actively design its visual explanation
+   before drafting the prose: what objects can the reader see, what operation changes them,
+   and what relationship should become visible? Read [figures.md](references/figures.md)
+   and build the simplest faithful construction; do not wait for the reader to request a figure.
+   Craft guidance: [teaching-patterns.md](references/teaching-patterns.md).
 
 ## Explain the hardest bridge first
 
 Produce a short, complete visual sample of that bridge, including the local prerequisites
-that make it understandable. Give answers and reasoning directly. Use successive annotated
-pictures when they carry the argument; a static result diagram with a persuasive caption
-is insufficient. See [figures.md](references/figures.md).
+that make it understandable. Give answers and reasoning directly. The default is an actual
+annotated construction showing successive states of the same objects, with the operation
+and its connection to the algebra explained beside it. Equations, numeric tables, and boxes
+named after algorithm stages alone do not fulfill this visual sample. If a faithful picture
+would obscure the bridge, explain that specific limitation and choose another inspectable
+representation. See [figures.md](references/figures.md).
 
 Present the rendered sample and invite feedback on where the thread is lost. Revise the
 explanation there: a simpler representation, a missing intermediate step, or a better example
@@ -62,6 +68,11 @@ opening callout, failed attempt, escalation, or closing tease.
   helps, but do not manufacture a failure or claim the construction is the only possible choice.
 - Give objects meaning before relying on them. Explain what a symbol represents, what operation
   it allows, and why it is useful here. Naming a matrix in one sentence is not explaining it.
+- Develop the main explanation through visual reasoning wherever it can expose a construction,
+  transformation, interaction, or dependency. Show the reader what happens before compressing
+  it into a formula. Carry the sample's visual method into the full note; do not revert to
+  prose and equation chains after the opening. Prefer annotated static sequences, and consider
+  the permitted small demo when manipulation reveals something those sequences cannot.
 - Keep essential derivations in the main explanation. Explain each substantive transition in
   the picture and algebra, at a pace suited to this reader. Do not substitute a citation,
   "extra bookkeeping", or an exercise for a central step. Adjacent equations alone do not
@@ -82,6 +93,10 @@ actual passage or figure explaining each transition. Read the draft through that
 the mathematics, boundary cases, diagram coordinates, and exact displayed runnable snippets;
 a separate correct script cannot validate a broken code listing. Use the general review patterns
 in [teaching-patterns.md](references/teaching-patterns.md) to check that the review catches gaps.
+For each central visual construction, inspect what the reader can infer from the depicted
+objects, changes, and annotations. A caption asserting the mechanism or a table of final
+numbers is insufficient. If an explainable operation remains only in prose, build the missing
+visual before delivery; where a visual would mislead, record the specific reason privately.
 
 Compile warning-free, inspect rendered pages, and perform the applicable numerical, citation,
 link, and demo checks in [repo-notes.md](references/repo-notes.md). Checks establish artifact

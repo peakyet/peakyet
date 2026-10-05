@@ -161,6 +161,11 @@ page before sending its link. Optional `#check` exercises always have visible an
 For content review, verify the essential derivations and the correspondence between mathematical
 objects and pictures. A one-line introduction does not explain a quantity; an adjacent display
 does not justify its transition. Phrase searches and callout counts cannot certify coverage.
+For each central construction or operation, identify the rendered visual that lets the reader
+inspect how it works. Check that its objects, intermediate changes, and annotations carry the
+reasoning; figure counts, numeric block tables, and captions alone do not establish this.
+Build a missing visual when it would expose the mechanism. If a visual would mislead, state
+the specific limitation in the private review and verify the alternative explanation.
 Use the general review patterns in [teaching-patterns.md](teaching-patterns.md) to check for gaps.
 Technical checks establish artifact quality. Reader feedback establishes whether the explanation
 works for them; neither approval nor correct numerical output proves comprehension.

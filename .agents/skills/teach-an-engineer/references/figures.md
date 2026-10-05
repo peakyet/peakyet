@@ -1,8 +1,29 @@
 # Figures
 
-Use pictures to expose the operation or relationship the reader needs to understand. There is
-no quota: an equation, table, or short paragraph can be clearer when geometry adds nothing.
+Actively build pictures that expose the operation or relationship the reader needs to understand.
+Design the central visual construction before writing its prose. There is no figure quota;
+coverage of the mechanism matters. Use equations, tables, or prose for steps where a picture
+adds nothing, but do not use that exception to skip a visual construction of the central bridge.
 A result plot demonstrates an outcome; it does not automatically explain the mechanism.
+
+## Choose a visual operation
+
+Ask what the reader should be able to watch or inspect, then draw that operation on the
+smallest faithful example. Start with visible objects, show the change, and connect it to
+the notation. Possible choices include:
+
+- A linear map: a vector or basis before and after the map, on shared axes.
+- A projection or constraint: a candidate, its projection, and the component removed.
+- Elimination or composition: connected quantities before solving the shared relation,
+  the substitution, and the remaining quantities afterwards.
+- An iterative procedure: successive states with the changed region highlighted and the
+  preserved relationship marked. Draw the action as well as recording its numeric values.
+
+Choose another representation when these do not fit. Abstract ideas can use annotated
+structural diagrams; geometry is not the only visual method. A table relabeled as a figure,
+a list of stage names, or a final numerical result does not by itself show an operation.
+If a faithful visual would mislead, identify the precise limitation in the private review
+and use the clearest inspectable construction available.
 
 ## Turn movement into a readable sequence
 
@@ -68,7 +89,8 @@ Build and verify figures with these rules (the surrounding contract is in
 ## A verified starting pattern
 
 Two annotated series over a shared axis, using the shell's import line. Copy the shape, not the
-numbers; this compiles clean on the preset and is the layout most teaching figures need.
+numbers; this compiles clean on the preset and is a starting point for curve comparisons.
+Use a different construction when the mechanism is geometric, structural, or procedural.
 
 ```typst
 #figure(
