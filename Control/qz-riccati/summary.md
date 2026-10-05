@@ -6,9 +6,10 @@ in `.amp/in/artifacts/qz-riccati-bridge-sample.pdf` and no reader feedback has a
 Comprehension is therefore **unassessed**.
 
 **Artifact:** `Control/qz-riccati/qz-riccati.typ`, compiled to
-`Control/qz-riccati/qz-riccati.pdf` (17 pages); `Control/qz-riccati/refs.bib`;
-`Control/qz-riccati/scripts/verify_qz_riccati.m` and
-`Control/qz-riccati/scripts/trace_qz_pencil.m` (Octave, standard library only); no demo — nothing
+`Control/qz-riccati/qz-riccati.pdf` (19 pages); `Control/qz-riccati/refs.bib`;
+`Control/qz-riccati/scripts/verify_qz_riccati.m`,
+`Control/qz-riccati/scripts/trace_qz_pencil.m` and
+`Control/qz-riccati/scripts/qz_sweeps.m` (Octave, standard library only); no demo — nothing
 here is clarified by a slider, and a pencil-block manipulator would exceed the demo ceiling in
 `references/repo-notes.md`. Cross-link used in the prose:
 `Control/symplectic-matrix/symplectic-matrix.pdf#page=6`.
@@ -36,8 +37,9 @@ one.
 | s3 | 8 | "Why not just build `H` and use that fix?" | Table 2 (`rho` values, both routes, including `rho = 0`) | Forming `G = B R^{-1} B^T` costs the digits of `1/rho`; the pencil holds machine precision; at `rho = 0` the matrix route has no value to compute |
 | s4 | 9 | New representation: an eigenvalue as a ratio `alpha/beta`, an eigenvector as a deflating subspace `M Z = N Z S` | Figure 2 (the two objects, blocks annotated by what each route inverts) and the QR deflation | The extended pencil keeps `B` and `R` as blocks; its finite eigenvalues are `H`'s; its stable deflating subspace is the graph of `P`; the control block is deflated before ordering |
 | s5 | 11 | QZ as an opaque library name | The iteration's three stages; Figure 3 (ordered generalized Schur form; partition of `Z`); Table 3, Figure 4 and Table 4 (the trace: pairs by stage, the ordered `S`, `T`, and `U11`, `U21`, `P` with the diagnostics); the defect table | Unitary `Q, Z` give triangular `(S, T)` with pairs `alpha/beta`; ordering selects `Re(alpha/beta) < 0`; `P = U21 U11^{-1}` by substitution; the defect is a tripwire, not a bound |
-| s6 | 14 | Believing QZ is a universal accuracy fix | The buy claim with its numbers; Table 5 (knob, what degrades, what limits) | The pencil holds `1e-15`-ish as `rho` falls; near-axis eigenvalues are a conditioning limit every route inherits; scipy refuses; structure-preserving methods are out of scope |
-| s7 | 16 | Where each claim comes from | Sources | (see below) |
+| s5, run | 13 | "What does the algorithm actually do?" — the stages stay prose | Table 5 (the recorded rotation sequence of the Hessenberg–triangular reduction); Figure 5 (the same reduction as four numeric panels, with the entries phase 2 removes shaded); Figure 6 (one exact QZ step on the `2 times 2` trailing pencil: the shift's eigenvector direction drawn in the plane, the two rotations, the triangular result, the ratios `2.000000` and `-1.000000`) | Each left rotation in the reduction fills exactly one entry of `B` below its diagonal and the paired right rotation removes it; the elementary step is the same right-then-left pair of rotations that orders the pencil, verified as an exact equivalence to `5.99e-16`; the implicit double-shift sweep between the two ends is deliberately not implemented |
+| s6 | 16 | Believing QZ is a universal accuracy fix | The buy claim with its numbers; Table 6 (knob, what degrades, what limits) | The pencil holds `1e-15`-ish as `rho` falls; near-axis eigenvalues are a conditioning limit every route inherits; scipy refuses; structure-preserving methods are out of scope |
+| s7 | 18 | Where each claim comes from | Sources | (see below) |
 
 ## Follow-ups
 
@@ -45,6 +47,13 @@ one.
   prose and carries the whole route written out for the running example (Table 3, Figure 4,
   Table 4), with its own companion script `scripts/trace_qz_pencil.m`; the section-to-page map and
   the figure and table numbers above were refreshed afterwards.
+- Added after the reader asked for the algorithm itself rather than prose: section 5 now also runs
+  the two ends of the machinery on real data — `scripts/qz_sweeps.m` records the
+  Hessenberg–triangular reduction rotation by rotation (Table 5, Figure 5) and performs one exact
+  `2 times 2` QZ step (Figure 6), and the note states plainly that the implicit double-shift sweep
+  between them is not implemented (Moler–Stewart / LAPACK `dhgeqz` own it). Open offer, not
+  authorized work: an interactive HTML stepper replayed from the recorded reduction states, or a
+  proper implicit bulge-chase implementation.
 - Next revision: reader feedback on the hardest bridge (the pencil and its deflating subspace). If
   the bridge does not land, the likely repairs are a worked `M Z = N Z S` line on the 2x2 Jordan
   toy, or printing one explicit `(alpha, beta)` pair from the running example.
@@ -78,11 +87,19 @@ collections, which are labelled there as not consulted.
 ## Checks and deviations
 
 - **Build** — `typst compile --root . Control/qz-riccati/qz-riccati.typ
-  Control/qz-riccati/qz-riccati.pdf` exits 0 with no warnings; 17 pages; section-to-page map
-  `3,5,8,9,11,14,16`.
+  Control/qz-riccati/qz-riccati.pdf` exits 0 with no warnings; 19 pages; section-to-page map
+  `3,5,8,9,11,16,18`.
 - **Structural** — no `FILL:` slots; no `"../` paths; every captioned figure carries an explicit
   `kind`/`supplement`, so numbering is consistent and non-colliding: Table 1, Figure 1, Table 2,
-  Figure 2, Figure 3, Table 3, Figure 4, Table 4, Table 5.
+  Figure 2, Figure 3, Table 3, Figure 4, Table 4, Table 5, Figure 5, Figure 6, Table 6.
+- **Sweep script** — `octave --no-gui --quiet Control/qz-riccati/scripts/qz_sweeps.m` prints every
+  number in Table 5, Figure 5 and Figure 6: the reduction's recorded fills (`0.0000`, `0.5774`,
+  `0.7071`), the final pair with `A` below-band `9.6e-17` and `B` `5.6e-17`, orthogonality
+  `4.51e-16` / `2.22e-16` and equivalence `4.84e-16` / `2.32e-16`; the `2 times 2` step with the
+  shift pair `(-0.894427, -0.447214)`, eigenvector angle `1.0560` rad, result below-diagonal
+  `2.2e-16` / `0.0`, reconstruction `5.99e-16` / `1.42e-16`, and ratios `2.000000`, `-1.000000`.
+  The script is deliberately limited to the reduction and the elementary step; the implicit
+  double-shift sweep is not implemented, and the note says so.
 - **Trace script** — `octave --no-gui --quiet Control/qz-riccati/scripts/trace_qz_pencil.m` prints
   the extended pencil, the pairs at each stage, the deflated pencil's conditioning, the ordered
   `S`, `T`, `U11`, `U21`, `P` and the diagnostics; every value in Tables 3 and 4 and in Figure 4 was
@@ -106,9 +123,9 @@ collections, which are labelled there as not consulted.
   6 finite, 0 infinite; finite eigenvalues agreeing to `8.0e-10` relative). That probe also
   corrected s4: the deflated pencil at `R = 0` keeps two infinite pairs rather than leaving the
   ordering problem with none.
-- **Rendered pages** — pages 3, 4, 5, 6, 9, 10, 11, 12 and 13 inspected as images (100-110 dpi),
-  and the figures rendered in isolation at 150 dpi and inspected; the remaining pages were checked
-  by their extracted text, their line counts and the column-overflow check below. Fixed during
+- **Rendered pages** — pages 3, 4, 5, 6, 9, 10, 11, 12, 13, 14 and 15 inspected as images
+  (100-110 dpi), and the figures rendered in isolation at 150 dpi and inspected; the remaining pages
+  were checked by their extracted text, their line counts and the column-overflow check below. Fixed during
   review: a stray comma that rendered above every caption (a `],` closing a content block inside
   markup); inline fractions replaced with `/` so the line spacing stopped blowing up; two tall
   inline block columns replaced with prose; Figure 1's log panel given a bottom tick label. After
@@ -118,7 +135,7 @@ collections, which are labelled there as not consulted.
   `pdftotext -bbox-layout`) takes the document's own word boxes to fix the text edges (70.9pt and
   526.6pt across the A4 text block) and reports any word past them, which is how Typst lets content
   overrun the column in silence. Before the fix, page 4 had 18 words outside the column with `xMax`
-  up to 595.5pt, i.e. reaching the paper edge; after it, zero words are outside on all 16 pages and
+  up to 595.5pt, i.e. reaching the paper edge; after it, zero words are outside on all 19 pages and
   every page's maximum `xMax` is at most 526.6pt. The check reads text only, so the drawn figures
   still rest on the visual inspection above.
 - **Card** — added to `index.html` next to the symplectic-matrix card with
@@ -139,9 +156,10 @@ collections, which are labelled there as not consulted.
   LQR Hamiltonian.
 - **Deviations** — (i) explicit `kind`/`supplement` on every captioned figure, so that the figure
   and table counters do not collide; (ii) sections start on new pages as the preset supplies, so the
-  long sections leave part-empty tail pages (7, 10, 12, 14) — kept for series consistency rather
-  than turning off `chapter-pagebreak` for this one note; (iii) no interactive demo; (iv) the two
-  structural figures are tables shown as figures.
+  long sections leave part-empty pages — the tails at 7, 10 and 17, plus the figure page 12 — kept
+  for series consistency rather than turning off `chapter-pagebreak` for this one note; (iii) no
+  interactive demo, and the sweep script stops short of the implicit iteration instead of shipping
+  an unverified one; (iv) the two structural figures are tables shown as figures.
 - **Could not run** — scipy (not installed): the scipy behaviour quoted in s4 and s5 is documented
   behaviour, not executed here. The landing page was rendered in Chrome 154 (see the card check)
   but only through a `file://` copy, because Chrome in this sandbox cannot connect to the local

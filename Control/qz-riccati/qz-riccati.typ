@@ -654,6 +654,158 @@ $P$ and the defect:
   ],
 )
 
+*The algorithm, run.* `scripts/qz_sweeps.m` executes the two ends of that machinery on real data and
+prints every number below.
+
+*First the reduction.* Take the damped-oscillator instance ($A = mat(0, 1; -1, -2)$, $Q = I$,
+$R = 1$), whose deflated pencil is $4 times 4$ with a well-conditioned second matrix, and reduce it
+to Hessenberg-triangular form. Phase 1 makes $B$ triangular with Householders from the left; phase 2
+then zeroes the entries of $A$ below its sub-diagonal one at a time, bottom-up, and each such left
+rotation fills *exactly one* entry of $B$ below its diagonal -- the sub-diagonal $(i, i-1)$ -- which
+the paired right rotation removes:
+
+#figure(
+  kind: "table",
+  supplement: [Table],
+  caption: [The recorded rotation sequence of the reduction, from `scripts/qz_sweeps.m`. Inspect the
+    last column: each left rotation creates one entry of $B$ below its diagonal, and the right
+    rotation that follows removes it, so $B$ is triangular again before the next entry of $A$ is
+    touched.],
+  table(
+    columns: (auto, auto, auto, auto),
+    align: (left, left, left, right),
+    stroke: 0.4pt,
+    table.header([step], [left rotation on rows], [zeroes], [$B$ entry filled]),
+    [1], [$(3, 4)$], [$A_(4 1)$], [$0.0000$],
+    [2], [$(2, 3)$], [$A_(3 1)$], [$0.5774$],
+    [3], [$(3, 4)$], [$A_(4 2)$], [$0.7071$],
+  ),
+) <fig:reduce>
+
+#figure(
+  kind: "figure",
+  supplement: [Figure],
+  caption: [The same reduction in pictures, from `scripts/qz_sweeps.m`. Top: after phase 1, $B$ is
+    triangular and $A$ is full -- the shaded cells of $A$ are the entries below its band that phase 2
+    has to remove. Bottom: after phase 2, $A$ is upper Hessenberg and $B$ is still upper triangular.
+    Both panels carry the real numbers; the verification is
+    $norm(Q^T M Z - A) = 4.84 times 10^(-16)$ and $norm(Q^T N Z - B) = 2.32 times 10^(-16)$ with $Q$,
+    $Z$ orthogonal to $4.51 times 10^(-16)$.],
+  grid(columns: (1fr, 1fr), gutter: 1.0em,
+    [
+      #align(center)[
+        #table(
+          columns: 4, stroke: 0.4pt, align: right,
+          [$0$], [$1$], [$0$], [$0$],
+          table.cell(fill: teal.transparentize(84%))[$0.7071$], [$1.4142$], [$0$], [$0.7071$],
+          table.cell(fill: teal.transparentize(84%))[$1$], [$0$], [$0$], [$-1$],
+          [$0$], table.cell(fill: teal.transparentize(84%))[$1$], [$1$], [$-2$],
+        )
+        #v(3pt)
+        #text(size: 9pt)[$A$ after phase 1]
+      ]
+    ],
+    [
+      #align(center)[
+        #table(
+          columns: 4, stroke: 0.4pt, align: right,
+          [$1$], [$0$], [$0$], [$0$],
+          [$0$], [$-0.7071$], [$0$], [$0$],
+          [$0$], [$0$], [$-1$], [$0$],
+          [$0$], [$0$], [$0$], [$-1$],
+        )
+        #v(3pt)
+        #text(size: 9pt)[$B$ after phase 1]
+      ]
+    ],
+    [
+      #align(center)[
+        #table(
+          columns: 4, stroke: 0.4pt, align: right,
+          [$0$], [$-0.7071$], [$-0.4082$], [$0.5774$],
+          [$1.2247$], [$-0.5774$], [$0$], [$0.7071$],
+          [$0$], [$1.6330$], [$-0.7071$], [$-1$],
+          [$0$], [$0$], [$2.0412$], [$0.5774$],
+        )
+        #v(3pt)
+        #text(size: 9pt)[$A$, final]
+      ]
+    ],
+    [
+      #align(center)[
+        #table(
+          columns: 4, stroke: 0.4pt, align: right,
+          [$1$], [$0$], [$0$], [$0$],
+          [$0$], [$0.8660$], [$-0.1667$], [$0.2357$],
+          [$0$], [$0$], [$-0.9428$], [$-0.1667$],
+          [$0$], [$0$], [$0$], [$0.8660$],
+        )
+        #v(3pt)
+        #text(size: 9pt)[$B$, final]
+      ]
+    ],
+  ),
+) <fig:reduction>
+
+*Then one QZ step, exactly.* On a $2 times 2$ pencil the step is a single pair of rotations, and
+every number is visible. The script takes the trailing $2 times 2$ block of the reduced pair above,
+whose eigenvalues are $-1$ and $2$; it uses the pair nearest the diagonal ratio, $(alpha, beta) =
+(-0.894427, -0.447214)$ with $alpha \/ beta = 2$, and computes that pair's eigenvector direction
+$(0.4924, 0.8704)$ -- the angle $1.0560$ radians drawn below. The right rotation $Z_2$ turns that
+direction into the first coordinate, which makes the first columns of $A_2 Z_2$ and $B_2 Z_2$
+parallel; one left rotation $Q_2$ then makes both matrices triangular, so the pair
+$Q_2 A_2 Z_2$, $Q_2 B_2 Z_2$ below is again Hessenberg-triangular -- in fact triangular, since it is
+only $2 times 2$:
+
+#figure(
+  kind: "figure",
+  supplement: [Figure],
+  caption: [One exact QZ step on the $2 times 2$ trailing pencil of #ref(<fig:reduction>), printed
+    by `scripts/qz_sweeps.m`. Left: the eigenvector direction of the chosen shift (navy) inside the
+    unit circle, with the angle the right rotation turns it. Right: the pencil, the two rotations,
+    and the transformed pair. Inspect the last line: the two ratios on the diagonal are $2.000000$
+    and $-1.000000$ -- the shift has moved to the front, which is deflation and ordering at once --
+    and the step is an exact orthogonal equivalence, since undoing both rotations returns the
+    original pencil to $5.99 times 10^(-16)$.],
+  grid(columns: (1fr, 1.35fr), gutter: 1.0em,
+    [
+      #box(width: 100%, height: 3.6cm)[
+        #let w = 3.6cm
+        #let c = 1.85cm
+        #place(top + left)[#circle(radius: 1.1cm, stroke: 0.5pt + gray, fill: none)]
+        #place(top + left)[#line(start: (c - 1.1cm, c), end: (c + 1.1cm, c), stroke: 0.5pt + gray)]
+        #place(top + left)[#line(start: (c, c - 1.1cm), end: (c, c + 1.1cm), stroke: 0.5pt + gray)]
+        #place(top + left)[#line(start: (c, c), end: (c + 0.8 * 0.4924 * 1.1cm, c - 0.8 * 0.8704 * 1.1cm), stroke: 1.2pt + navy)]
+        #place(top + left, dx: c + 0.05cm, dy: c - 1.35cm)[#text(size: 8pt, fill: gray)[$v = (0.4924, 0.8704)$]]
+        #place(top + left, dx: c + 0.15cm, dy: c - 0.55cm)[#text(size: 8pt, fill: navy)[$1.0560 " rad"$]]
+      ]
+    ],
+    [
+      #table(
+        columns: (auto, auto),
+        align: (left, right),
+        stroke: 0.4pt,
+        [$2 times 2$ pencil, $A_2 =$], [$mat(-0.7071, -1.0000; 2.0412, 0.5774)$],
+        [and $B_2 =$], [$mat(-0.9428, -0.1667; 0, 0.8660)$],
+        [its eigenvalues], [$-1$, $2$],
+        [right rotation $Z_2 =$], [$mat(0.4924, -0.8704; 0.8704, 0.4924)$],
+        [left rotation $Q_2 =$], [$mat(-0.6286, 0.7777; -0.7777, -0.6286)$],
+        [$Q_2 A_2 Z_2 =$], [$mat(1.9384, -1.2380; 0, 0.8424)$],
+        [$Q_2 B_2 Z_2 =$], [$mat(0.9692, -0.1326; 0, -0.8424)$],
+        [ratios on the diagonal], [$2.000000$, $-1.000000$],
+      )
+    ],
+  ),
+) <fig:qzstep>
+
+*What is not run here.* The sweep that a library performs *between* those two ends -- the implicit
+double shift with its bulge chase, which does the same arithmetic in $O(n^2)$ per sweep instead of
+$O(n^3)$ -- is not implemented in this note's script. It is the one piece the reference
+implementations own, and the piece the closing paragraph tells the reader not to write by hand; the
+script stops at the reduction and at the elementary step, whose behavior it verifies. The bulge
+chase is the same pair of rotations as #ref(<fig:qzstep>) applied down a Hessenberg band, repeated
+until the sub-diagonals vanish @molerstewart1973algorithm.
+
 Finally, this is what a library routine actually is. MATLAB's `care`, SLICOT's `SB02OD` and
 scipy's `solve_continuous_are` all call the same generalized Schur machinery. The engineering
 content is choosing the pencil and reading the deflating subspace; the QZ iteration itself is the
