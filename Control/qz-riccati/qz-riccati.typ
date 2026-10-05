@@ -427,18 +427,28 @@ relative. SLICOT documents the same reduction: "a standard eigenproblem is solve
 continuous-time case if $G$ is given" @slicot_sb02od.
 
 *Deflation.* The pencil #ref(<eq:pencil>) is $(2n + m) times (2n + m)$ where $m$ is the number of
-controls, and only $2n$ of its eigenvalues are finite: the extra $m$ pairs come from the last
-block and are infinite. Before ordering anything, the algorithm compresses them away. Let $M_c$ be
-the last $m$ columns of $M$, that is the stacked blocks $B$, $0$, $R$, and take a QR decomposition
+controls. When $R$ is nonsingular it has exactly $m$ infinite eigenvalues, all of them contributed
+by the last block, so only $2n$ of them are finite; before ordering anything, the algorithm
+compresses that cost direction away. Let $M_c$ be the last $m$ columns of $M$, that is the stacked
+blocks $B$, $0$, $R$, and take a QR decomposition
 
 $ M_c = Q mat(R_1; 0), quad "then" quad tilde(M) - lambda tilde(N) = Q_2^T (M - lambda N) mat(I_(2n); 0), $ <eq:deflate>
 
 where $Q_2$ is $Q$ with its first $m$ columns dropped. The result is a $2n times 2n$ pencil with
-the same finite eigenvalues. This is van Dooren's reduction; scipy's `solve_continuous_are`
-performs it with the comment "deflate the pencil to 2m x 2m ala Ref.1, eq.(55)" @scipy_are, and
-its purpose is that the ordering step then sees only finite pairs. Measured: at $rho = 0$ the
-deflated problem is $4 times 4$ with the two finite eigenvalues $plus.minus 1$, and the three
-infinite pairs have left the ordering problem entirely.
+the same finite eigenvalues and none infinite. This is van Dooren's reduction; scipy's
+`solve_continuous_are` performs it with the comment "deflate the pencil to 2m x 2m ala Ref.1,
+eq.(55)" @scipy_are. The script measures the counts for the running example, where $m = 1$: $4$
+finite and $1$ infinite at $R = 10^(-6)$, becoming $4$ and $0$ after the deflation. At $R = 0$ the
+same data gives $2$ finite and $3$ infinite, of which the deflated $4 times 4$ pencil keeps $2$ --
+harmless, because a pair with $beta = 0$ never satisfies $"Re"(alpha \/ beta) < 0$ and so is never
+selected.
+
+The deflated second matrix is not the identity, and it inherits the conditioning of $R$: its
+smallest singular value is $7.07 times 10^(-1)$ at $R = 1$, $1.00 times 10^(-6)$ at $R = 10^(-6)$,
+and $9.46 times 10^(-9)$ for $R = "diag"(1, 10^(-8))$ at a second size the script checks. QZ
+touches that matrix only with unitary transformations, so it never inverts it. That is section 3's
+eight-digit loss seen at the level of the algorithm: forming $G = B R^(-1) B^T$ *is* inverting this
+block.
 
 = What the QZ algorithm computes <s5>
 

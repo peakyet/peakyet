@@ -83,8 +83,15 @@ collections, which are labelled there as not consulted.
   `3.62e-16`) with stable closed loops; the pencil route and the ordered-Schur route agree to
   `1.08e-14` (eps `1e-2`) and `7.30e-11` (eps `1e-6`) relative; the `eps` table and the `rho` table
   match the note row for row; the tripwire table was recomputed over 100 random pencil roundings;
-  the `rho = 0` pencil is 5x5 with 2 finite and 3 infinite eigenvalues; the 2x2 Jordan toy's gap and
-  overlap match `2 sqrt(eps)` and `2 eps/(1+eps)`.
+  the 2x2 Jordan toy's gap and overlap match `2 sqrt(eps)` and `2 eps/(1+eps)`; and section G covers
+  the deflation: 4 finite and 1 infinite pair becoming 4 and 0 at `R = 1e-6`, 2 finite and 3
+  infinite at `R = 0` of which the deflated 4x4 keeps 2, the smallest singular value of the deflated
+  second matrix (`7.07e-1`, `1.00e-6`, and `9.46e-9` with `R = diag(1, 1e-8)`), a regularity probe
+  at `R = 0` (`det(alpha H - beta J)` nonzero at 5 of 5 random pairs, which grounds the "still a
+  regular pencil" row of Table 2), and a second size (full 8x8: 6 finite, 2 infinite; deflated 6x6:
+  6 finite, 0 infinite; finite eigenvalues agreeing to `8.0e-10` relative). That probe also
+  corrected s4: the deflated pencil at `R = 0` keeps two infinite pairs rather than leaving the
+  ordering problem with none.
 - **Rendered pages** — pages 3, 4, 5, 6, 9, 10 and 11 inspected as images (100-110 dpi), and the
   three figures rendered in isolation at 150 dpi and inspected; the remaining pages were checked by
   their extracted text, their line counts and the column-overflow check below. Fixed during review:

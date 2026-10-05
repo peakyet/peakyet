@@ -55,6 +55,13 @@ function [H, J] = extended_pencil(A, B, Q, R)
   J = [eye(m), zeros(m), zeros(m, n); zeros(m), eye(m), zeros(m, n); zeros(n, 2*m+n)];
 end
 
+function [Hd, Jd] = deflate_pencil(H, J, n2, p)
+  % drop the last p block columns by a QR of them (van Dooren eq. (55)); n2 = 2n_state
+  [q, ~] = qr(H(:, n2+1:n2+p));
+  Hd = q(:, p+1:n2+p)' * H(:, 1:n2);
+  Jd = q(1:n2, p+1:n2+p)' * J(1:n2, 1:n2);
+end
+
 function [P, asym, c11] = care_qz(A, B, Q, R)
   [H, J] = extended_pencil(A, B, Q, R);
   [P, asym, c11] = qz_stable(H, J, rows(A));
@@ -197,3 +204,33 @@ v1 = V(:, k) / norm(V(:, k)); v2 = V(:, j) / norm(V(:, j));
 ov = 1 - abs(v1' * v2);
 printf('The real example at eps=1e-8: 1-|v1.v2| = %.3e = %.2f eps, with eigenvalue split %.3e.\n', ...
   ov, ov/eps_, abs(ev(k) - ev(j)));
+
+printf('\n=== G. what the deflation does, and what the second matrix carries ===\n');
+printf('R        full pencil (2n+m):        deflated pencil (2n):      min svd of the deflated N\n');
+for R = [1, 1e-6, 0]
+  Q = eye(2);
+  [H, J] = extended_pencil(A0, B0, Q, R);
+  ev = eig(H, J); fin = sum(isfinite(ev)); inf_ = sum(~isfinite(ev));
+  [Hd, Jd] = deflate_pencil(H, J, 4, 1);
+  evd = eig(Hd, Jd); find_ = sum(isfinite(evd)); infd = sum(~isfinite(evd));
+  printf('%7.0e  %2d finite, %2d infinite     %2d finite, %2d infinite      %.2e\n', ...
+    R, fin, inf_, find_, infd, min(svd(Jd)));
+end
+% regularity at R = 0: a singular pencil has det(beta*M - alpha*N) identically zero
+Q = eye(2); [H, J] = extended_pencil(A0, B0, Q, 0);
+rand('seed', 99); nz = 0;
+for k = 1:5
+  ab = rand(1, 2) .* [3, 1] .* (2 * round(rand(1, 2)) - 1);
+  if abs(det(ab(1)*H - ab(2)*J)) > 0, nz = nz + 1; end
+end
+printf('  R = 0 regularity probe: det(alpha*H - beta*J) nonzero at %d of 5 random pairs\n', nz);
+
+printf('\n  the same at a second size: A = randn(3), B = randn(3,2), Q = I, R = diag(1, 1e-8)\n');
+rand('seed', 7); A3 = randn(3); B3 = randn(3, 2); Q3 = eye(3); R3 = diag([1, 1e-8]);
+[H3, J3] = extended_pencil(A3, B3, Q3, R3);
+e3 = eig(H3, J3); [H3d, J3d] = deflate_pencil(H3, J3, 6, 2);
+e3d = eig(H3d, J3d);
+printf('  full 8x8: %d finite, %d infinite; deflated 6x6: %d finite, %d infinite; min svd(Nd) = %.2e\n', ...
+  sum(isfinite(e3)), sum(~isfinite(e3)), sum(isfinite(e3d)), sum(~isfinite(e3d)), min(svd(J3d)));
+printf('  finite eigenvalues agree to %.1e relative\n', ...
+  max(abs(sort(real(e3(isfinite(e3)))) - sort(real(e3d(isfinite(e3d)))))) / max(abs(real(e3(isfinite(e3))))));
