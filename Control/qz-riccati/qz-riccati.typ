@@ -465,6 +465,19 @@ its submatrices are used" -- their $B$ is the pencil's second matrix, which is $
 floating point the pencil is balanced first, which is what makes the computed subspace accurate
 for badly scaled data @benner2001symplectic.
 
+*How the iteration gets there.* Three things happen before any eigenvalue is read off, and none of
+them divides by a matrix. First the pair is reduced to *Hessenberg-triangular* form: $N$ is driven
+to upper triangular by transformations from the left, $M$ to upper Hessenberg from the left, and
+each left transformation that spoils $N$ is repaired from the right. That is $O(n^3)$ once. Then
+comes the iteration itself @molerstewart1973algorithm: a double shift is taken from the trailing
+$2 times 2$ block *of the pencil*, applied implicitly by a small orthogonal transformation, and the
+bulge it creates is chased down the Hessenberg band with rotations applied on both sides so that
+$T$ stays triangular -- each sweep $O(n^2)$, and when $N = I$ this is exactly the QR algorithm
+with double shifts. Last, convergence is decided by the *pair* rather than by one matrix: a
+subproblem splits off when the sub-diagonal coupling of $S$ is negligible against the neighbouring
+diagonal entries of both $S$ and $T$, and a pair with $T_(i i) = 0$ and $S_(i i) != 0$ is infinite
+and is deflated out of the way. That last event is the only place where $beta = 0$ ever appears.
+
 The second ingredient is *ordering*. A QZ driver such as LAPACK's `dgges`, reachable as `ordqz`
 in Octave and MATLAB and as `scipy.linalg.ordqz`, takes a selection rule and moves the selected
 pairs to the leading diagonal blocks by further unitary transformations. The rule used for the
@@ -509,6 +522,106 @@ deflating subspace, and the solution is read off them.
     ],
   ),
 ) <fig:qzform>
+
+*The whole route written out.* `scripts/trace_qz_pencil.m` prints every stage of that recipe for
+the running example at $R = 10^(-6)$; the numbers below are its output. The pairs arrive in an
+arbitrary order, and the two steps of the recipe act on that list:
+
+#figure(
+  kind: "table",
+  supplement: [Table],
+  caption: [The pairs $(alpha, beta)$ as ratios, in the order QZ produced them, after the QR
+    deflation, and after the ordering rule. Inspect what each step does to the list: the deflation
+    removes the infinite pair, and the ordering moves the two stable ratios -- the closed loop --
+    to the front. Printed by `scripts/trace_qz_pencil.m`.],
+  table(
+    columns: (auto, auto),
+    align: (left, left),
+    stroke: 0.4pt,
+    table.header([stage], [ratios $alpha \/ beta$, in order]),
+    [the full pencil, $2n + m = 5$], [$-999.9985$, $+999.9985$, $-1.000002$, $+1.000002$, $oo$],
+    [after the QR deflation, $2n = 4$], [$-999.9985$, $+999.9985$, $+1.000002$, $-1.000002$],
+    [after ordering, $"Re"(alpha \/ beta) < 0$ first], [$-999.9985$, $-1.000002$, $+999.9985$, $+1.000002$],
+    [closed loop of the computed $P$], [$-999.9985$, $-1.000002$],
+  ),
+) <fig:pairs>
+
+The last row is the check: the two ratios the ordering put first are the closed-loop spectrum of
+the $P$ that comes out, which the script reads from $A - G P$ independently.
+
+#figure(
+  kind: "figure",
+  supplement: [Figure],
+  caption: [The ordered generalized Schur form of the deflated pencil, rounded to four decimals, as
+    printed by `scripts/trace_qz_pencil.m`. Inspect the triangularity and the shaded leading
+    $2 times 2$ submatrix, which is the stable half the answer is read from. With all four
+    eigenvalues real, every diagonal entry is a pair $(S_(i i), T_(i i))$; a complex conjugate pair
+    would arrive as an unreduced $2 times 2$ block instead of two diagonal entries.],
+  grid(columns: (1fr, 1fr), gutter: 1.0em,
+    [
+      #align(center)[
+        #table(
+          columns: 4, stroke: 0.4pt, align: right,
+          table.cell(fill: navy.transparentize(86%))[$-1.4142$],
+          table.cell(fill: navy.transparentize(86%))[$-0.5003$],
+          table.cell(fill: gray.transparentize(93%))[$-0.2888$],
+          table.cell(fill: gray.transparentize(93%))[$0.4078$],
+          table.cell(fill: navy.transparentize(86%))[$0$],
+          table.cell(fill: navy.transparentize(86%))[$-0.8659$],
+          table.cell(fill: gray.transparentize(93%))[$0.8330$],
+          table.cell(fill: gray.transparentize(93%))[$0.2361$],
+          [$0$], [$0$], [$1.2474$], [$0.1266$],
+          [$0$], [$0$], [$0$], [$0.6547$],
+        )
+        #v(3pt)
+        #text(size: 9pt)[$S$]
+      ]
+    ],
+    [
+      #align(center)[
+        #table(
+          columns: 4, stroke: 0.4pt, align: right,
+          table.cell(fill: navy.transparentize(86%))[$0.0014$],
+          table.cell(fill: navy.transparentize(86%))[$-0.5003$],
+          table.cell(fill: gray.transparentize(93%))[$0.8659$],
+          table.cell(fill: gray.transparentize(93%))[$0.0008$],
+          table.cell(fill: navy.transparentize(86%))[$0$],
+          table.cell(fill: navy.transparentize(86%))[$0.8659$],
+          table.cell(fill: gray.transparentize(93%))[$0.5003$],
+          table.cell(fill: gray.transparentize(93%))[$0.0005$],
+          [$0$], [$0$], [$0.0012$], [$-0.7559$],
+          [$0$], [$0$], [$0$], [$0.6547$],
+        )
+        #v(3pt)
+        #text(size: 9pt)[$T$]
+      ]
+    ],
+  ),
+) <fig:stform>
+
+#figure(
+  kind: "table",
+  supplement: [Table],
+  caption: [What the recipe reads off that ordered form, and the diagnostics that come with it,
+    printed by `scripts/trace_qz_pencil.m` at $R = 10^(-6)$. The closed form is the one from
+    #ref(<eq:closed2>).],
+  table(
+    columns: (auto, auto, auto),
+    align: (left, left, left),
+    stroke: 0.4pt,
+    table.header([quantity], [value], [what it says]),
+    [$U_(11)$], [$mat(0.001000, -0.706753; -0.999999, -0.000707)$],
+    [$"cond" = 1.4149$: the graph is isolated],
+    [$U_(21)$], [$mat(0.000002, -0.707460; -0.001000, -0.000707)$], [the lower half of the same $Z$],
+    [$P = U_(21) U_(11)^(-1)$], [$mat(1.000999, 0.000999; 0.000999, 0.001001)$], [the answer],
+    [closed form #ref(<eq:closed2>)], [$mat(1.000999, 0.000999; 0.000999, 0.001001)$],
+    [agrees to $9.88 times 10^(-16)$ relative],
+    [symmetry defect], [$4.382 times 10^(-16)$], [$P$ is symmetric to machine precision],
+    [CARE residual], [$4.745 times 10^(-13)$], [it solves the equation it came from],
+    [orthogonality of $Q$, $Z$], [$1.272 times 10^(-15)$, $8.044 times 10^(-16)$],
+    [only orthogonal transformations were used],
+  ),
+) <fig:trace>
 
 The $P$ that comes out is symmetric only up to the computation. scipy's implementation checks
 exactly this and refuses to return a plausible-looking answer when the check fails: its docstring

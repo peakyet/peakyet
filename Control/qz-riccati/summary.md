@@ -6,8 +6,9 @@ in `.amp/in/artifacts/qz-riccati-bridge-sample.pdf` and no reader feedback has a
 Comprehension is therefore **unassessed**.
 
 **Artifact:** `Control/qz-riccati/qz-riccati.typ`, compiled to
-`Control/qz-riccati/qz-riccati.pdf` (16 pages); `Control/qz-riccati/refs.bib`;
-`Control/qz-riccati/scripts/verify_qz_riccati.m` (Octave, standard library only); no demo — nothing
+`Control/qz-riccati/qz-riccati.pdf` (17 pages); `Control/qz-riccati/refs.bib`;
+`Control/qz-riccati/scripts/verify_qz_riccati.m` and
+`Control/qz-riccati/scripts/trace_qz_pencil.m` (Octave, standard library only); no demo — nothing
 here is clarified by a slider, and a pencil-block manipulator would exceed the demo ceiling in
 `references/repo-notes.md`. Cross-link used in the prose:
 `Control/symplectic-matrix/symplectic-matrix.pdf#page=6`.
@@ -34,12 +35,16 @@ one.
 | s2 | 5 | "The numbers came out why not use eigenvectors?" | Table 1 (four values of `eps`, three routes); Figure 1 (spectrum migration, and the gap and overlap laws on log axes) | The straddling pair's eigenvectors differ by `O(eps)` while its eigenvalues split as `sqrt(eps)`; here all three routes sit within a factor of three of `eps_m/eps`; the repair is a subspace basis (ordered Schur), not QZ |
 | s3 | 8 | "Why not just build `H` and use that fix?" | Table 2 (`rho` values, both routes, including `rho = 0`) | Forming `G = B R^{-1} B^T` costs the digits of `1/rho`; the pencil holds machine precision; at `rho = 0` the matrix route has no value to compute |
 | s4 | 9 | New representation: an eigenvalue as a ratio `alpha/beta`, an eigenvector as a deflating subspace `M Z = N Z S` | Figure 2 (the two objects, blocks annotated by what each route inverts) and the QR deflation | The extended pencil keeps `B` and `R` as blocks; its finite eigenvalues are `H`'s; its stable deflating subspace is the graph of `P`; the control block is deflated before ordering |
-| s5 | 11 | QZ as an opaque library name | Figure 3 (ordered generalized Schur form; partition of `Z`) and the defect table | Unitary `Q, Z` give triangular `(S, T)` with pairs `alpha/beta`; ordering selects `Re(alpha/beta) < 0`; `P = U21 U11^{-1}` by substitution; the symmetry defect is a tripwire, not a bound |
-| s6 | 13 | Believing QZ is a universal accuracy fix | The buy claim with its numbers; Table 3 (knob, what degrades, what limits) | The pencil holds `1e-15`-ish as `rho` falls; near-axis eigenvalues are a conditioning limit every route inherits; scipy refuses; structure-preserving methods are out of scope |
-| s7 | 15 | Where each claim comes from | Sources | (see below) |
+| s5 | 11 | QZ as an opaque library name | The iteration's three stages; Figure 3 (ordered generalized Schur form; partition of `Z`); Table 3, Figure 4 and Table 4 (the trace: pairs by stage, the ordered `S`, `T`, and `U11`, `U21`, `P` with the diagnostics); the defect table | Unitary `Q, Z` give triangular `(S, T)` with pairs `alpha/beta`; ordering selects `Re(alpha/beta) < 0`; `P = U21 U11^{-1}` by substitution; the defect is a tripwire, not a bound |
+| s6 | 14 | Believing QZ is a universal accuracy fix | The buy claim with its numbers; Table 5 (knob, what degrades, what limits) | The pencil holds `1e-15`-ish as `rho` falls; near-axis eigenvalues are a conditioning limit every route inherits; scipy refuses; structure-preserving methods are out of scope |
+| s7 | 16 | Where each claim comes from | Sources | (see below) |
 
 ## Follow-ups
 
+- Added on request after the first delivery: section 5 now states the iteration's three stages in
+  prose and carries the whole route written out for the running example (Table 3, Figure 4,
+  Table 4), with its own companion script `scripts/trace_qz_pencil.m`; the section-to-page map and
+  the figure and table numbers above were refreshed afterwards.
 - Next revision: reader feedback on the hardest bridge (the pencil and its deflating subspace). If
   the bridge does not land, the likely repairs are a worked `M Z = N Z S` line on the 2x2 Jordan
   toy, or printing one explicit `(alpha, beta)` pair from the running example.
@@ -73,11 +78,20 @@ collections, which are labelled there as not consulted.
 ## Checks and deviations
 
 - **Build** — `typst compile --root . Control/qz-riccati/qz-riccati.typ
-  Control/qz-riccati/qz-riccati.pdf` exits 0 with no warnings; 16 pages; section-to-page map
-  `3,5,8,9,11,13,15`.
+  Control/qz-riccati/qz-riccati.pdf` exits 0 with no warnings; 17 pages; section-to-page map
+  `3,5,8,9,11,14,16`.
 - **Structural** — no `FILL:` slots; no `"../` paths; every captioned figure carries an explicit
   `kind`/`supplement`, so numbering is consistent and non-colliding: Table 1, Figure 1, Table 2,
-  Figure 2, Figure 3, Table 3.
+  Figure 2, Figure 3, Table 3, Figure 4, Table 4, Table 5.
+- **Trace script** — `octave --no-gui --quiet Control/qz-riccati/scripts/trace_qz_pencil.m` prints
+  the extended pencil, the pairs at each stage, the deflated pencil's conditioning, the ordered
+  `S`, `T`, `U11`, `U21`, `P` and the diagnostics; every value in Tables 3 and 4 and in Figure 4 was
+  read from its output (ratios `-999.9985, +999.9985, -1.000002, +1.000002` unordered, the stable
+  pair first after ordering, `cond(U11) = 1.4149`, symmetry defect `4.382e-16`, CARE residual
+  `4.745e-13`, orthogonality `1.272e-15` and `8.044e-16`, `P` agreeing with the closed form to
+  `9.88e-16`). It uses the real QZ, so `S` and `T` are the real quasi-upper-triangular pair; the
+  verifier keeps Octave's complex QZ, and a comparison showed the two agree on the note's error
+  levels to within a factor of a few (e.g. `8.81e-11` against `5.58e-11` at `eps = 1e-6`).
 - **Numbers** — `octave --no-gui --quiet Control/qz-riccati/scripts/verify_qz_riccati.m` prints
   every quoted value. Checked there: both closed forms solve their CARE (residual at most
   `3.62e-16`) with stable closed loops; the pencil route and the ordered-Schur route agree to
@@ -92,14 +106,14 @@ collections, which are labelled there as not consulted.
   6 finite, 0 infinite; finite eigenvalues agreeing to `8.0e-10` relative). That probe also
   corrected s4: the deflated pencil at `R = 0` keeps two infinite pairs rather than leaving the
   ordering problem with none.
-- **Rendered pages** — pages 3, 4, 5, 6, 9, 10 and 11 inspected as images (100-110 dpi), and the
-  three figures rendered in isolation at 150 dpi and inspected; the remaining pages were checked by
-  their extracted text, their line counts and the column-overflow check below. Fixed during review:
-  a stray comma that rendered above every caption (a `],` closing a content block inside markup);
-  inline fractions replaced with `/` so the line spacing stopped blowing up; two tall inline block
-  columns replaced with prose; Figure 1's log panel given a bottom tick label. After the reader
-  reported an overlap on page 4: the two-column block for the two cost knobs was replaced by
-  full-width two-line displays, with the shape of `P` stated once in prose.
+- **Rendered pages** — pages 3, 4, 5, 6, 9, 10, 11, 12 and 13 inspected as images (100-110 dpi),
+  and the figures rendered in isolation at 150 dpi and inspected; the remaining pages were checked
+  by their extracted text, their line counts and the column-overflow check below. Fixed during
+  review: a stray comma that rendered above every caption (a `],` closing a content block inside
+  markup); inline fractions replaced with `/` so the line spacing stopped blowing up; two tall
+  inline block columns replaced with prose; Figure 1's log panel given a bottom tick label. After
+  the reader reported an overlap on page 4: the two-column block for the two cost knobs was
+  replaced by full-width two-line displays, with the shape of `P` stated once in prose.
 - **Column overflow** — a text-box check (`.amp/in/scratch/overflow_check.py`, built on
   `pdftotext -bbox-layout`) takes the document's own word boxes to fix the text edges (70.9pt and
   526.6pt across the A4 text block) and reports any word past them, which is how Typst lets content
