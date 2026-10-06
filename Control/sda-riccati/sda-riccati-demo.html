@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Doubling versus the value iteration</title>
+<style>
+  html,body{margin:0;background:#ffffff;color:#1b1b1b;
+    font-family:"Source Serif Pro",Georgia,"Times New Roman",serif}
+  main{max-width:820px;margin:0 auto;padding:26px 20px 44px}
+  h1{font-size:1.24rem;color:#1f4e79;margin:0 0 6px}
+  p.sub{margin:0 0 18px;color:#444;font-size:.95rem;line-height:1.45}
+  canvas{width:100%;max-width:760px;height:auto;border:1px solid #e3e3e3;border-radius:6px;background:#fff;display:block}
+  .controls{display:flex;flex-wrap:wrap;gap:22px;align-items:center;margin:16px 0 4px;font-size:.95rem}
+  label{display:flex;gap:9px;align-items:center}
+  input[type=range]{width:250px}
+  output{font-family:"DejaVu Sans Mono",monospace;font-size:.9rem;color:#1f4e79}
+  .readout{font-family:"DejaVu Sans Mono",monospace;font-size:.88rem;color:#1f4e79;margin-top:10px}
+  .legend{font-size:.9rem;color:#444;margin-top:8px}
+  .key{display:inline-block;width:22px;height:3px;vertical-align:middle;margin-right:6px}
+</style>
+</head>
+<body>
+<main>
+  <h1>Doubling versus the value iteration</h1>
+  <p class="sub">Error against work for the discrete Riccati equation. The value iteration takes one
+    step per matrix inversion; the doubling algorithm takes one step per squaring, and each squaring
+    reaches a horizon that is twice as long. Drag the closed-loop radius &sigma; toward 1 and watch
+    the two methods separate.</p>
+  <canvas id="c" width="760" height="380"></canvas>
+  <div class="controls">
+    <label>closed-loop radius &sigma;
+      <input id="sigma" type="range" min="0.5" max="0.99" step="0.005" value="0.9">
+      <output id="sigmaOut">0.900</output></label>
+  </div>
+  <div class="readout" id="readout"></div>
+  <p class="legend">
+    <span class="key" style="background:#1f4e79"></span>value iteration
+    &nbsp;&nbsp;
+    <span class="key" style="background:#0f766e"></span>doubling
+  </p>
+</main>
+<script>
+(function(){
+  var c = document.getElementById('c'), g = c.getContext('2d');
+  var W = c.width, H = c.height, L = 52, R = 16, T = 16, B = 42;
+  var XMAX = 320, YMIN = 13;            // work axis 0..320, log10 error 0..-13
+  function px(j){ return L + Math.min(j, XMAX) / XMAX * (W - L - R); }
+  function py(e){ return T + (-Math.log10(Math.max(e, 1e-16))) / YMIN * (H - T - B); }
+
+  function draw(sigma){
+    var lt = Math.log(1e-12), ls = Math.log(sigma);
+    var fp  = Math.max(1, Math.ceil(lt / ls));            // value-iteration steps to 1e-12
+    var sda = Math.max(0, Math.ceil(Math.log(fp) / Math.LN2));  // doublings to 1e-12
+    g.clearRect(0, 0, W, H);
+    // axes and ticks
+    g.strokeStyle = '#8b8b8b'; g.lineWidth = 1;
+    g.beginPath(); g.moveTo(L, T); g.lineTo(L, H - B); g.lineTo(W - R, H - B); g.stroke();
+    g.fillStyle = '#5b564b'; g.font = '11px "DejaVu Sans Mono",monospace';
+    for (var d = 3; d <= 12; d += 3){ g.fillText('-' + d, 8, py(Math.pow(10, -d)) + 4); }
+    g.fillText('0', 34, py(1) + 4);
+    g.fillText('work (matrix inversions)', L + (W - L - R) / 2 - 74, H - 13);
+    // value iteration: error = sigma^j after j inversions
+    g.strokeStyle = '#1f4e79'; g.lineWidth = 1.8; g.beginPath();
+    for (var j = 0; j <= XMAX; j++){
+      var X = px(j), Y = py(Math.pow(sigma, j));
+      if (j === 0) g.moveTo(X, Y); else g.lineTo(X, Y);
+    }
+    g.stroke();
+    // doubling: at work k the error is sigma^(2^k)
+    g.strokeStyle = '#0f766e'; g.lineWidth = 1.8; g.beginPath();
+    for (var k = 0; k <= sda; k++){
+      var X2 = px(k), Y2 = py(Math.pow(sigma, Math.pow(2, k)));
+      if (k === 0) g.moveTo(X2, Y2); else g.lineTo(X2, Y2);
+    }
+    g.stroke();
+    g.fillStyle = '#0f766e';
+    for (var k2 = 0; k2 <= sda; k2++){
+      var X3 = px(k2), Y3 = py(Math.pow(sigma, Math.pow(2, k2)));
+      g.beginPath(); g.arc(X3, Y3, 2.4, 0, 6.3); g.fill();
+    }
+    document.getElementById('readout').textContent =
+      'sigma = ' + sigma.toFixed(3) +
+      '   value iteration: ' + fp + ' steps to 1e-12' +
+      '   doubling: ' + sda + ' steps';
+  }
+
+  var s = document.getElementById('sigma'), so = document.getElementById('sigmaOut');
+  function upd(){ var v = parseFloat(s.value); so.textContent = v.toFixed(3); draw(v); }
+  s.addEventListener('input', upd); upd();
+})();
+</script>
+</body>
+</html>

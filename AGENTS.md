@@ -141,3 +141,7 @@ converted to Typst just to unify the series.
 ## Tools
 
 - Use 'exa' or 'tavily' mcp to do web search and read page first instead of using the builtin tools.
+
+## Render Option
+
+- 'google-chrome-stable' is available for rendering HTML.

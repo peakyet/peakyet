@@ -331,6 +331,29 @@
 
     <div class="grid" id="grid">
 
+      <a class="card" href="Algebra/qz-algorithm/qz-algorithm.pdf" data-category="algebra math" data-field="Algebra" data-tags="algebra qz generalized-eigenvalue generalized-schur pencil hessenberg-triangular numerical-linear-algebra eigenvalues deflation lapack">
+        <div class="toprow">
+          <span class="tag amber">Numerical Linear Algebra</span>
+          <span class="read"></span>
+        </div>
+        <h3>Generalized Eigenvalues and the QZ Algorithm</h3>
+        <p>A generalized eigenvalue &mdash; a number &lambda; with Ax = &lambda;Bx &mdash; refuses to be an eigenvalue of any single matrix once B is singular, and there is then no B<sup>&minus;1</sup>A to form, yet the spectrum is well defined and may contain an infinite eigenvalue. This note follows the pencil A &minus; &lambda;B, the pair (&alpha;, &beta;) that represents its eigenvalues, and the QZ (generalized Schur) algorithm that drives both matrices triangular with one unitary transformation on each side. It works the Hessenberg&ndash;triangular reduction with real numbers, explains the implicit shift and bulge chase and deflation, and shows how to read the library output. A three-by-three pencil with a complex pair and a tunable light mode gives exact eigenvalues to check every step.</p>
+        <div class="tags">
+          <span class="tag-pill">algebra</span>
+          <span class="tag-pill">qz</span>
+          <span class="tag-pill">generalized-eigenvalue</span>
+          <span class="tag-pill">generalized-schur</span>
+          <span class="tag-pill">pencil</span>
+          <span class="tag-pill">hessenberg-triangular</span>
+          <span class="tag-pill">numerical-linear-algebra</span>
+          <span class="tag-pill">eigenvalues</span>
+          <span class="tag-pill">deflation</span>
+          <span class="tag-pill">lapack</span>
+        </div>
+        <span class="go">Read the note (PDF)</span>
+        <span class="foot"><span class="field"><i></i>Algebra</span></span>
+      </a>
+
       <a class="card" href="Control/symplectic-matrix/symplectic-matrix.pdf" data-category="control algebra" data-field="Control Theory" data-tags="control symplectic hamiltonian phase-space riccati lqr invariant-subspace eigenvalues structure-preserving numerical-methods optimal-control question-map">
         <div class="toprow">
           <span class="tag teal">Hamiltonian Systems</span>
@@ -375,6 +398,31 @@
           <span class="tag-pill">deflating-subspace</span>
           <span class="tag-pill">hamiltonian</span>
           <span class="tag-pill">pencil</span>
+          <span class="tag-pill">numerical-methods</span>
+          <span class="tag-pill">optimal-control</span>
+        </div>
+        <span class="go">Read the note (PDF)</span>
+        <span class="foot"><span class="field"><i></i>Control Theory</span></span>
+      </a>
+
+      <a class="card" href="Control/sda-riccati/sda-riccati.pdf" data-category="control algebra optimization" data-field="Control Theory" data-tags="control riccati lqr are dare sda doubling algorithm structure-preserving symplectic cayley numerical-methods optimal-control">
+        <div class="toprow">
+          <span class="tag amber">Numerical Control</span>
+          <span class="read"></span>
+        </div>
+        <h3>The Structure-Preserving Doubling Algorithm for the Algebraic Riccati Equation</h3>
+        <p>Extending a control horizon one step at a time reaches the Riccati solution slowly when the closed loop sits near the stability boundary. This note explains the alternative the libraries use: one step of that recursion is one application of a symplectic matrix to the graph of the cost, so squaring the matrix doubles the horizon, and squaring a block factorization instead of the matrix is the structure-preserving doubling algorithm. A unit mass on a unit spring with a closed-form answer measures the difference, and a Cayley transform reduces the continuous-time equation to the discrete one so the same code solves both.</p>
+        <div class="tags">
+          <span class="tag-pill">control</span>
+          <span class="tag-pill">riccati</span>
+          <span class="tag-pill">lqr</span>
+          <span class="tag-pill">are</span>
+          <span class="tag-pill">sda</span>
+          <span class="tag-pill">dare</span>
+          <span class="tag-pill">doubling</span>
+          <span class="tag-pill">symplectic</span>
+          <span class="tag-pill">cayley</span>
+          <span class="tag-pill">structure-preserving</span>
           <span class="tag-pill">numerical-methods</span>
           <span class="tag-pill">optimal-control</span>
         </div>
