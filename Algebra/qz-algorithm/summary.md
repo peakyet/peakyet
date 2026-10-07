@@ -6,7 +6,7 @@ hardest-bridge sample and the full note were produced in one pass: the sample is
 arrived yet. Comprehension is therefore **unassessed**.
 
 **Artifact:** `Algebra/qz-algorithm/qz-algorithm.typ`, compiled to
-`Algebra/qz-algorithm/qz-algorithm.pdf` (18 pages); `Algebra/qz-algorithm/refs.bib`;
+`Algebra/qz-algorithm/qz-algorithm.pdf` (19 pages); `Algebra/qz-algorithm/refs.bib`;
 `Algebra/qz-algorithm/scripts/verify_qz.m` and `Algebra/qz-algorithm/scripts/qz_sweeps.m`
 (Octave, standard library only); no demo. Cross-references in the prose point at
 `Control/qz-riccati/qz-riccati.pdf`, `Control/symplectic-matrix/symplectic-matrix.pdf` and
@@ -37,8 +37,8 @@ ill-conditioned, and at `delta = 0` the third eigenvalue is infinite.
 | s3 | 7 | New representation: an eigenvalue as a pair, both matrices triangular | Figure 3 (the factorization and the 2x2-block alternative) and the computed pairs `(1,0.5)->2`, `(i,1)->i`, `(-i,1)->-i` | `Q*AZ=S`, `Q*BZ=T` triangular; `det(A-lambda B)=c prod(S_ii - lambda T_ii)`; finite `alpha/beta`, infinite at `beta=0`; a real driver returns a 2x2 block, whose diagonal is *not* the eigenvalues |
 | s4 | 9 | The paired rotation: a left rotation that cleans `A` spoils `B` | Figure 4 (the phase-two matrices with the navy zero created in `A` and the rose fill it causes in `B`, then repaired) and the recorded rotation sequence | Phase 1 (QR of `B`) then phase 2 (Hessenbergize `A`); every left rotation fills exactly one entry of `B` below its diagonal and the paired right rotation clears it, acting on columns the left rotation never touched |
 | s5 | 11 | The iteration is opaque; and is a two-sided step even legitimate? | Figure 5 (the real double-shift bulge chase on `H` and `T`, alternating), Table 3 (one sweep's moving magnitudes), equation (16) | A shift from the trailing 2x2 pencil (taken through `T^-1`, so the vector is the first column of `(M - s1 I)(M - s2 I)`, `M = H T^-1`) hands a 3-wide bulge to the same paired rotations; when a subdiagonal vanishes the problem deflates; a zero diagonal of `T` is an infinite eigenvalue; `Q^T M Q = S P^-1` shows the two-sided step is the implicit Q theorem on the pencil; the script's single-shift variant converges in 7 sweeps |
-| s6 | 14 | "What do I actually call?" | the recipe list, the Octave call, and the measured `eig(A,B)` outputs | `eig`/`qz`/`ordqz` over `dggev`/`dgges`; balance, reduce, iterate, read the pairs, order by adjacent-block swaps (generalized Sylvester equation for a complex pair); eigenvectors come from `Z`; QZ is dense `O(n^3)`, not structure-preserving, and not an accuracy guarantee |
-| s7 | 16 | Provenance | Sources | (see below) |
+| s6 | 14 | "What do I actually call?" | the recipe list, the Octave call, and the measured `eig(A,B)` outputs | `eig`/`qz`/`ordqz` over `dggev`/`dgges`; balance, reduce, iterate, read the pairs, order by adjacent-block swaps (generalized Sylvester equation for a complex pair, then the rotation built from its solution); eigenvectors come from `Z`; QZ is dense `O(n^3)`, not structure-preserving, and not an accuracy guarantee |
+| s7 | 18 | Provenance | Sources | (see below) |
 
 ## Follow-ups
 
@@ -84,6 +84,19 @@ ill-conditioned, and at `delta = 0` the third eigenvalue is infinite.
   `R, L`. Appended section 6 to `scripts/verify_qz.m`, which checks both readings
   (`||M v - b v|| = 0` at `x = -0.3333`; the graph identity to `2.22e-16`). Still 18 pages, map
   `3,5,7,9,11,14,17`.
+- **Revision 4 (reader asked how to rotate the matrix after solving the Sylvester equation).** Added
+  to subsection 6.1 a "*From the solution to the rotation*" paragraph pair: the solution is the
+  invariant direction, and the swap is that direction made into a basis. For a scalar block the
+  rotation is written in closed form, `G = 1/sqrt(1+x^2) mat(-x, -1; 1, -x)` (eq. 20), with
+  `M v = b v` forcing `G^T M G e_1 = b e_1` and hence `G^T M G = mat(b, *; 0, a)` (eq. 21); for a
+  genuine block the invariant subspace is the graph `mat(-X; I)`, orthonormalized into the leading
+  columns of `G`. A closing paragraph states why one rotation will not do for a pencil: the
+  invariance is an *equivalence* `Q_1^T (S, T) Z_1` with `Q_1 != Z_1`, a single similarity would not
+  in general keep `T` triangular nor exchange the blocks, so two unknowns `R, L` are solved for and
+  a third transformation re-triangularizes `T`. Appended section 7 to `scripts/verify_qz.m`, which
+  prints the numbers now quoted (2x2: `x = -0.3333`, `||G^T G - I|| = 1.11e-16`, diagonal
+  `(4, 1)`; block: `||G^T G - I|| = 2.84e-16`, lower-left block `6.2e-16`, leading eigenvalues
+  `{4, 5}`, trailing `{1, 3}`). Now 19 pages, map `3,5,7,9,11,14,18`.
 - Next revision: reader feedback on the hardest bridge (the paired rotation of s4, the sample's
   subject). If it does not land, likely repairs are a second worked entry of phase two on a
   `4 x 4` pencil, or a one-line animation of the left/right pair in the sidecar-demo format.
@@ -122,8 +135,8 @@ the note and checked numerically. Suggested further reading is labelled as not c
 ## Checks and deviations
 
 - **Build** — `typst compile --root . Algebra/qz-algorithm/qz-algorithm.typ
-  Algebra/qz-algorithm/qz-algorithm.pdf` exits 0 with no warnings; 18 pages; section-to-page map
-  `3,5,7,9,11,14,17`.
+  Algebra/qz-algorithm/qz-algorithm.pdf` exits 0 with no warnings; 19 pages; section-to-page map
+  `3,5,7,9,11,14,18`.
 - **Shift vector (revision 1)** — `octave` comparison on the reduced `delta = 1/2` pair: the true
   implicit double-shift vector, the first column of `(M - s1 I)(M - s2 I)` with `M = H/T`, and the
   recomputed first column of `(H - s1 T) T^{-1} (H - s2 T) T^{-1}` agree to 0.0 degrees, while
@@ -146,9 +159,12 @@ the note and checked numerically. Suggested further reading is labelled as not c
   at `delta=1/2` and `(i,1)->i`, `(-i,1)->-i`, `(-1,0)->infinity` at `delta=0`; orthogonality
   `5.3e-16`/`4.2e-16`, equivalence `8.1e-16`/`5.6e-16`; the real form's 2x2 block
   `[[0,1],[-1,0]]` with `T_2 = I` giving `±i`; the pair `(1, 1e-309)` finite against an
-  overflowing ratio; `eig(A,B)` residuals and the `-Inf` third value at `delta=0`; and, from
+  overflowing ratio; `eig(A,B)` residuals and the `-Inf` third value at `delta=0`; from
   revision 3's section 6, the Sylvester/invariance readings (`||M v - b v|| = 0` at `x = -0.3333`;
-  `||A X - X B - C|| = ||M [-X;I] - [-X;I] B|| = 2.22e-16`).
+  `||A X - X B - C|| = ||M [-X;I] - [-X;I] B|| = 2.22e-16`); and from revision 4's section 7, the
+  rotation readings (`x = -0.3333`, `||G^T G - I|| = 1.11e-16`, `G^T M G` diagonal `(4, 1)` with
+  lower-left `-1.11e-16`; block `||G^T G - I|| = 2.84e-16`, lower-left block `6.2e-16`, leading
+  eigenvalues `4, 5`, trailing `1, 3`).
 - **qz_sweeps.m** — prints every number in s4 and s5: the phase-one and phase-two matrices shown
   in #ref(<fig:reduction>) (left rotation `c=-0.7454, s=-0.6667` filling `B(3,2)=-0.6667`;
   right rotation `c=-0.5774, s=-0.8165`), sub-band `0.0` and below-diagonal `4.1e-17`,
@@ -160,10 +176,12 @@ the note and checked numerically. Suggested further reading is labelled as not c
   (scipy is not installed here, so a published runnable listing could not be executed).
 - **Rendered pages inspected** — pages 3,4 (spectrum), 5,6 (tables and accuracy plot),
   7,8 (Schur form and block), 9,10 (reduction), 11,12,13 (bulge chase, sweep table,
-  convergence), 14 (recipe and code), 15,16 (sources, bibliography). All figures, tables,
-  labels, and highlighted cells were read back; the spectrum axis overflow, the equation-label
-  collision, the accuracy-guide slope, the bulge alternation, and the code-comment wrap were
-  corrected after inspection.
+  convergence), 14 (recipe and code), 15,16 (the Sylvester prerequisites, the graph derivation,
+  the rotation from the solution, and the swap steps), 17 (the code and "what QZ is not"),
+  18,19 (sources, bibliography). All figures, tables, labels, and highlighted cells were read back;
+  the spectrum axis overflow, the equation-label collision, the accuracy-guide slope, the bulge
+  alternation, and the code-comment wrap were corrected after inspection; the revision-4 equations
+  (20) and (21) were rendered and checked for label collisions.
 - **Landing page** — served at `http://localhost:8010/index.html`; the new card is the first in
   `#grid`, its `href` resolves (HTTP 200), and the page's own counters give `36` notes,
   `algebra = 4`, `math = 8`, and `7` distinct fields. Card attributes (`data-category="algebra

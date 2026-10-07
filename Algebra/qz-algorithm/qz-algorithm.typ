@@ -691,6 +691,30 @@ is why there is a right unknown $R$ and a left one $L$. The script checks both r
 examples: $M v = b v$ exactly for $x = -0.3333$, and $M mat(-X; I) = mat(-X; I) B$ to
 $2.2 times 10^(-16)$.
 
+*From the solution to the rotation.* The solution parametrizes the invariant direction, and the
+swap is that direction made into a basis. In the scalar case the direction is $v = mat(-x; 1)$, and
+the orthogonal matrix whose first column is $v \/ norm(v)$ is a rotation,
+
+$ G = 1 \/ sqrt(1 + x^2) mat(-x, -1; 1, -x). $ <eq:rotate2>
+
+Because $M v = b v$, multiplying the first unit vector gives $G^T M G e_1 = b e_1$; hence the first
+column of $G^T M G$ is $(b, 0)$ and the diagonal comes out swapped:
+
+$ G^T M G = mat(b, *; 0, a). $ <eq:rotate2b>
+
+For $a = 1, c = 1, b = 4$ this gives $x = -0.3333$, $norm(G^T G - I) = 1.1 times 10^(-16)$, and a
+diagonal of $(4, 1)$. The block case for a single matrix is the same move: the invariant subspace is
+the graph $mat(-X; I)$, orthonormalizing it supplies the leading columns of $G$, and $G^T M G$ swaps
+the blocks -- the script finds leading eigenvalues ${4, 5}$ (the old $B$), trailing ${1, 3}$ (the old
+$A$), and a lower-left block of $6.2 times 10^(-16)$.
+
+A pencil cannot do this with one rotation. Its generalized eigenvalues are invariant under an
+*equivalence* $Q_1^T (S, T) Z_1$ with $Q_1 != Z_1$, and a single similarity would in general neither
+keep $T$ triangular nor exchange the blocks -- which is exactly why the algorithm solves for two
+unknowns $R$ and $L$ rather than one $X$. The two factors are built one per side, $Q_1$ from the
+left graph of $L$ and $Z_1$ from the right graph of $R$, and a third transformation re-triangularizes
+$T$ after they are applied.
+
 *When a $2 times 2$ block is involved.* The swap is then read off the two deflating subspaces,
 which is where the *generalized* Sylvester equation enters. In order:
 

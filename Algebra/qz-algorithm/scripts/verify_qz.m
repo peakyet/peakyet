@@ -138,3 +138,21 @@ X2 = reshape((kron(eye(n2),A2)-kron(B2.',eye(n2)))\C2(:), n2, n2);
 Mb = [A2 C2; zeros(n2) B2]; Gg = [-X2; eye(n2)];
 fprintf('block:  ||A*X - X*B - C|| = %.2e ;  ||M*[-X;I] - [-X;I]*B|| = %.2e\n', ...
         norm(A2*X2 - X2*B2 - C2), norm(Mb*Gg - Gg*B2));
+
+% ---------------------------------------------------------------------------
+% From the solution to the rotation: the swap is the invariant direction made
+% into a basis.  Single matrix: one similarity.  (The pencil case is cited, not
+% re-implemented; its outcome is checked with ordqz in the note's text.)
+% ---------------------------------------------------------------------------
+fprintf('\n==================== 7. from the solution to the rotation ====================\n');
+% 2x2: the rotation whose first column is the invariant direction v = (-x; 1)
+a = 1; c = 1; b = 4; M = [a c; 0 b]; x = c/(a-b);
+G = [-x -1; 1 -x] / sqrt(1+x^2); Gt = G.'*M*G;
+fprintf('2x2: x = %.4f ; ||G''G - I|| = %.2e ; G''MG = [%+.4f %+.4f; %+.2e %+.4f]\n', ...
+        x, norm(G.'*G-eye(2)), Gt(1,1), Gt(1,2), Gt(2,1), Gt(2,2));
+% block single matrix: orthonormalise the graph (-X; I) as the leading columns
+W1 = orth([-X2; eye(n2)]); W2 = null(W1.'); Gb = [W1 W2]; Gtb = Gb.'*Mb*Gb;
+fprintf('block: ||G''G - I|| = %.2e ; lower-left block = %.2e\n', ...
+        norm(Gb.'*Gb-eye(4)), norm(Gtb(3:4,1:2)));
+fprintf('     leading eigenvalues = %.3f %.3f (ev of B) ; trailing = %.3f %.3f (ev of A)\n', ...
+        sort(real(eig(Gtb(1:2,1:2)))), sort(real(eig(Gtb(3:4,3:4)))));
