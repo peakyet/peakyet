@@ -156,3 +156,32 @@ fprintf('block: ||G''G - I|| = %.2e ; lower-left block = %.2e\n', ...
         norm(Gb.'*Gb-eye(4)), norm(Gtb(3:4,1:2)));
 fprintf('     leading eigenvalues = %.3f %.3f (ev of B) ; trailing = %.3f %.3f (ev of A)\n', ...
         sort(real(eig(Gtb(1:2,1:2)))), sort(real(eig(Gtb(3:4,3:4)))));
+
+% ---------------------------------------------------------------------------
+% 8. Deflating subspaces: what replaces an invariant subspace for a pencil.
+% ---------------------------------------------------------------------------
+fprintf('\n==================== 8. deflating subspaces ====================\n');
+% the running example at delta = 1/2: the deflating pair for {i, -i}
+[V8, D8] = eig(A, B); i8 = find(abs(imag(diag(D8))) > 0.5);
+X8 = V8(:,i8); Y8 = B*X8; A18 = Y8\(A*X8);
+fprintf('example: dim X = %d ; dim(A X + B X) = %d ; ||A X1 - Y1 A11|| = %.2e ; ||B X1 - Y1|| = %.2e\n', ...
+        rank(X8), rank([A*X8, B*X8]), norm(A*X8 - Y8*A18), norm(B*X8 - Y8));
+fprintf('  induced 2x2 pencil eigenvalues = %s ; ||B X1 - X1|| = %.2e  (B is the identity on this block)\n', ...
+        mat2str(sort(eig(A18)).',4), norm(B*X8 - X8));
+QQ1 = orth(Y8); ZZ1 = orth(X8); QQ = [QQ1, null(QQ1')]; ZZ = [ZZ1, null(ZZ1')];
+SA8 = QQ'*A*ZZ; SB8 = QQ'*B*ZZ;
+fprintf('  ||Q''Q - I|| = %.2e ; ||Z''Z - I|| = %.2e ; lower-left of Q''AZ = %.2e ; of Q''BZ = %.2e\n', ...
+        norm(QQ'*QQ-eye(3)), norm(ZZ'*ZZ-eye(3)), norm(SA8(3,1:2)), norm(SB8(3,1:2)));
+fprintf('  leading 2x2 pencil eigenvalues = %s ; trailing = %.4f\n', ...
+        mat2str(sort(eig(SA8(1:2,1:2), SB8(1:2,1:2))).',4), SA8(3,3)/SB8(3,3));
+% a tiny pencil where the two notions differ: an eigenvector of A alone is not enough
+At = [1 1; 0 2]; Bt = [1 0; 1 1];
+[Vt, Dt] = eig(At, Bt); wt = Vt(:,1); lt = (Bt*wt)\(At*wt);
+lamt = diag(Dt); [~, kt] = sortrows([real(lamt) imag(lamt)]); lamt = lamt(kt);
+fprintf('tiny pencil A = [1 1; 0 2], B = [1 0; 1 1]: eigenvalues %s\n', mat2str(lamt.',4));
+va = [1; 0];   % the eigenvector of A for lambda = 1
+fprintf('  A-eigenvector: dim X = 1 ; dim(A X + B X) = %d (need 1) -> not deflating\n', rank([At*va, Bt*va]));
+fprintf('  generalized eigvector: dim(A X + B X) = %d ; ||A w - lam B w|| = %.2e\n', ...
+        rank([At*wt, Bt*wt]), norm(At*wt - lt*Bt*wt));
+fprintf('  angle(span(A w), span(w)) = %.1f deg (the two subspaces of the pair differ)\n', ...
+        acos(min(1, abs((At*wt)'*wt)/(norm(At*wt)*norm(wt))))*180/pi);

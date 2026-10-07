@@ -321,6 +321,12 @@ we have the whole spectrum, finite and infinite, without a single division that 
 This is the representation the rest of the note uses: an eigenvalue is not a number the
 algorithm converges to, it is a *pair* on the diagonal, and only the user's final step (if any)
 turns it into a ratio. The pair is also exactly what LAPACK returns, as $alpha$, $beta$.
+The factorization also groups the spectrum: because $S$ and $T$ are triangular (quasi-triangular
+in the real form), the leading $k$ columns of $Z$ together with the leading $k$ of $Q$ already form
+a closed block carrying the first $k$ pairs and nothing else, provided $k$ does not cut across a
+$2 times 2$ block. Section 6 defines what those columns span -- a *deflating subspace* on each
+side, a pair of spaces rather than one -- and ordering is what chooses which pairs sit in that
+leading block.
 
 *Read the example.* For $delta = 1\/2$ the complex QZ of #ref(<eq:dense>) is essentially
 diagonal; the script's run gives the diagonal pairs
@@ -633,6 +639,46 @@ The recipe, and then where to find it. Everything below is a dense $O(n^3)$ comp
   corresponding left and right deflating subspaces; a swap that would be too ill-conditioned is
   reported rather than performed silently.
 
+*What a deflating subspace is.* The ordering step named an object the drivers compute but the note
+has not yet defined. For a pencil, the analogue of an invariant subspace is a *pair* of subspaces of
+equal dimension, one on each side @monov2004reducing:
+
+$ dim X = dim Y = k, quad A X subset.eq Y, quad B X subset.eq Y, $ <eq:deflating>
+
+where $A X$ means $\{A x : x in X\}$. Equivalently, with basis matrices $X_1$ of $X$ and $Y_1$ of
+$Y$, there are $k times k$ matrices with $A X_1 = Y_1 A_(11)$ and $B X_1 = Y_1 B_(11)$, so the
+pencil restricted to the pair is the small regular pencil $(A_(11), B_(11))$ and its eigenvalues are
+a subset of the spectrum of $(A, B)$ @oara1997deflating. The pair is called *deflating*, and its two
+members are the *right* subspace $X$ and the *left* one $Y$ -- the names subsection 6.1 uses for
+$R$ and $L$.
+
+Two readings make the definition concrete. Put $B = I$: then $B X subset.eq Y$ is free, $Y$ can be
+taken to be $X$, and the condition collapses to $A X subset.eq X$, an ordinary *invariant subspace*
+-- one matrix is the special case. And a single direction is never enough on its own: a generalized
+eigenvector $w$, one with $A w = lambda B w$, gives the pair
+$(X, Y) = ("span"(w), "span"(A w))$, whereas an eigenvector of $A$ alone satisfies $A X subset.eq X$ but
+in general sends $B X$ somewhere else entirely. What the pair buys is the deflation itself: given
+$X$ and $Y$, orthonormal bases of them can be completed to unitary $Q$ and $Z$ whose leading $k$
+columns hold $(A_(11), B_(11))$ and whose trailing columns hold the rest, because then
+$Q^* A Z$ and $Q^* B Z$ are block upper triangular. That is the certificate the algorithm tests:
+$S_(k+1, k) = 0$ means the leading columns already have the property, the pencil splits, and each
+half is solved on its own, which is the deflation of section 5
+@kagstrom2006multishift @stewart1990perturbation.
+
+*Measured.* On the example's pair ${i, -i}$ at $delta = 1\/2$ the script reproduces all of it:
+$dim(A X + B X) = 2 = dim X$, the induced $2 times 2$ pencil with eigenvalues ${i, -i}$, then
+orthonormalization with $norm(Q^* Q - I) = 5.0 times 10^(-16)$ and lower-left blocks
+$3.1 times 10^(-16)$ and $2.6 times 10^(-16)$ in $Q^* A Z$ and $Q^* B Z$, the leading block holding
+${i, -i}$ and the trailing one holding $2$. The same script tests the definition on a tiny pencil
+that has nothing hidden in it, $A = mat(1, 1; 0, 2)$, $B = mat(1, 0; 1, 1)$, with eigenvalues
+$1 plus.minus i$: an eigenvector of $A$ gives $dim(A X + B X) = 2 != 1$ and is therefore *not* a
+deflating direction, while a generalized eigenvector gives $1$, and $"span"(A w)$ sits
+$24.1 degree$ away from $"span"(w)$ -- the two members of the pair are genuinely different subspaces.
+
+One trap hides in the running example: there $B$ acts as the identity on the ${i, -i}$ block
+($norm(B X_1 - X_1) = 2.2 times 10^(-16)$), so that particular pair has $X = Y$ and a one-matrix
+intuition would appear to survive. The tiny pencil is the honest test of the two-sided definition.
+
 == Moving a block to the front: the swap in detail
 
 The drivers move a selected pair by *adjacent-block swaps* and bubble it forward. Write the two
@@ -782,6 +828,15 @@ construction of the shift vector of #ref(<eq:implicitq>), are LAPACK's `DGGHRD` 
 which this note read @lapack_dgghrd @lapack_dhgeqz. The reordering of section 6 -- adjacent-block
 swaps and the generalized Sylvester equation -- is Kågström's direct method
 @kagstrom1993reordering. Balancing before the QZ iteration is Ward @ward1981balancing.
+
+The deflating subspace of section 6 is quoted from Monov and Tsatsomeros, who define it as the
+subspace pair $A L subset.eq M$, $B L subset.eq M$ together with the block-triangular reduction it
+produces @monov2004reducing, and from Oară and Van Dooren, whose basis-matrix form carries an
+induced *regular* pencil and reduces to the ordinary invariant-subspace definition when one of the
+two matrices is the identity @oara1997deflating. The vanishing-subdiagonal certificate
+$S_(k+1, k) = 0$ is stated in that form by Kågström and Kressner, who attribute it to Stewart and
+Sun's *Matrix Perturbation Theory*, chapter VI @kagstrom2006multishift @stewart1990perturbation --
+the textbook itself was not consulted here.
 
 Not consulted, and offered only as pointers for going further: Stewart's *Matrix Algorithms,
 Volume II* (chapter 4 on the generalized eigenproblem) and the CAREX/DAREX collections of

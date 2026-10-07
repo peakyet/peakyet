@@ -37,7 +37,7 @@ ill-conditioned, and at `delta = 0` the third eigenvalue is infinite.
 | s3 | 7 | New representation: an eigenvalue as a pair, both matrices triangular | Figure 3 (the factorization and the 2x2-block alternative) and the computed pairs `(1,0.5)->2`, `(i,1)->i`, `(-i,1)->-i` | `Q*AZ=S`, `Q*BZ=T` triangular; `det(A-lambda B)=c prod(S_ii - lambda T_ii)`; finite `alpha/beta`, infinite at `beta=0`; a real driver returns a 2x2 block, whose diagonal is *not* the eigenvalues |
 | s4 | 9 | The paired rotation: a left rotation that cleans `A` spoils `B` | Figure 4 (the phase-two matrices with the navy zero created in `A` and the rose fill it causes in `B`, then repaired) and the recorded rotation sequence | Phase 1 (QR of `B`) then phase 2 (Hessenbergize `A`); every left rotation fills exactly one entry of `B` below its diagonal and the paired right rotation clears it, acting on columns the left rotation never touched |
 | s5 | 11 | The iteration is opaque; and is a two-sided step even legitimate? | Figure 5 (the real double-shift bulge chase on `H` and `T`, alternating), Table 3 (one sweep's moving magnitudes), equation (16) | A shift from the trailing 2x2 pencil (taken through `T^-1`, so the vector is the first column of `(M - s1 I)(M - s2 I)`, `M = H T^-1`) hands a 3-wide bulge to the same paired rotations; when a subdiagonal vanishes the problem deflates; a zero diagonal of `T` is an infinite eigenvalue; `Q^T M Q = S P^-1` shows the two-sided step is the implicit Q theorem on the pencil; the script's single-shift variant converges in 7 sweeps |
-| s6 | 14 | "What do I actually call?" | the recipe list, the Octave call, and the measured `eig(A,B)` outputs | `eig`/`qz`/`ordqz` over `dggev`/`dgges`; balance, reduce, iterate, read the pairs, order by adjacent-block swaps (generalized Sylvester equation for a complex pair, then the rotation built from its solution); eigenvectors come from `Z`; QZ is dense `O(n^3)`, not structure-preserving, and not an accuracy guarantee |
+| s6 | 14 | "What do I actually call?" | the recipe list, the definition of a deflating subspace, the Octave call, and the measured `eig(A,B)` outputs | `eig`/`qz`/`ordqz` over `dggev`/`dgges`; a deflating subspace is a *pair* `X, Y` with `A X ⊆ Y`, `B X ⊆ Y` (an invariant subspace when `B = I`), certified by a vanishing subdiagonal; balance, reduce, iterate, read the pairs, order by adjacent-block swaps (generalized Sylvester equation for a complex pair, then the rotation built from its solution); eigenvectors come from `Z`; QZ is dense `O(n^3)`, not structure-preserving, and not an accuracy guarantee |
 | s7 | 18 | Provenance | Sources | (see below) |
 
 ## Follow-ups
@@ -97,6 +97,27 @@ ill-conditioned, and at `delta = 0` the third eigenvalue is infinite.
   prints the numbers now quoted (2x2: `x = -0.3333`, `||G^T G - I|| = 1.11e-16`, diagonal
   `(4, 1)`; block: `||G^T G - I|| = 2.84e-16`, lower-left block `6.2e-16`, leading eigenvalues
   `{4, 5}`, trailing `{1, 3}`). Now 19 pages, map `3,5,7,9,11,14,18`.
+- **Revision 5 (reader asked what a deflating subspace is).** Added a definition the note had been
+  using without one. In section 6, after the recipe list, "*What a deflating subspace is*" defines
+  the pencil's analogue of an invariant subspace as a *pair* of subspaces of equal dimension with
+  `A X ⊆ Y` and `B X ⊆ Y` (equation 17), gives the equivalent basis-matrix form with the induced
+  regular pencil `(A11, B11)` whose spectrum is a subset of the pencil's, names `X` the right member
+  and `Y` the left one (the `R` and `L` of 6.1), and states the two readings that make it concrete
+  (`B = I` collapses it to an invariant subspace; a lone generalized eigenvector gives the pair
+  `(span(w), span(A w))` whereas an eigenvector of `A` alone does not) plus the `S(k+1,k) = 0`
+  certificate and the recursion it licenses. A "*Measured*" paragraph quotes the script's numbers
+  and a third paragraph flags the trap that the running example hides: there `B` is the identity on
+  the `{i, -i}` block, so that pair has `X = Y`, and a tiny pencil (`A = [1 1; 0 2]`,
+  `B = [1 0; 1 1]`, eigenvalues `1 ± i`) is the test that separates the two notions. Added a
+  forward pointer in s3 (the leading `k` columns of `Z` and of `Q` carry the leading `k` pairs,
+  provided `k` does not cut a `2 x 2` block). Appended section 8 to `scripts/verify_qz.m`, which
+  prints every quoted number. A sentence in s7 records the provenance of the definition and the
+  certificate. Four references added: Monov & Tsatsomeros 2004 and Oară & Van Dooren
+  1997 for the definition and the induced pencil, Kågström & Kressner 2006 for the deflation
+  certificate, Stewart & Sun 1990 as the textbook statement of the certificate (reached through
+  Kågström & Kressner's citation of it; not consulted directly). Equation numbering after the
+  insertion shifted by one: the swap display is now (18), and revision 4's rotation equations are
+  now (21) and (22). Still 19 pages, map `3,5,7,9,11,14,18`; subsection 6.1 now opens on page 15.
 - Next revision: reader feedback on the hardest bridge (the paired rotation of s4, the sample's
   subject). If it does not land, likely repairs are a second worked entry of phase two on a
   `4 x 4` pencil, or a one-line animation of the left/right pair in the sidecar-demo format.
@@ -128,6 +149,10 @@ ill-conditioned, and at `delta = 0` the third eigenvalue is infinite.
 | Ward 1981, abstract | balancing the generalized eigenvalue problem before a QZ-type solver |
 | LAPACK `DGGHRD` and `DHGEQZ` sources (purpose and inner loops), read in revision 1 | phase-two reduction is a product of Givens rotations, bottom-up per column; the real driver is the double-shift QZ method, and it builds the 3-vector shift from a handful of local entries of `H` and `T` |
 | Kågström 1993, via the `DTGEXC`/`DTGEX2` source and the LAWN87 abstract, read in revision 1 | reordering by adjacent-block swaps; the generalized Sylvester equation for swapping a block that holds a complex pair; a Givens rotation for two real 1x1 blocks |
+| Monov & Tsatsomeros 2004, *Electron. J. Linear Algebra* 11 (abstract, section 2, p. 247 definition, section 4), read in revision 5 | the definition of a deflating pair `AL ⊆ M`, `BL ⊆ M`; the block-triangular reduction `M^-1 A L`, `M^-1 B L` it produces; the generalized Schur theorem as the existence statement for deflating subspaces of every dimension `1 <= k < n` |
+| Oară & Van Dooren 1997, *Systems & Control Letters* 30 (section 2, Definition 1 and Remark 3), read in revision 5 | the basis-matrix form of a deflating subspace with an induced *regular* pencil, and its reduction to the invariant-subspace definition `AV = V S` when one matrix is the identity |
+| Kågström & Kressner 2006 / LAWN173 (introduction and reference list), read in revision 5 | the `(k+1, k)` subdiagonal certificate for a deflating pair; the reference list is how Stewart & Sun 1990 was reached |
+| Stewart & Sun 1990, *Matrix Perturbation Theory*, Chapter VI -- **not consulted directly** | the textbook statement of the deflating-subspace definition and of the subdiagonal certificate; reached only through Kågström & Kressner's citation of it |
 
 No source was needed for the algebra of s3 and s4 or the closed form of s1, which are derived in
 the note and checked numerically. Suggested further reading is labelled as not consulted.
@@ -164,7 +189,12 @@ the note and checked numerically. Suggested further reading is labelled as not c
   `||A X - X B - C|| = ||M [-X;I] - [-X;I] B|| = 2.22e-16`); and from revision 4's section 7, the
   rotation readings (`x = -0.3333`, `||G^T G - I|| = 1.11e-16`, `G^T M G` diagonal `(4, 1)` with
   lower-left `-1.11e-16`; block `||G^T G - I|| = 2.84e-16`, lower-left block `6.2e-16`, leading
-  eigenvalues `4, 5`, trailing `1, 3`).
+  eigenvalues `4, 5`, trailing `1, 3`); and from revision 5's section 8, the deflating-subspace
+  readings on the example (`dim X = 2`, `dim(A X + B X) = 2`, `||A X1 - Y1 A11|| = 3.80e-16`,
+  `||B X1 - Y1|| = 0`, induced pencil `{i, -i}`, `||B X1 - X1|| = 2.24e-16`, `||Q'Q - I|| = 4.98e-16`,
+  `||Z'Z - I|| = 9.27e-16`, lower-left blocks `3.06e-16` / `2.62e-16`, trailing `2.0000`) and on the
+  tiny pencil (`A-eigenvector`: `dim(A X + B X) = 2 != 1`; generalized eigenvector: `1`,
+  `||A w - lam B w|| = 5.12e-16`, `angle(span(A w), span(w)) = 24.1` degrees).
 - **qz_sweeps.m** — prints every number in s4 and s5: the phase-one and phase-two matrices shown
   in #ref(<fig:reduction>) (left rotation `c=-0.7454, s=-0.6667` filling `B(3,2)=-0.6667`;
   right rotation `c=-0.5774, s=-0.8165`), sub-band `0.0` and below-diagonal `4.1e-17`,
@@ -175,13 +205,14 @@ the note and checked numerically. Suggested further reading is labelled as not c
   was run in Octave 11.3.0 and works. The Python listing was replaced by a prose pointer
   (scipy is not installed here, so a published runnable listing could not be executed).
 - **Rendered pages inspected** — pages 3,4 (spectrum), 5,6 (tables and accuracy plot),
-  7,8 (Schur form and block), 9,10 (reduction), 11,12,13 (bulge chase, sweep table,
-  convergence), 14 (recipe and code), 15,16 (the Sylvester prerequisites, the graph derivation,
-  the rotation from the solution, and the swap steps), 17 (the code and "what QZ is not"),
-  18,19 (sources, bibliography). All figures, tables, labels, and highlighted cells were read back;
-  the spectrum axis overflow, the equation-label collision, the accuracy-guide slope, the bulge
-  alternation, and the code-comment wrap were corrected after inspection; the revision-4 equations
-  (20) and (21) were rendered and checked for label collisions.
+  7,8 (Schur form, block, and the deflating-subspace pointer added in revision 5), 9,10 (reduction),
+  11,12,13 (bulge chase, sweep table, convergence), 14,15 (recipe and code, the deflating-subspace
+  definition with equation (17), and the opening of 6.1), 16,17 (the swap steps, the rotation from
+  the solution, the code and "what QZ is not"), 18,19 (sources, bibliography, including the four
+  revision-5 entries and the `Oară` accent). All figures, tables, labels, and highlighted cells were
+  read back; the spectrum axis overflow, the equation-label collision, the accuracy-guide slope, the
+  bulge alternation, and the code-comment wrap were corrected after inspection; the revision-4
+  equations and the revision-5 definition equation were rendered and checked for label collisions.
 - **Landing page** — served at `http://localhost:8010/index.html`; the new card is the first in
   `#grid`, its `href` resolves (HTTP 200), and the page's own counters give `36` notes,
   `algebra = 4`, `math = 8`, and `7` distinct fields. Card attributes (`data-category="algebra
