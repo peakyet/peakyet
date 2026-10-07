@@ -669,6 +669,28 @@ and $S v = lambda T v$ couples the two matrices into the two equations below. Th
 exchanged only when their spectra are disjoint, and the *size* of the solution is precisely the
 swap's conditioning -- the quantity the threshold test below checks.
 
+*Why the equation has that form.* The swap wants a basis whose first directions are the invariant
+directions of the block that is moving up, and writing such a direction as a *graph* over the block
+structure is what produces the equation. In the scalar case $M = mat(a, c; 0, b)$, let the direction
+belonging to the eigenvalue $b$ be $v = mat(-x; 1)$, with $x$ unknown. Imposing $M v = b v$ gives
+$-a x + c = -b x$, that is
+
+$ a x - x b = c. $ <eq:sylvesterscalar>
+
+The Sylvester equation *is* the eigenvector equation. In the block case $M = mat(A, C; 0, B)$ the
+graph is $mat(-X; I)$, whose bottom block forces the invariant action to be $B$:
+
+$ mat(A, C; 0, B) mat(-X; I) = mat(-X; I) B, quad "that is" quad -A X + C = -X B, $ <eq:sylvesterblock>
+
+which is $A X - X B = C$. The two terms are matched because the graph is acted on from the left by
+$A$ and from the right by its own block $B$; a *similarity* -- the same basis on both sides --
+would instead give the commutator $A X - X A$, the Lyapunov equation of control theory. For a
+pencil the direction satisfies $S v = lambda T v$ for *two* matrices, so the single invariance
+condition becomes one per matrix, exactly the two equations above; and the two-sided transformation
+is why there is a right unknown $R$ and a left one $L$. The script checks both readings on tiny
+examples: $M v = b v$ exactly for $x = -0.3333$, and $M mat(-X; I) = mat(-X; I) B$ to
+$2.2 times 10^(-16)$.
+
 *When a $2 times 2$ block is involved.* The swap is then read off the two deflating subspaces,
 which is where the *generalized* Sylvester equation enters. In order:
 

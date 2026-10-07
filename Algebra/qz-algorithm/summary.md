@@ -6,7 +6,7 @@ hardest-bridge sample and the full note were produced in one pass: the sample is
 arrived yet. Comprehension is therefore **unassessed**.
 
 **Artifact:** `Algebra/qz-algorithm/qz-algorithm.typ`, compiled to
-`Algebra/qz-algorithm/qz-algorithm.pdf` (17 pages); `Algebra/qz-algorithm/refs.bib`;
+`Algebra/qz-algorithm/qz-algorithm.pdf` (18 pages); `Algebra/qz-algorithm/refs.bib`;
 `Algebra/qz-algorithm/scripts/verify_qz.m` and `Algebra/qz-algorithm/scripts/qz_sweeps.m`
 (Octave, standard library only); no demo. Cross-references in the prose point at
 `Control/qz-riccati/qz-riccati.pdf`, `Control/symplectic-matrix/symplectic-matrix.pdf` and
@@ -73,8 +73,17 @@ ill-conditioned, and at `delta = 0` the third eigenvalue is infinite.
   two re-triangularizations with the smaller `S21` chosen, and the acceptance threshold). Reads
   from `DTGEXC`/`DTGEX2`; verified the outcome with Octave's `ordqz` on the running example (the
   2x2 complex block moves to the front, `T` gains the 1x1 at the bottom, eigenvalues preserved,
-  `Q2`, `Z2` orthogonal to `1e-15`). No page change (fits s6): still 17 pages, map
-  `3,5,7,9,11,14,16`.
+  `Q2`, `Z2` orthogonal to `1e-15`). Now 18 pages, map `3,5,7,9,11,14,17`.
+- **Revision 3 (reader asked what a Sylvester equation is, then why it has that form).** Added to
+  subsection 6.1 a prerequisite paragraph defining `A X - X B = C` (the scalar prototype
+  `x = c/(a - b)`, the vectorized `n^2` system, the operator eigenvalues
+  `lambda_i(A) - lambda_j(B)`, and the disjoint-spectrum condition), and a "Why the equation has
+  that form" derivation: a swap is a *graph-invariance* condition, which for `mat(a, c; 0, b)` is
+  the eigenvector equation `a x - x b = c` (eq. 18) and for `mat(A, C; 0, B)` is `A X - X B = C`
+  (eq. 19); a pencil gives one condition per matrix, hence the two equations and the two unknowns
+  `R, L`. Appended section 6 to `scripts/verify_qz.m`, which checks both readings
+  (`||M v - b v|| = 0` at `x = -0.3333`; the graph identity to `2.22e-16`). Still 18 pages, map
+  `3,5,7,9,11,14,17`.
 - Next revision: reader feedback on the hardest bridge (the paired rotation of s4, the sample's
   subject). If it does not land, likely repairs are a second worked entry of phase two on a
   `4 x 4` pencil, or a one-line animation of the left/right pair in the sidecar-demo format.
@@ -113,8 +122,8 @@ the note and checked numerically. Suggested further reading is labelled as not c
 ## Checks and deviations
 
 - **Build** — `typst compile --root . Algebra/qz-algorithm/qz-algorithm.typ
-  Algebra/qz-algorithm/qz-algorithm.pdf` exits 0 with no warnings; 17 pages (revision 1 added a
-  paragraph and an equation); section-to-page map `3,5,7,9,11,14,16`.
+  Algebra/qz-algorithm/qz-algorithm.pdf` exits 0 with no warnings; 18 pages; section-to-page map
+  `3,5,7,9,11,14,17`.
 - **Shift vector (revision 1)** — `octave` comparison on the reduced `delta = 1/2` pair: the true
   implicit double-shift vector, the first column of `(M - s1 I)(M - s2 I)` with `M = H/T`, and the
   recomputed first column of `(H - s1 T) T^{-1} (H - s2 T) T^{-1}` agree to 0.0 degrees, while
@@ -137,7 +146,9 @@ the note and checked numerically. Suggested further reading is labelled as not c
   at `delta=1/2` and `(i,1)->i`, `(-i,1)->-i`, `(-1,0)->infinity` at `delta=0`; orthogonality
   `5.3e-16`/`4.2e-16`, equivalence `8.1e-16`/`5.6e-16`; the real form's 2x2 block
   `[[0,1],[-1,0]]` with `T_2 = I` giving `±i`; the pair `(1, 1e-309)` finite against an
-  overflowing ratio; `eig(A,B)` residuals and the `-Inf` third value at `delta=0`.
+  overflowing ratio; `eig(A,B)` residuals and the `-Inf` third value at `delta=0`; and, from
+  revision 3's section 6, the Sylvester/invariance readings (`||M v - b v|| = 0` at `x = -0.3333`;
+  `||A X - X B - C|| = ||M [-X;I] - [-X;I] B|| = 2.22e-16`).
 - **qz_sweeps.m** — prints every number in s4 and s5: the phase-one and phase-two matrices shown
   in #ref(<fig:reduction>) (left rotation `c=-0.7454, s=-0.6667` filling `B(3,2)=-0.6667`;
   right rotation `c=-0.5774, s=-0.8165`), sub-band `0.0` and below-diagonal `4.1e-17`,

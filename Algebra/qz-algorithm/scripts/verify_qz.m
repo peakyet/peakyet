@@ -122,3 +122,19 @@ end
 fprintf('eig(A,B) at delta=0 (singular B) still returns a finite pair and -Inf:\n');
 [dum, Dg0] = eig(A, B0);
 fprintf('  '); fprintf('%+.4f%+.4fi ', [real(diag(Dg0)) imag(diag(Dg0))].'); fprintf('\n');
+
+% ---------------------------------------------------------------------------
+% The Sylvester equation of subsection 6.1 is the invariance (eigenvector)
+% condition written as a graph.  Check both readings directly.
+% ---------------------------------------------------------------------------
+fprintf('\n==================== 6. the swap equation is the invariance condition ====================\n');
+% scalar:  a*x - x*b = c  <=>  M*v = b*v with v = (-x; 1)
+a = 1; c = 1; b = 4; M = [a c; 0 b];
+x = c/(a-b); v = [-x; 1];
+fprintf('scalar: x = c/(a-b) = %.4f ;  ||M*v - b*v|| = %.2e\n', x, norm(M*v - b*v));
+% block:  A*X - X*B = C  <=>  M*[-X;I] = [-X;I]*B
+A2 = [1 2; 0 3]; B2 = [4 1; 0 5]; C2 = ones(2); n2 = 2;
+X2 = reshape((kron(eye(n2),A2)-kron(B2.',eye(n2)))\C2(:), n2, n2);
+Mb = [A2 C2; zeros(n2) B2]; Gg = [-X2; eye(n2)];
+fprintf('block:  ||A*X - X*B - C|| = %.2e ;  ||M*[-X;I] - [-X;I]*B|| = %.2e\n', ...
+        norm(A2*X2 - X2*B2 - C2), norm(Mb*Gg - Gg*B2));
