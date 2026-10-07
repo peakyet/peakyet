@@ -656,6 +656,19 @@ built from $(s_(11), s_(21))$ if $abs(s_(22)) >= abs(t_(22))$ and from $(t_(11),
 otherwise -- is applied from the left to restore triangularity. When $T = I$ this is exactly the
 standard Schur reordering of a single matrix.
 
+*The Sylvester equation, briefly.* An equation $A X - X B = C$ with known $A, B, C$ and unknown
+$X$ is a *Sylvester equation*: linear in $X$, with the scalar prototype $a x - x b = c$, whose
+solution is $x = c \/ (a - b)$. Vectorizing turns it into a linear system of size $n^2$, and the
+operator $X |-> A X - X B$ has eigenvalues $lambda_i(A) - lambda_j(B)$; so it has one unique
+solution exactly when $A$ and $B$ share no eigenvalue, and the smallest such difference measures
+how ill-conditioned that solution is. In the swap, $X$ is what turns coupling into a change of
+basis: for the $2 times 2$ case above, $x = c \/ (a - b)$ is exactly the quantity the rotation
+angle is built from. The pencil doubles the bookkeeping: it is transformed on both sides, so
+there is a right deflating subspace (parametrized by $R$) and a left one (parametrized by $L$),
+and $S v = lambda T v$ couples the two matrices into the two equations below. The blocks can be
+exchanged only when their spectra are disjoint, and the *size* of the solution is precisely the
+swap's conditioning -- the quantity the threshold test below checks.
+
 *When a $2 times 2$ block is involved.* The swap is then read off the two deflating subspaces,
 which is where the *generalized* Sylvester equation enters. In order:
 
