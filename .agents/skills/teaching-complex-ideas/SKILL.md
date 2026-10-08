@@ -26,4 +26,17 @@ Use [note.typ](typst-template/note.typ) for new notes; consult references only a
 [figures](references/figures.md), [sources](references/sources.md),
 [publishing and checks](references/repo-notes.md).
 
+Use the computer's tools when they clarify or check the idea:
+
+- **Wolfram Language** (`wolframscript`, `math`, or `WolframKernel`) for exact
+  symbolic algebra, calculus, difficult mathematical checks, and labeled plots.
+- **GNU Octave** (`octave`) for MATLAB-like numerical linear algebra, simulation,
+  parameter sweeps, and reproducible numerical figures.
+- **Python through `uv`** for scripts, data, and plots when the needed environment
+  is available; use Typst for the note, Node for JavaScript checks, and Chrome for
+  interactive HTML inspection.
+
+Use computation to test examples and expose limits, then explain the result in
+terms a beginner can reconstruct. Do not replace the central reasoning with output.
+
 Topic: $ARGUMENTS
