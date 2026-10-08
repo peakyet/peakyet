@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POMDP belief update — tiger problem</title>
+<style>
+  body { font-family: "Source Serif Pro", Georgia, "Times New Roman", serif;
+         color: #1a1a1a; background: #ffffff; max-width: 820px; margin: 0 auto;
+         padding: 1.6rem 1.2rem 3rem; line-height: 1.6; }
+  h1 { font-size: 1.4rem; margin: 0 0 .3rem; color: #1f4e79; }
+  p.lead { margin: .2rem 0 1rem; color: #444; }
+  .controls { display: flex; flex-wrap: wrap; gap: 1.4rem; align-items: center; margin-bottom: .8rem; }
+  label { font-size: .95rem; }
+  input[type=range] { vertical-align: middle; width: 240px; }
+  select { font: inherit; padding: .15rem .3rem; }
+  canvas { width: 100%; height: auto; border: 1px solid #e8e4d8; border-radius: 6px; }
+  #out { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+         font-size: .9rem; background: #f8fafc; border-left: 3px solid #1f4e79;
+         padding: .5rem .7rem; margin-top: .8rem; white-space: pre-wrap; }
+  .foot { font-size: .82rem; color: #666; margin-top: 1rem; }
+</style>
+</head>
+<body>
+<h1>POMDP belief update: the tiger problem</h1>
+<p class="lead">The agent's knowledge is one number, <em>b</em> = P(tiger is left). Drag the belief,
+choose which growl arrives, and watch Bayes's rule move it. The state itself never appears.</p>
+
+<div class="controls">
+  <label>prior belief <em>b</em> = <span id="bval">0.60</span>
+    <br><input type="range" id="b" min="1" max="99" step="1" value="60"></label>
+  <label>observation heard
+    <br><select id="obs"><option value="left">growl from the left</option>
+      <option value="right">growl from the right</option></select></label>
+</div>
+
+<canvas id="cv" width="760" height="250"></canvas>
+<div id="out"></div>
+<p class="foot">Opening the safe door pays +10, the tiger door -100, listening -1; a growl is
+correct with probability 0.85. Numbers follow Kaelbling, Littman &amp; Cassandra (1998), §5.1.</p>
+
+<script>
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+const bEl = document.getElementById('b'), obsEl = document.getElementById('obs');
+const out = document.getElementById('out'), bval = document.getElementById('bval');
+const NAVY = '#1f4e79', TEAL = '#0f766e', GRAY = '#5b564b';
+const Z = 0.85, PX0 = 60, PX1 = 660, AXIS_Y = 175, TOP_Y = 70;
+const xOf = b => PX0 + b * (PX1 - PX0);
+const A = b => Math.max(10 - 110*b, 110*b - 100);
+
+// Optional deep link for verification: pomdp-demo.html#b=0.2&o=right
+const h = new URLSearchParams(location.hash.slice(1));
+if (h.has('b')) bEl.value = Math.round(parseFloat(h.get('b')) * 100);
+if (h.has('o')) obsEl.value = h.get('o');
+
+function draw() {
+  const b = bEl.value / 100, o = obsEl.value;
+  const pL = Z*b + (1-Z)*(1-b), bL = Z*b/pL;
+  const pR = 1 - pL, bR = (1-Z)*b/pR;
+  const sel = o === 'left' ? bL : bR, psel = o === 'left' ? pL : pR;
+  const L = -1 + pL*A(bL) + pR*A(bR);
+
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  ctx.font = '13px Georgia, serif'; ctx.textAlign = 'center';
+  ctx.strokeStyle = GRAY; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(PX0, AXIS_Y); ctx.lineTo(PX1 + 20, AXIS_Y); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(PX0, AXIS_Y); ctx.lineTo(PX0, TOP_Y - 24); ctx.stroke();
+  ctx.fillStyle = GRAY;
+  [0, 0.5, 1].forEach(t => { ctx.beginPath(); ctx.moveTo(xOf(t), AXIS_Y);
+    ctx.lineTo(xOf(t), AXIS_Y + 6); ctx.stroke();
+    ctx.fillText(t.toFixed(1), xOf(t), AXIS_Y + 22); });
+  ctx.fillText('belief b', PX1 + 42, AXIS_Y + 22);
+  // both candidate posteriors (hollow); the one the chosen growl produces is filled
+  [[bL, "b'"], [bR, "b''"]].forEach(pair => {
+    const x = pair[0], name = pair[1];
+    ctx.beginPath(); ctx.arc(xOf(x), TOP_Y, 6, 0, 2*Math.PI);
+    if (x === sel) { ctx.fillStyle = TEAL; ctx.fill(); }
+    else { ctx.strokeStyle = TEAL; ctx.stroke(); }
+    ctx.fillStyle = TEAL; ctx.fillText(name + ' = ' + x.toFixed(3), xOf(x), TOP_Y - 14);
+  });
+  // the prior and the move under examination
+  ctx.beginPath(); ctx.arc(xOf(b), AXIS_Y, 6, 0, 2*Math.PI); ctx.fillStyle = NAVY; ctx.fill();
+  ctx.strokeStyle = TEAL; ctx.lineWidth = 1.6;
+  ctx.beginPath(); ctx.moveTo(xOf(b), AXIS_Y - 6); ctx.lineTo(xOf(sel), TOP_Y + 6); ctx.stroke();
+  ctx.lineWidth = 1; ctx.fillStyle = NAVY; ctx.fillText('prior ' + b.toFixed(2), xOf(b), AXIS_Y + 40);
+
+  bval.textContent = b.toFixed(2);
+  out.textContent =
+    'b = ' + b.toFixed(2) +
+    '   P(growl left) = ' + pL.toFixed(3) +
+    '   P(growl right) = ' + pR.toFixed(3) + '\n' +
+    'observed ' + (o === 'left' ? 'growl left ' : 'growl right') +
+    ' with prob ' + psel.toFixed(3) +
+    '  ->  posterior ' + (o === 'left' ? "b' " : "b''") + ' = ' + sel.toFixed(3) + '\n' +
+    'act now  A(b) = ' + A(b).toFixed(1) + '    listen then act  L(b) = ' + L.toFixed(1);
+}
+bEl.addEventListener('input', draw);
+obsEl.addEventListener('change', draw);
+draw();
+</script>
+</body>
+</html>

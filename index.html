@@ -479,27 +479,6 @@
         <span class="foot"><span class="field"><i></i>Control Theory</span></span>
       </a>
 
-      <a class="card" href="Control/h2-control/h2-control.html" data-category="control" data-field="Control Theory" data-tags="control h2 lqr optimal-control kalman state-space frequency lyapunov">
-        <div class="toprow">
-          <span class="tag teal">H₂ Control</span>
-          <span class="read"></span>
-        </div>
-        <h3>H₂ Control: Minimizing the Average Energy of a Closed Loop</h3>
-        <p>A feedback controller must be stable and must make the disturbance-to-output map small &mdash; small in the H₂ norm. This note follows the thread from a single integral to the Kalman filter.</p>
-        <div class="tags">
-          <span class="tag-pill">control</span>
-          <span class="tag-pill">h2</span>
-          <span class="tag-pill">lqr</span>
-          <span class="tag-pill">optimal-control</span>
-          <span class="tag-pill">kalman</span>
-          <span class="tag-pill">state-space</span>
-          <span class="tag-pill">frequency</span>
-          <span class="tag-pill">lyapunov</span>
-        </div>
-        <span class="go">Read the note</span>
-        <span class="foot"><span class="field"><i></i>Control Theory</span></span>
-      </a>
-
       <a class="card" href="Control/pid-tuning/pid-tuning.html" data-category="control" data-field="Control Theory" data-tags="control pid tuning feedback closed-loop design">
         <div class="toprow">
           <span class="tag teal">PID Control</span>
@@ -634,30 +613,6 @@
           <span class="tag-pill">policy</span>
           <span class="tag-pill">model-free</span>
           <span class="tag-pill">adaptive</span>
-        </div>
-        <span class="go">Read the note</span>
-        <span class="foot"><span class="field"><i></i>Control Theory</span></span>
-      </a>
-
-      <a class="card" href="Control/pomdp/pomdp.html" data-category="control ai" data-field="Control Theory" data-tags="control ai pomdp partial-observability belief-state decision-making planning reinforcement-learning value-of-information tiger alpha-vectors solvers">
-        <div class="toprow">
-          <span class="tag teal">Decision Making</span>
-          <span class="read"></span>
-        </div>
-        <h3>POMDPs: How to Decide When You Cannot See the State</h3>
-        <p>Turn a hidden state into a belief distribution, predict it through actions, correct it with observations, and choose actions for both their effect and the information they create &mdash; with the tiger problem, alpha vectors, and practical solvers.</p>
-        <div class="tags">
-          <span class="tag-pill">control</span>
-          <span class="tag-pill">ai</span>
-          <span class="tag-pill">pomdp</span>
-          <span class="tag-pill">partial-observability</span>
-          <span class="tag-pill">belief-state</span>
-          <span class="tag-pill">planning</span>
-          <span class="tag-pill">decision-making</span>
-          <span class="tag-pill">value-of-information</span>
-          <span class="tag-pill">tiger</span>
-          <span class="tag-pill">alpha-vectors</span>
-          <span class="tag-pill">solvers</span>
         </div>
         <span class="go">Read the note</span>
         <span class="foot"><span class="field"><i></i>Control Theory</span></span>
@@ -898,6 +853,29 @@
           <span class="tag-pill">trajectory</span>
         </div>
         <span class="go">Read the note</span>
+        <span class="foot"><span class="field"><i></i>Robotics</span></span>
+      </a>
+
+      <a class="card" href="Robotics/pomdp/pomdp.pdf" data-category="robotics ai control" data-field="Robotics" data-tags="robotics ai control pomdp partially-observable belief-state bayes-filtering uncertainty decision-making autonomous-driving prediction driver-model guided-branching belief-tree epsilon interactive-planning">
+        <div class="toprow">
+          <span class="tag teal">Belief Planning</span>
+          <span class="read"></span>
+        </div>
+        <h3>POMDP: Acting on a Belief, Not a Guess</h3>
+        <p>An MDP hands the agent the state; a POMDP hides it and returns an observation. This note builds the belief with Bayes&rsquo; rule, shows why acting on the most likely state can be far worse than paying to observe, and writes the belief-space Bellman equation whose tree explodes. Then it keeps the part a real planner keeps: the factored ego-times-driver transition that turns prediction into the belief-update step inside planning, and the guided branching that makes it run in real time.</p>
+        <div class="tags">
+          <span class="tag-pill">robotics</span>
+          <span class="tag-pill">ai</span>
+          <span class="tag-pill">pomdp</span>
+          <span class="tag-pill">belief-state</span>
+          <span class="tag-pill">bayes-filtering</span>
+          <span class="tag-pill">decision-making</span>
+          <span class="tag-pill">autonomous-driving</span>
+          <span class="tag-pill">prediction</span>
+          <span class="tag-pill">driver-model</span>
+          <span class="tag-pill">guided-branching</span>
+        </div>
+        <span class="go">Read the note (PDF)</span>
         <span class="foot"><span class="field"><i></i>Robotics</span></span>
       </a>
 
