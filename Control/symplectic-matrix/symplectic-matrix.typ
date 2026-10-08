@@ -1,10 +1,10 @@
 // symplectic-matrix.typ -- complete teaching note, written on the shared template
-// .agents/skills/teach-an-engineer/typst-template/note.typ conventions (note-ilm + teaching.typ).
+// .agents/skills/teaching-complex-ideas/typst-template/note.typ conventions (note-ilm + teaching.typ).
 //
 // Every number quoted below is reproduced by scripts/verify_symplectic.py, which also checks
 // the symplectic and Hamiltonian identities the note derives.
 
-#import "/.agents/skills/teach-an-engineer/typst-template/teaching.typ": note-ilm, hook, check, navy, teal, gray
+#import "/.agents/skills/teaching-complex-ideas/typst-template/teaching.typ": note-ilm, hook, check, navy, teal, gray
 
 #show: note-ilm.with(
   title: [Symplectic Matrices in Control],

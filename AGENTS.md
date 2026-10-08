@@ -115,22 +115,14 @@ converted to Typst just to unify the series.
 ## Agent skills
 
 - `.agents/skills/` holds repo-local skills, checked in so they are available to any agent working
-  in this repository. `teach-an-engineer` writes one note at a time: it establishes the learning
-  goal, verifies the mechanism, tests a visual explanation of the hardest bridge with the reader,
-  then writes and verifies the complete note. Its checks distinguish mathematical and visual
-  correctness from whether the explanation works for this reader.
-  It encodes the layout and style rules above. It handles only new notes; the already-published
-  question-led notes under `Control/` are not its concern (their `#question` callout is kept in
-  the shared `teaching.typ` purely so they still recompile).
-  Its `references/repo-notes.md` is the concrete checklist for where files go, how the card is
-  registered, the simplicity ceiling for an interactive demo, and the commands that verify a build.
-  Its `typst-template/note.typ` is the default page shell and `typst-template/teaching.typ` the
-  shared partial (exporting `note-ilm`, the `hook`/`check`/`question` callouts, and the palette),
-  described by `templates/README.md`; `typst-template/ilm/` is the vendored template whose own
-  document lists the available options.
-  Its research step cites papers through the `arxiv-mcp-server` and `paper-search-mcp` MCP servers
-  rather than from memory -- see its `references/sources.md` -- records what each source grounds in
-  the note's `summary.md`, and keeps downloaded PDFs out of the repo.
+  in this repository. `teaching-complex-ideas` teaches beginners through concrete examples,
+  visual reasoning, and explained derivations, with freedom over structure and pacing.
+  Its optional references cover figures, sources, and publishing checks (including the demo
+  ceiling). `typst-template/note.typ` is the page shell; `typst-template/teaching.typ` supplies
+  the shared 'Ilm preset, palette, and compatible callouts.
+  Source papers through `arxiv-mcp-server` and `paper-search-mcp`, record their support in
+  `summary.md`, and keep research downloads out of the repo. Existing notes are edited only
+  when requested; the shared `#question` callout remains for compatibility.
 - If the rules in this file and in that skill disagree, this file wins; update the skill rather than
   working around it.
 

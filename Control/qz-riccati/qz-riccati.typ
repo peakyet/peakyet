@@ -1,5 +1,5 @@
 // qz-riccati.typ -- a teach-an-engineer note, filled in place from
-// .agents/skills/teach-an-engineer/typst-template/note.typ.
+// .agents/skills/teaching-complex-ideas/typst-template/note.typ.
 //
 // Every number quoted below is printed by scripts/verify_qz_riccati.m, which
 // also checks the closed forms, their residuals, the closed-loop spectra, and
@@ -8,7 +8,7 @@
 //   octave --no-gui --quiet Control/qz-riccati/scripts/verify_qz_riccati.m
 //   octave --no-gui --quiet Control/qz-riccati/scripts/dare_sweeps.m
 
-#import "/.agents/skills/teach-an-engineer/typst-template/teaching.typ": note-ilm, check, navy, teal, gray
+#import "/.agents/skills/teaching-complex-ideas/typst-template/teaching.typ": note-ilm, check, navy, teal, gray
 
 #show: note-ilm.with(
   title: [Solving the Algebraic Riccati Equation with the QZ Algorithm],

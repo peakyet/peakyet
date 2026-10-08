@@ -1,9 +1,9 @@
-// Teaching vocabulary shared by every teach-an-engineer note.
+// Teaching vocabulary shared by every teaching-complex-ideas note.
 //
 // A note imports this file by its repository-absolute path, so the import line is
 // identical at any folder depth and survives being copied out of `typst-template/`:
 //
-//   #import "/.agents/skills/teach-an-engineer/typst-template/teaching.typ": note-ilm, question
+//   #import "/.agents/skills/teaching-complex-ideas/typst-template/teaching.typ": note-ilm, question
 //
 // Because `/` is the project root, builds name the root explicitly and run from the
 // repository root:
@@ -30,9 +30,8 @@
 // The 'Ilm template with this repository's defaults for a one-file teaching note.
 //
 // A note calls it as `#show: note-ilm.with(title: [...], authors: "Name", ...)`, and
-// every 'Ilm option stays reachable that way; `typst-template/ilm/main.typ` documents
-// them (cover page, preface, appendix, footer style, indices, paper size). Defaults
-// chosen here: A4, no bibliography until the note owns a `refs.bib`, no index of
+// every 'Ilm option stays reachable that way. Defaults chosen here:
+// A4, no bibliography until the note owns a `refs.bib`, no index of
 // figures/tables/listings, and an installed monospace font so the build is
 // warning-free.
 #let note-ilm(..args, body) = {

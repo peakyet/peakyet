@@ -1,8 +1,8 @@
 // control-as-inference.typ -- a teach-an-engineer question map filled in place from
-// .agents/skills/teach-an-engineer/typst-template/note.typ. One deep question per
+// .agents/skills/teaching-complex-ideas/typst-template/note.typ. One deep question per
 // section; the expected insights live in summary.md, never here.
 
-#import "/.agents/skills/teach-an-engineer/typst-template/teaching.typ": note-ilm, question, navy, teal, gray
+#import "/.agents/skills/teaching-complex-ideas/typst-template/teaching.typ": note-ilm, question, navy, teal, gray
 
 #show: note-ilm.with(
   title: [Control as Inference: Path Integrals for Stochastic Optimal Control],

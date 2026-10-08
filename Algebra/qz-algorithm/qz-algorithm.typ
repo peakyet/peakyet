@@ -1,5 +1,5 @@
 // qz-algorithm.typ -- a teach-an-engineer note, filled in place from
-// .agents/skills/teach-an-engineer/typst-template/note.typ.
+// .agents/skills/teaching-complex-ideas/typst-template/note.typ.
 //
 // Every number quoted below is printed by one of the two scripts beside this file:
 //   scripts/verify_qz.m   -- the pencil, its closed form, the two routes, the Schur form,
@@ -9,7 +9,7 @@
 //   octave --no-gui --quiet Algebra/qz-algorithm/scripts/verify_qz.m
 //   octave --no-gui --quiet Algebra/qz-algorithm/scripts/qz_sweeps.m
 
-#import "/.agents/skills/teach-an-engineer/typst-template/teaching.typ": note-ilm, check, navy, teal, gray
+#import "/.agents/skills/teaching-complex-ideas/typst-template/teaching.typ": note-ilm, check, navy, teal, gray
 
 #show: note-ilm.with(
   title: [Generalized Eigenvalues and the QZ Algorithm],

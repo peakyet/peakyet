@@ -1,11 +1,11 @@
 // sda-riccati.typ -- a teach-an-engineer note, filled in place from
-// .agents/skills/teach-an-engineer/typst-template/note.typ.
+// .agents/skills/teaching-complex-ideas/typst-template/note.typ.
 //
 // Every number quoted below is printed by scripts/verify_sda.m. Run it from the
 // repository root with
 //   octave --no-gui --quiet Control/sda-riccati/scripts/verify_sda.m
 
-#import "/.agents/skills/teach-an-engineer/typst-template/teaching.typ": note-ilm, check, navy, teal, gray
+#import "/.agents/skills/teaching-complex-ideas/typst-template/teaching.typ": note-ilm, check, navy, teal, gray
 
 #show: note-ilm.with(
   title: [The Structure-Preserving Doubling Algorithm for the Algebraic Riccati Equation],

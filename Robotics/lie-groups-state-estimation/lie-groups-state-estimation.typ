@@ -1,12 +1,12 @@
 // lie-groups-state-estimation.typ -- a teach-an-engineer question map, filled in place from
-// .agents/skills/teach-an-engineer/typst-template/note.typ. One deep question per section;
+// .agents/skills/teaching-complex-ideas/typst-template/note.typ. One deep question per section;
 // the expected insights live in summary.md, never here.
 //
 // The note follows the selection of material in Sola, Deray & Atchuthan, "A micro Lie theory
 // for state estimation in robotics" (arXiv:1812.01537), which is named again in the Sources
 // section. It is a question map, not an answer key.
 
-#import "/.agents/skills/teach-an-engineer/typst-template/teaching.typ": note-ilm, question, navy, teal, gray
+#import "/.agents/skills/teaching-complex-ideas/typst-template/teaching.typ": note-ilm, question, navy, teal, gray
 
 #show: note-ilm.with(
   title: [Lie Groups for State Estimation in Robotics],

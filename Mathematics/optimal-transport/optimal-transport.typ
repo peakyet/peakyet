@@ -1,4 +1,4 @@
-#import "/.agents/skills/teach-an-engineer/typst-template/teaching.typ": note-ilm, navy, teal, gray
+#import "/.agents/skills/teaching-complex-ideas/typst-template/teaching.typ": note-ilm, navy, teal, gray
 
 #show: note-ilm.with(
   title: [Optimal Transport],
