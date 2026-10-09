@@ -56,6 +56,7 @@ function show_mat(tag, M, fmt)
 end
 
 A = [0 1; -1 0]; B = [0; 1]; Q = eye(2); rho = 1e-6; R = rho;
+[m, n] = size(B);
 printf('running example: A = [0 1; -1 0], B = [0; 1], Q = I, R = %g\n', R);
 
 [H, N] = extended_pencil(A, B, Q, R);
@@ -81,6 +82,7 @@ show_pairs('', AA, BB);
 show_mat('S (quasi-upper-triangular) =', AA, '%10.4f');
 show_mat('T (quasi-upper-triangular) =', BB, '%10.4f');
 
+show_mat('Z (ordered right transformation) =', Z, '%14.6f');
 U = Z(:, 1:2); U11 = U(1:2, :); U21 = U(3:4, :);
 show_mat('U11 =', U11, '%14.6f');
 show_mat('U21 =', U21, '%14.6f');
@@ -88,6 +90,29 @@ printf('cond(U11) = %.4f\n', cond(U11));
 P = U21 / U11;
 show_mat('P = U21 / U11 =', P, '%14.6f');
 show_mat('closed form P =', closed_rho(rho), '%14.6f');
+
+% --- how the (2n+m) subspace becomes a graph in R^{2n x n}, checked directly
+printf('\n== the control block is annihilated, and the rest is a graph ==\n');
+Mc = H(:, 2*m+1:2*m+n);          % the control column block (B; 0; R)
+[q2, ~] = qr(Mc);
+printf('annihilation    ||Q2''*(B;0;R)||                = %.3e\n', ...
+  norm(q2(:, n+1:2*m+n)' * Mc));
+G = [eye(m); P];
+printf('graph           ||U21 - P*U11||                = %.3e\n', norm(U21 - P*U11));
+printf('graph identity  ||Hd*G - Nd*G*(A - G P)||      = %.3e\n', ...
+  norm(Hd*G - Nd*G*(A - (B*(1/R)*B')*P)));
+[Vv, Dd] = eig(H, N); dd = diag(Dd);
+ik = find(isfinite(dd) & real(dd) < 0, 1); v = Vv(:, ik);
+printf('eigenvector     x2 = P x1 to %.3e, u = -R^-1 B'' x2 to %.3e\n', ...
+  norm(v(m+1:2*m) - P*v(1:m)), norm(v(2*m+1:end) + (1/R)*B'*v(m+1:2*m)));
+
+% --- the same graph without deflating first: correct, but worse conditioned
+[AAf, BBf, Qqf, Zf] = qz(H, N, 'real');
+[AAf, BBf, Qqf, Zf] = ordqz(AAf, BBf, Qqf, Zf, 'lhp');
+V11 = Zf(1:m, 1:m); V21 = Zf(m+1:2*m, 1:m);
+printf('no deflation    cond(V11) = %.1f (against %.4f above), |P - closed| = %.3e (against %.3e)\n', ...
+  cond(V11), cond(U11), norm(V21/V11 - closed_rho(rho)), norm(P - closed_rho(rho)));
+show_mat('Z of the full pencil, ordered (the control band is still there) =', Zf, '%14.6f');
 
 printf('\n== diagnostics ==\n');
 printf('relative error of P against the closed form   = %.3e\n', norm(P - closed_rho(rho))/norm(closed_rho(rho)));

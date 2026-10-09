@@ -6,7 +6,7 @@ in `.amp/in/artifacts/qz-riccati-bridge-sample.pdf` and no reader feedback has a
 Comprehension is therefore **unassessed**.
 
 **Artifact:** `Control/qz-riccati/qz-riccati.typ`, compiled to
-`Control/qz-riccati/qz-riccati.pdf` (23 pages); `Control/qz-riccati/refs.bib`;
+`Control/qz-riccati/qz-riccati.pdf` (24 pages); `Control/qz-riccati/refs.bib`;
 `Control/qz-riccati/scripts/verify_qz_riccati.m`,
 `Control/qz-riccati/scripts/trace_qz_pencil.m`,
 `Control/qz-riccati/scripts/qz_sweeps.m` and
@@ -37,12 +37,12 @@ one.
 | s1 | 3 | The CARE read as a formula to plug into rather than an object with structure | The plant and its two knobs with closed forms; the graph-subspace identity | The stable invariant subspace of `H` gives `P = X2 X1^{-1}`, and the closed loop is `H`'s action on that subspace |
 | s2 | 5 | "The numbers came out why not use eigenvectors?" | Table 1 (four values of `eps`, three routes); Figure 1 (spectrum migration, and the gap and overlap laws on log axes) | The straddling pair's eigenvectors differ by `O(eps)` while its eigenvalues split as `sqrt(eps)`; here all three routes sit within a factor of three of `eps_m/eps`; the repair is a subspace basis (ordered Schur), not QZ |
 | s3 | 8 | "Why not just build `H` and use that fix?" | Table 2 (`rho` values, both routes, including `rho = 0`) | Forming `G = B R^{-1} B^T` costs the digits of `1/rho`; the pencil holds machine precision; at `rho = 0` the matrix route has no value to compute |
-| s4 | 9 | New representation: an eigenvalue as a ratio `alpha/beta`, an eigenvector as a deflating subspace `M Z = N Z S` | Figure 2 (the two objects, blocks annotated by what each route inverts) and the QR deflation | The extended pencil keeps `B` and `R` as blocks; its finite eigenvalues are `H`'s; its stable deflating subspace is the graph of `P`; the control block is deflated before ordering |
-| s5 | 11 | QZ as an opaque library name | The iteration's three stages; Figure 3 (ordered generalized Schur form; partition of `Z`); Table 3, Figure 4 and Table 4 (the trace: pairs by stage, the ordered `S`, `T`, and `U11`, `U21`, `P` with the diagnostics); the defect table | Unitary `Q, Z` give triangular `(S, T)` with pairs `alpha/beta`; ordering selects `Re(alpha/beta) < 0`; `P = U21 U11^{-1}` by substitution; the defect is a tripwire, not a bound |
-| s5, run | 13 | "What does the algorithm actually do?" — the stages stay prose | Table 5 (the recorded rotation sequence of the Hessenberg–triangular reduction); Figure 5 (the same reduction as four numeric panels, with the entries phase 2 removes shaded); Figure 6 (one exact QZ step on the `2 times 2` trailing pencil: the shift's eigenvector direction drawn in the plane, the two rotations, the triangular result, the ratios `2.000000` and `-1.000000`) | Each left rotation in the reduction fills exactly one entry of `B` below its diagonal and the paired right rotation removes it; the elementary step is the same right-then-left pair of rotations that orders the pencil, verified as an exact equivalence to `5.99e-16`; the implicit double-shift sweep between the two ends is deliberately not implemented |
-| s6 | 16 | Discrete time looks like a separate theory | Figure 7 (left: the pencil's eigenvalues in reciprocal pairs about the unit circle, the inside ones navy and equal to the closed-loop poles; right: the two eigenvector directions of the scalar pencil in the state plane, the stable one being the graph of `P`, read off as a slope); Table 6 (three instances measured) | One block changes (`A^T` for `I`), so `R^(-1)` becomes `(R + B^T P B)^(-1)`, the criterion becomes `abs(alpha) < abs(beta)`; the control coordinate of the stable eigenvector is `-lambda R^(-1) B^T P` so the deflation is what leaves the graph, verified by `M_d [I;P] = N_d [I;P] A_cl`; the scalar instance has the exact answer `2 + sqrt(5)` with the reciprocal pair visible as palindromic coefficients; singular `A` is covered although the symplectic matrix `S` is not |
-| s7 | 20 | Believing QZ is a universal accuracy fix | The buy claim with its numbers; Table 7 (knob, what degrades, what limits) | The pencil holds `1e-15`-ish as `rho` falls; near-axis eigenvalues are a conditioning limit every route inherits; scipy refuses; structure-preserving methods are out of scope |
-| s8 | 22 | Where each claim comes from | Sources | (see below) |
+| s4 | 9 | New representation: an eigenvalue as a ratio `alpha/beta`, an eigenvector as a deflating subspace `M Z = N Z S` | Figure 2 (the two objects, blocks annotated by what each route inverts) and the QR deflation; the stable eigenvector `[x; Px; -R^{-1}B^T Px]` and the annihilation `Q_2^T (B;0;R) = 0` that explains the deflation | The extended pencil keeps `B` and `R` as blocks; its finite eigenvalues are `H`'s; its stable deflating subspace is the graph of `P`; the deflation drops the control band because `Q_2` is built orthogonal to it, leaving `M_d [I;P] = N_d [I;P] (A - GP)`; deflating first is worth two digits (`cond` 1.41 against 1154 for the truncated full `Z`) |
+| s5 | 11 | QZ as an opaque library name | The iteration's three stages; Figure 3 (ordered generalized Schur form; partition of `Z`); Table 3, Figure 4 and Table 4 (the trace: pairs by stage, the ordered `S`, `T`, and `U11`, `U21`, `P` with the diagnostics); Figure 5 (the read-off drawn: the full pencil's ordered `Z`, the control band the deflation removes, the `2n times n` graph basis, and the one solve to `P`); the defect table | Unitary `Q, Z` give triangular `(S, T)` with pairs `alpha/beta`; ordering selects `Re(alpha/beta) < 0`; the columns of `Z` turn that list of eigenvalues into a subspace; `U21 = P U11` is what makes it a graph, and `P = U21 U11^{-1}` is one solve; the defect is a tripwire, not a bound |
+| s5, run | 14 | "What does the algorithm actually do?" — the stages stay prose | Table 5 (the recorded rotation sequence of the Hessenberg–triangular reduction); Figure 6 (the same reduction as four numeric panels, with the entries phase 2 removes shaded); Figure 7 (one exact QZ step on the `2 times 2` trailing pencil: the shift's eigenvector direction drawn in the plane, the two rotations, the triangular result, the ratios `2.000000` and `-1.000000`) | Each left rotation in the reduction fills exactly one entry of `B` below its diagonal and the paired right rotation removes it; the elementary step is the same right-then-left pair of rotations that orders the pencil, verified as an exact equivalence to `5.99e-16`; the implicit double-shift sweep between the two ends is deliberately not implemented |
+| s6 | 17 | Discrete time looks like a separate theory | Figure 8 (left: the pencil's eigenvalues in reciprocal pairs about the unit circle, the inside ones navy and equal to the closed-loop poles; right: the two eigenvector directions of the scalar pencil in the state plane, the stable one being the graph of `P`, read off as a slope); Table 6 (three instances measured) | One block changes (`A^T` for `I`), so `R^(-1)` becomes `(R + B^T P B)^(-1)`, the criterion becomes `abs(alpha) < abs(beta)`; the control coordinate of the stable eigenvector is `-lambda R^(-1) B^T P` so the deflation is what leaves the graph, verified by `M_d [I;P] = N_d [I;P] A_cl`; the scalar instance has the exact answer `2 + sqrt(5)` with the reciprocal pair visible as palindromic coefficients; singular `A` is covered although the symplectic matrix `S` is not |
+| s7 | 21 | Believing QZ is a universal accuracy fix | The buy claim with its numbers; Table 7 (knob, what degrades, what limits) | The pencil holds `1e-15`-ish as `rho` falls; near-axis eigenvalues are a conditioning limit every route inherits; scipy refuses; structure-preserving methods are out of scope |
+| s8 | 23 | Where each claim comes from | Sources | (see below) |
 
 ## Follow-ups
 
@@ -58,9 +58,18 @@ one.
 - Added on request ("also add the part to introduce how to solve a DARE"): section 6 introduces the
   discrete-time equation as the same recipe with the `(2,2)` block of the second matrix changed from
   `I` to `A^T`, and carries it out with `scripts/dare_sweeps.m` — the scalar instance solved from
-  the three block rows with the exact answer `2 + sqrt(5)`, Figure 7's two panels, and Table 6's
+  the three block rows with the exact answer `2 + sqrt(5)`, Figure 8's two panels, and Table 6's
   three measured instances including a singular `A` where the symplectic matrix does not exist. The
-  landing card and page map were refreshed (s6 at page 16).
+  landing card and page map were refreshed (s6 at page 17).
+- Added on request ("after we solve the generalized Hamiltonian matrix, how to get the graph in
+  `R^{2n x n}`… how to deflate it?"): section 4 now ends with the mechanism — the stable eigenvector
+  `[x; Px; -R^{-1}B^T Px]`, the annihilation `Q_2^T (B;0;R) = 0` that erases the control coordinate,
+  the graph identity `M_d [I;P] = N_d [I;P] (A - GP)`, and the measured price of skipping the
+  deflation — and section 5 gains Figure 5, which draws the `(2n+m)` ordered `Z`, the control band
+  the deflation removes, the `2n times n` graph basis and the one solve to `P` on the trace
+  instance's own numbers. `scripts/trace_qz_pencil.m` prints every number in that figure (the
+  annihilation `8.9e-17`, `U21 = P U11` to `2.4e-19`, the graph identity `4.7e-13`, the eigenvector
+  checks, and the no-deflation comparison `cond` 1154 / `4.2e-14` against 1.41 / `9.9e-16`).
 - Open offer, not authorized work: an interactive HTML stepper replayed from the recorded reduction
   states of section 5, or a proper implicit bulge-chase implementation.
 - Next revision: reader feedback on the hardest bridge (the pencil and its deflating subspace). If
@@ -105,14 +114,14 @@ collections, which are labelled there as not consulted.
 ## Checks and deviations
 
 - **Build** — `typst compile --root . Control/qz-riccati/qz-riccati.typ
-  Control/qz-riccati/qz-riccati.pdf` exits 0 with no warnings; 23 pages; section-to-page map
-  `3,5,8,9,11,16,20,22`.
+  Control/qz-riccati/qz-riccati.pdf` exits 0 with no warnings; 24 pages; section-to-page map
+  `3,5,8,9,11,17,21,23`.
 - **Structural** — no `FILL:` slots; no `"../` paths; every captioned figure carries an explicit
   `kind`/`supplement`, so numbering is consistent and non-colliding: Table 1, Figure 1, Table 2,
-  Figure 2, Figure 3, Table 3, Figure 4, Table 4, Table 5, Figure 5, Figure 6, Figure 7, Table 6,
-  Table 7.
+  Figure 2, Figure 3, Table 3, Figure 4, Table 4, Figure 5, Table 5, Figure 6, Figure 7, Figure 8,
+  Table 6, Table 7.
 - **Discrete script** — `octave --no-gui --quiet Control/qz-riccati/scripts/dare_sweeps.m` prints
-  every number in Figure 7 and Table 6: the scalar pencil's roots `2.6180339887` and `0.3819660113`
+  every number in Figure 8 and Table 6: the scalar pencil's roots `2.6180339887` and `0.3819660113`
   with product `1` and the stable eigenvector `[1; 4.2360679775]` equal to the closed form
   `2 + sqrt(5)`; the double integrator's `P = [[2.9471, 2.3692],[2.3692, 4.6131]]` with DARE residual
   `9.3e-15`, symmetry defect `4.4e-16`, closed-loop radius `0.422082440385`, agreement with the
@@ -133,11 +142,16 @@ collections, which are labelled there as not consulted.
   double-shift sweep is not implemented, and the note says so.
 - **Trace script** — `octave --no-gui --quiet Control/qz-riccati/scripts/trace_qz_pencil.m` prints
   the extended pencil, the pairs at each stage, the deflated pencil's conditioning, the ordered
-  `S`, `T`, `U11`, `U21`, `P` and the diagnostics; every value in Tables 3 and 4 and in Figure 4 was
+  `S`, `T`, `Z`, `U11`, `U21`, `P` and the diagnostics; every value in Tables 3 and 4 and in
+  Figures 4 and 5 was
   read from its output (ratios `-999.9985, +999.9985, -1.000002, +1.000002` unordered, the stable
   pair first after ordering, `cond(U11) = 1.4149`, symmetry defect `4.382e-16`, CARE residual
   `4.745e-13`, orthogonality `1.272e-15` and `8.044e-16`, `P` agreeing with the closed form to
-  `9.88e-16`). It uses the real QZ, so `S` and `T` are the real quasi-upper-triangular pair; the
+  `9.88e-16`). Figure 5's added checks come from the same run: the annihilation
+  `norm(Q_2^T (B;0;R)) = 8.890e-17`, the graph relation `norm(U21 - P U11) = 2.397e-19`, the graph
+  identity `norm(M_d G - N_d G (A - GP)) = 4.747e-13`, the eigenvector checks (`x2 = P x1` to
+  `2.966e-17`, `u = -R^{-1}B^T x2` to `2.876e-11`), and the no-deflation comparison
+  (`cond = 1154.3` and `|P - closed| = 4.187e-14` against `1.4149` and `9.890e-16`). It uses the real QZ, so `S` and `T` are the real quasi-upper-triangular pair; the
   verifier keeps Octave's complex QZ, and a comparison showed the two agree on the note's error
   levels to within a factor of a few (e.g. `8.81e-11` against `5.58e-11` at `eps = 1e-6`).
 - **Numbers** — `octave --no-gui --quiet Control/qz-riccati/scripts/verify_qz_riccati.m` prints
@@ -155,9 +169,10 @@ collections, which are labelled there as not consulted.
   corrected s4: the deflated pencil at `R = 0` keeps two infinite pairs rather than leaving the
   ordering problem with none.
 - **Rendered pages** — pages 3, 4, 5, 6, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 and 19 inspected as
-  images (100-150 dpi), and the figures rendered in isolation at 150 dpi and inspected; the
-  remaining pages were checked by their extracted text, their line counts and the column-overflow
-  check below. Fixed during
+  images (100-150 dpi), and the figures rendered in isolation at 150 dpi and inspected; page 13
+  (Table 4 with Figure 5) and page 10 (the section 4 mechanism paragraphs) re-inspected after this
+  revision; the remaining pages were checked by their extracted text, their line counts and the
+  column-overflow check below. Fixed during
   review: a stray comma that rendered above every caption (a `],` closing a content block inside
   markup); inline fractions replaced with `/` so the line spacing stopped blowing up; two tall
   inline block columns replaced with prose; Figure 1's log panel given a bottom tick label. After
@@ -167,15 +182,17 @@ collections, which are labelled there as not consulted.
   `pdftotext -bbox-layout`) takes the document's own word boxes to fix the text edges (70.9pt and
   526.6pt across the A4 text block) and reports any word past them, which is how Typst lets content
   overrun the column in silence. Before the fix, page 4 had 18 words outside the column with `xMax`
-  up to 595.5pt, i.e. reaching the paper edge; after it, zero words are outside on all 23 pages and
+  up to 595.5pt, i.e. reaching the paper edge; after it, zero words are outside on all 24 pages and
   every page's maximum `xMax` is at most 526.6pt. The check reads text only, so the drawn figures
   still rest on the visual inspection above.
-- **Figure 7 review** — the two panels were redrawn twice to answer what the first render showed:
-  the annotation `abs(lambda) = 1` collided with the outside-eigenvalue label, and the unstable
-  direction was drawn as a ray so nearly horizontal that it read as the axis. The rendered panels
-  were then re-inspected: the eigenvalue pairs, the dashed radial links, the two non-overlapping
-  labels, the slope guides at `(1, P)`, the `1` on the x-axis and the `2 - sqrt(5)` label all carry
-  the reasoning of the paragraph beside them.
+- **Figure review** — the discrete figure's two panels (now Figure 8) were redrawn twice to answer
+  what the first render showed: the annotation `abs(lambda) = 1` collided with the
+  outside-eigenvalue label, and the unstable direction was drawn as a ray so nearly horizontal that
+  it read as the axis. Figure 5 needed the same treatment: its merged grey cell wrapped into
+  "UN-ST A-BLE", and its read-off row fragmented the relation across cells; both were fixed and the
+  re-render inspected. In the final renders the eigenvalue pairs, the dashed radial links, the
+  slope guides at `(1, P)`, the control band and the `U21 = P U11` solve all carry the reasoning of
+  the paragraphs beside them.
 - **Card** — added to `index.html` next to the symplectic-matrix card with
   `data-category="control algebra optimization"`, `data-field="Control Theory"` and a matching
   pill list. Verified in Chrome 154 (headless) by driving the page's own controls on a copy that
@@ -194,12 +211,13 @@ collections, which are labelled there as not consulted.
   LQR Hamiltonian.
 - **Deviations** — (i) explicit `kind`/`supplement` on every captioned figure, so that the figure
   and table counters do not collide; (ii) sections start on new pages as the preset supplies, so the
-  long sections leave part-empty pages — the tails at 7, 10, 19 and 21, plus the figure page 12 —
-  kept
+  long sections leave part-empty pages — the tails at 7, 12, 15 and 20, plus the figure pages 12 and
+  22 — kept
   for series consistency rather than turning off `chapter-pagebreak` for this one note; (iii) no
   interactive demo, and the sweep script stops short of the implicit iteration instead of shipping
   an unverified one; (iv) the two structural figures are tables shown as figures.
-- **Could not run** — scipy (not installed): the scipy behaviour quoted in s4 and s5 is documented
+- **Could not run** — scipy (not installed): the scipy behaviour quoted in s4, s5 and s6 is
+  documented
   behaviour, not executed here. The landing page was rendered in Chrome 154 (see the card check)
   but only through a `file://` copy, because Chrome in this sandbox cannot connect to the local
   HTTP server; the served URL was still checked with `curl` (HTTP 200 for `index.html` and for the

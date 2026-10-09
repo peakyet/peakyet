@@ -454,6 +454,31 @@ touches that matrix only with unitary transformations, so it never inverts it. T
 eight-digit loss seen at the level of the algorithm: forming $G = B R^(-1) B^T$ *is* inverting this
 block.
 
+*Why the control block can be dropped, and what is left.* The deflation is a projection, not a
+similarity, so it is worth seeing what it discards. A stable eigenvector of #ref(<eq:pencil>) has the
+form
+
+$ mat(x; P x; -R^(-1) B^T P x). $ <eq:stablevec>
+
+The third block is a function of the state block, which is why a graph in $R^(2n)$ can carry the
+answer at all. The deflation erases it for a concrete reason: its left factor $Q_2$ is orthogonal to
+the stacked control block $B, 0, R$ by construction ($M_c = Q [R_1; 0]$ says $Q_2^T M_c = 0$,
+measured $8.9 times 10^(-17)$), and the third block of #ref(<eq:stablevec>) reaches the
+eigen-relation only through that column block. So the same $Q_2^T$ that annihilates the block
+annihilates the coordinate, and $[x; P x]$ is an eigenvector of the deflated $2n times 2n$ pencil
+with the same eigenvalue. Its stable deflating subspace is therefore the graph of $P$, satisfying
+the pencil form of #ref(<eq:graph>):
+
+$ M_d mat(I_n; P) = N_d mat(I_n; P)(A - G P). $ <eq:graphdef>
+
+*Is the deflation necessary?* Not for the mathematics: the first $n$ columns of the ordered $Z$ of
+the *full* pencil, truncated to their first $2n$ rows, span the same graph and give the same $P$
+(measured agreement $4.2 times 10^(-14)$). It is necessary for the arithmetic: at $R = 10^(-6)$
+those columns leave a basis with $"cond" = 1154$ against $1.41$ after the deflation, and the answer
+loses two digits with it ($4.2 times 10^(-14)$ against $9.9 times 10^(-16)$). The discarded
+coordinate is where the amplification of $R^(-1)$ lives, so the library removes it *before* the QZ
+runs.
+
 = What the QZ algorithm computes <s5>
 
 The QZ algorithm is the generalized eigenvalue problem's answer to the QR algorithm
@@ -626,6 +651,87 @@ the $P$ that comes out, which the script reads from $A - G P$ independently.
     [only orthogonal transformations were used],
   ),
 ) <fig:trace>
+
+#figure(
+  kind: "figure",
+  supplement: [Figure],
+  caption: [How the $(2n + m) times (2n + m)$ unitary matrix becomes a graph in $R^(2n times n)$,
+    on the numbers of #ref(<fig:trace>) at $R = 10^(-6)$. Left: the ordered $Z$ of the *full*
+    pencil, with its rows banded into state, costate and control and its stable columns shaded.
+    The deflation drops the control band: $Q_2$ is built orthogonal to the stacked control block
+    $B, 0, R$, so those rows contribute nothing and go. Right: the $2n times n$ block of stable
+    columns that survives -- an ordinary basis of an $n$-dimensional subspace of $R^(2n)$, not a
+    set of eigenvectors -- split into its state and costate halves. Inspect the last line: the two
+    halves satisfy $U_(21) = P U_(11)$, which is what makes the subspace a graph, and one solve
+    turns it into $P$. Printed by `scripts/trace_qz_pencil.m`.],
+  grid(columns: (1fr, auto, 1fr), gutter: 0.7em, align: horizon,
+    [
+      #align(center)[
+        #table(
+          columns: (auto, auto, auto, 1.35cm),
+          stroke: 0.4pt,
+          align: (left, right, right, center + horizon),
+          table.cell(rowspan: 2, align: left)[state],
+          table.cell(fill: navy.transparentize(86%))[$-0.000001$],
+          table.cell(fill: navy.transparentize(86%))[$0.577734$],
+          table.cell(rowspan: 5, fill: gray.transparentize(90%))[not\ read],
+          table.cell(fill: navy.transparentize(86%))[$0.001000$],
+          table.cell(fill: navy.transparentize(86%))[$-0.576580$],
+          table.cell(rowspan: 2, align: left)[costate],
+          table.cell(fill: navy.transparentize(86%))[$-0.000000$],
+          table.cell(fill: navy.transparentize(86%))[$0.577735$],
+          table.cell(fill: navy.transparentize(86%))[$0.000001$],
+          table.cell(fill: navy.transparentize(86%))[$0.000000$],
+          table.cell(align: left)[control],
+          table.cell(fill: navy.transparentize(86%))[$-0.999999$],
+          table.cell(fill: navy.transparentize(86%))[$-0.000577$],
+        )
+        #v(3pt)
+        #text(size: 9pt)[$Z$ of the full pencil, ordered]
+      ]
+    ],
+    [#align(center)[#text(size: 10pt)[$arrow.r$\ deflate]]],
+    [
+      #align(center)[
+        #table(
+          columns: (auto, auto, auto),
+          stroke: 0.4pt,
+          align: (left, right, right),
+          table.cell(rowspan: 2, align: left)[state],
+          table.cell(fill: navy.transparentize(86%))[$0.001000$],
+          table.cell(fill: navy.transparentize(86%))[$-0.706753$],
+          table.cell(fill: navy.transparentize(86%))[$-0.999999$],
+          table.cell(fill: navy.transparentize(86%))[$-0.000707$],
+          table.cell(rowspan: 2, align: left)[costate],
+          table.cell(fill: navy.transparentize(86%))[$0.000002$],
+          table.cell(fill: navy.transparentize(86%))[$-0.707460$],
+          table.cell(fill: navy.transparentize(86%))[$-0.001000$],
+          table.cell(fill: navy.transparentize(86%))[$-0.000707$],
+        )
+        #v(4pt)
+        #text(size: 9pt)[$U_(21) = P U_(11)$, so one solve gives $P$:]
+        #v(2pt)
+        #table(
+          columns: 3,
+          stroke: 0.4pt,
+          align: (auto, right, right),
+          [$P =$], [$1.000999$], [$0.000999$],
+          [ ], [$0.000999$], [$0.001001$],
+        )
+        #v(3pt)
+        #text(size: 9pt)[the graph basis above, the answer below]
+      ]
+    ],
+  ),
+) <fig:readoff>
+
+#ref(<fig:readoff>) draws the two remaining steps on the same numbers: the ordered $Z$ of the full
+pencil, the control band the deflation removes, the $2n times n$ block of stable columns that
+survives, and the one solve that turns that block into $P$. Ordering chose *which* eigenvalues are
+stable; the columns of $Z$ are what turn that list into a subspace, and the last line of the figure
+-- $U_(21) = P U_(11)$ -- is the statement that the subspace found is the graph of the answer. Here
+$"cond"(U_(11)) = 1.4149$, the graph relation holds to $2.4 times 10^(-19)$, and the whole
+construction was unitary except that one solve.
 
 The $P$ that comes out is symmetric only up to the computation. scipy's implementation checks
 exactly this and refuses to return a plausible-looking answer when the check fails: its docstring
