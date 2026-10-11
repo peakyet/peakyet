@@ -51,88 +51,18 @@ The hero stats (`#stat-notes`, `#stat-fields`) and the per-field counts in the s
 `#cnt-tools`) are all computed from `.card` elements. Placeholder "coming soon" cards should use
 class `soon` and be excluded from those counts.
 
-## Note pages
-
-New teaching notes are Typst, built from the skill's `typst-template/note.typ` on the `ilm` package
-template. A new note helps the reader reconstruct an idea: what problem prompted it, why its
-objects are useful, and how its essential formulas follow. Use a connected progression around a
-central question, with successive annotated pictures where they explain the mechanism. Sections
-have no prescribed count, beat sequence, or mandatory callout. A `#hook` is optional; a `#check`
-exercise is optional and always has its answer visibly below it. Numbered display equations, an
-'Ilm cover page, a contents page, and a page-numbered footer are shared with the rest of the site.
-Teaching deep links are `<topic-slug>.pdf#page=N`.
-
-Before producing the full note, explain its hardest conceptual bridge in a short visual sample
-and revise from the reader's feedback. This is feedback on the explanation, not a learner test or
-a separate outline-approval stage. If feedback is unavailable, retain the sample as a review draft
-and say that comprehension is unassessed; do not infer approval from silence. A request to write
-the full note directly overrides this discussion stage. Published notes contain complete
-explanations and visible answers; publication never depends on passing a quiz. Explain directly
-when help is requested, and revise published notes whenever the reader asks.
-
-This skill does not handle any existing question-led notes; they are older documents, edited only
-if a user asks for a change (their `#question` callout still renders because the shared
-`teaching.typ` keeps the function for backward compatibility).
-
-Build from the repository root with `typst compile --root .` and ship a warning-free build. Do not
-write a new teaching page in HTML; a simple interactive demo is the only sanctioned exception.
-
-The existing HTML notes follow a consistent academic style. Match them when editing them, unless
-there's a reason to change it for the whole series:
-
-- Font: a serif stack such as `"Source Serif Pro", Georgia, "Times New Roman", serif`.
-- Palette: journal-style white background `#ffffff`, navy accent `#1f4e79`. Keep the serif/paper look
-  distinct from the landing page.
-- Math: use the **same** renderer already used in the note being edited — KaTeX inlined or the
-  MathJax CDN. Do not mix or drop it. If using MathJax, keep the `window.MathJax` config.
-- Displayed equations live in `.eq`; inline math uses the active renderer's syntax.
-- Short side notes use `.callout`, with `.takeaway` (teal) and `.intuition` (blue) variants.
-- Figures live inside a `.figure` block (with a `.figure-caption`). Use inline SVG for diagrams
-  or an external asset when that is clearer.
-- A sticky table of contents uses `.toc`, with active-section highlighting.
-- Use `hr` as section dividers; keep the page responsive below ~700px.
-
-Update one of those pages in place from the file itself; there is no HTML template file to copy any
-more. Long-form notes and old decks keep their current renderer and class names, and are never
-converted to Typst just to unify the series.
-
-## Content principles
-
-- Motivation first, then the reasoning, then the details.
-- Intuition before formalism: build the mental model before the equations.
-- Each note stands alone but links to related notes when useful.
-
-## Housekeeping
-
-- Keep the repo statically servable by GitHub Pages. Commit source: HTML, Typst `.typ`,
-  `summary.md`, `refs.bib`, figures, demos, and the small scripts that reproduce on-page numbers.
-- Commit a note's compiled `.pdf` too. It is the artifact readers open, since Pages cannot run
-  Typst; it is not a disposable build dump. Keep out caches, downloaded papers, and generated
-  site artifacts (`.gitignore` already covers `_site/`, `/vendor`, `Gemfile.lock`).
-- The landing page is exempt from the note rules above; everything else should stay coherent with
-  the existing patterns.
-
-## Agent skills
-
-- `.agents/skills/` holds repo-local skills, checked in so they are available to any agent working
-  in this repository. `teaching-complex-ideas` teaches beginners through concrete examples,
-  visual reasoning, and explained derivations, with freedom over structure and pacing.
-  Its optional references cover figures, sources, and publishing checks (including the demo
-  ceiling). `typst-template/note.typ` is the page shell; `typst-template/teaching.typ` supplies
-  the shared 'Ilm preset, palette, and compatible callouts.
-  Source papers through `arxiv-mcp-server` and `paper-search-mcp`, record their support in
-  `summary.md`, and keep research downloads out of the repo. Existing notes are edited only
-  when requested; the shared `#question` callout remains for compatibility.
-- If the rules in this file and in that skill disagree, this file wins; update the skill rather than
-  working around it.
-
 ## Coding Environment
 
 - The python virtual environment is available by using 'uv'. You don't need to write any code by yourself if there exists some package. The needed package can be install in virtual environment after asking user and obtaining the approvement.
 
-## Tools
+## Web access: Exa or Tavily first
 
-- Use 'exa' or 'tavily' mcp to do web search and read page first instead of using the builtin tools.
+Every web search and page read in this workspace goes through the connected `exa` tools
+(`web_search_exa`, `web_fetch_exa`) or `tavily` tools (`tavily_search`, `tavily_extract`) first.
+This includes lookups about Amp itself — its docs, CLI flags, plugins, and orbs.
+
+The built-in `web_search` and `read_web_page` are a fallback only: use them when Exa and Tavily
+are unavailable, error, or return nothing usable, and say so in the reply.
 
 ## Render Option
 
