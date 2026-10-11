@@ -22,9 +22,6 @@ why its objects help, and how its essential relationships follow.
 
 Choose the structure, examples, tools, and pacing freely.
 Follow AGENTS.md for sample feedback, publication, and verification.
-Use [note.typ](typst-template/note.typ) for new notes; consult references only as needed:
-[figures](references/figures.md), [sources](references/sources.md),
-[publishing and checks](references/repo-notes.md).
 
 Use the computer's tools when they clarify or check the idea:
 
