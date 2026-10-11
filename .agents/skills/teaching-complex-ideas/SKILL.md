@@ -33,7 +33,5 @@ Use the computer's tools when they clarify or check the idea:
   is available; use Typst for the note, Node for JavaScript checks, and Chrome for
   interactive HTML inspection.
 
-Use computation to test examples and expose limits, then explain the result in
-terms a beginner can reconstruct. Do not replace the central reasoning with output.
 
 Topic: $ARGUMENTS
