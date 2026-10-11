@@ -6,7 +6,7 @@ hardest-bridge sample and the full note were produced in one pass: the sample is
 arrived yet. Comprehension is therefore **unassessed**.
 
 **Artifact:** `Algebra/qz-algorithm/qz-algorithm.typ`, compiled to
-`Algebra/qz-algorithm/qz-algorithm.pdf` (19 pages); `Algebra/qz-algorithm/refs.bib`;
+`Algebra/qz-algorithm/qz-algorithm.pdf` (21 pages); `Algebra/qz-algorithm/refs.bib`;
 `Algebra/qz-algorithm/scripts/verify_qz.m` and `Algebra/qz-algorithm/scripts/qz_sweeps.m`
 (Octave, standard library only); no demo. Cross-references in the prose point at
 `Control/qz-riccati/qz-riccati.pdf`, `Control/symplectic-matrix/symplectic-matrix.pdf` and
@@ -37,8 +37,8 @@ ill-conditioned, and at `delta = 0` the third eigenvalue is infinite.
 | s3 | 7 | New representation: an eigenvalue as a pair, both matrices triangular | Figure 3 (the factorization and the 2x2-block alternative) and the computed pairs `(1,0.5)->2`, `(i,1)->i`, `(-i,1)->-i` | `Q*AZ=S`, `Q*BZ=T` triangular; `det(A-lambda B)=c prod(S_ii - lambda T_ii)`; finite `alpha/beta`, infinite at `beta=0`; a real driver returns a 2x2 block, whose diagonal is *not* the eigenvalues |
 | s4 | 9 | The paired rotation: a left rotation that cleans `A` spoils `B` | Figure 4 (the phase-two matrices with the navy zero created in `A` and the rose fill it causes in `B`, then repaired) and the recorded rotation sequence | Phase 1 (QR of `B`) then phase 2 (Hessenbergize `A`); every left rotation fills exactly one entry of `B` below its diagonal and the paired right rotation clears it, acting on columns the left rotation never touched |
 | s5 | 11 | The iteration is opaque; and is a two-sided step even legitimate? | Figure 5 (the real double-shift bulge chase on `H` and `T`, alternating), Table 3 (one sweep's moving magnitudes), equation (16) | A shift from the trailing 2x2 pencil (taken through `T^-1`, so the vector is the first column of `(M - s1 I)(M - s2 I)`, `M = H T^-1`) hands a 3-wide bulge to the same paired rotations; when a subdiagonal vanishes the problem deflates; a zero diagonal of `T` is an infinite eigenvalue; `Q^T M Q = S P^-1` shows the two-sided step is the implicit Q theorem on the pencil; the script's single-shift variant converges in 7 sweeps |
-| s6 | 14 | "What do I actually call?" | the recipe list, the definition of a deflating subspace, the Octave call, and the measured `eig(A,B)` outputs | `eig`/`qz`/`ordqz` over `dggev`/`dgges`; a deflating subspace is a *pair* `X, Y` with `A X ⊆ Y`, `B X ⊆ Y` (an invariant subspace when `B = I`), certified by a vanishing subdiagonal; balance, reduce, iterate, read the pairs, order by adjacent-block swaps (generalized Sylvester equation for a complex pair, then the rotation built from its solution); eigenvectors come from `Z`; QZ is dense `O(n^3)`, not structure-preserving, and not an accuracy guarantee |
-| s7 | 18 | Provenance | Sources | (see below) |
+| s6 | 14 | "What do I actually call?" | the recipe list, the definition of a deflating subspace, the eigenvector recipe, the Octave call, and the measured `eig(A,B)` outputs | `eig`/`qz`/`ordqz` over `dggev`/`dgges`; a deflating subspace is a *pair* `X, Y` with `A X ⊆ Y`, `B X ⊆ Y` (an invariant subspace when `B = I`), certified by a vanishing subdiagonal; eigenvectors come from a triangular solve on `(S, T)` rotated by `Z` (right) or `Q` (left), never from the iteration; balance, reduce, iterate, read the pairs, order by adjacent-block swaps (generalized Sylvester equation for a complex pair, then the rotation built from its solution); QZ is dense `O(n^3)`, not structure-preserving, and not an accuracy guarantee |
+| s7 | 20 | Provenance | Sources | (see below) |
 
 ## Follow-ups
 
@@ -118,6 +118,27 @@ ill-conditioned, and at `delta = 0` the third eigenvalue is infinite.
   Kågström & Kressner's citation of it; not consulted directly). Equation numbering after the
   insertion shifted by one: the swap display is now (18), and revision 4's rotation equations are
   now (21) and (22). Still 19 pages, map `3,5,7,9,11,14,18`; subsection 6.1 now opens on page 15.
+- **Revision 6 (reader asked how to get an eigenvector after QZ).** Added subsection 6.2, "Getting an
+  eigenvector afterwards", between the swap subsection and the code listing. It derives why a
+  *right* eigenvector needs only `Z` (`S y = lambda T y` with `y = Z* x`, equation 23) and a *left*
+  one only `Q` (`u* S = lambda u* T`, `w = Q u`), then gives the recipe for each case: the `1 x 1`
+  back-substitution (set `y_i = 1`, `y_j = 0` for `j > i`, solve rows `i-1 ... 1`), the left vector
+  as the mirror problem `(S - lambda T)* u = 0` with the conjugation trap that puts an exact zero
+  pivot on the conjugate index, the `2 x 2` block (solve the block pencil, never its diagonal
+  ratios, and eliminate the coupled rows above), and the infinite eigenvalue, where the
+  eigen-equation collapses to `B x = 0`. A new Table 4 shows one eigenvector under two residual
+  tests, the ratio-based one degrading with `delta` while `||beta A x - alpha B x||` stays at the
+  roundoff floor. The subsection closes with the `dggev` contract (which equations the vectors
+  satisfy, how a complex pair is stored as two real columns, and the `|Re| + |Im| = 1` scaling
+  rule) and with the two things eigenvectors cannot do: a repeated eigenvalue has no eigenvector
+  basis at all (a Jordan block returns two parallel vectors and a rank-deficient set), and a
+  *cluster* should be described by the deflating subspace of revision 5 rather than by individual
+  vectors. Also added section 9 to `scripts/verify_qz.m`, which prints every quoted number, one
+  `DTGEVC` reference, and a sentence in s7 pointing at that driver and at the `dggev` contract.
+  Now 21 pages, map `3,5,7,9,11,14,20`; subsections 6.1 and 6.2 open on pages 15 and 17. Equation
+  numbers before 6.2 are unchanged (the swap display is still 18, the rotation equations 21 and
+  22); the new equation is 23, and the tables gain Table 4. Reference numbering after the new
+  source: `[11]` is now `DTGEVC`, so Moler & Stewart and Arbenz are `[12]` and `[13]`.
 - Next revision: reader feedback on the hardest bridge (the paired rotation of s4, the sample's
   subject). If it does not land, likely repairs are a second worked entry of phase two on a
   `4 x 4` pencil, or a one-line animation of the left/right pair in the sidecar-demo format.
@@ -145,7 +166,8 @@ ill-conditioned, and at `delta = 0` the third eigenvalue is infinite.
 | Moler & Stewart 1973, abstract | the QZ algorithm for `Ax = lambda Bx`, attention to a singular `B`, "no inversions of `B` or its submatrices are used", reduction to QR at `B=I` |
 | Golub & Van Loan, *Matrix Computations* 4th ed., §7.7 (table of contents and section) | the generalized Schur decomposition, the Hessenberg-triangular reduction, the implicit double-shift step, the bulge chase, and "the QZ step is a QR step on `A B^-1`" |
 | Arbenz, ETH lecture 5, QZ section | the same decomposition and reduction; the double-shift bulge pattern (the `+` placements in Figure 5); the deflation of a zero diagonal of the second matrix |
-| LAPACK `dggev` documentation | the pair output `(ALPHAR, ALPHAI, BETA)`, `lambda = (ALPHAR + i ALPHAI)/BETA`, the warning that the quotient may over-/underflow while `alpha`, `beta` stay in range, and the `beta = 0` convention (quoted in s2) |
+| LAPACK `dggev` documentation | the pair output `(ALPHAR, ALPHAI, BETA)`, `lambda = (ALPHAR + i ALPHAI)/BETA`, the warning that the quotient may over-/underflow while `alpha`, `beta` stay in range, and the `beta = 0` convention (quoted in s2); read again in revision 6 for the eigenvector contract: `A v = lambda B v` and `u**H A = lambda u**H B`, complex pairs stored as two real columns, `JOBVL`/`JOBVR` = `'N'` skipping the step entirely, and each vector scaled so its largest component has `|Re| + |Im| = 1` |
+| LAPACK `dggev` source and `DTGEVC`, read in revision 6 | the call chain `DGGBAL` -> QR of `B` -> `DGGHRD` -> `DHGEQZ` -> `DTGEVC`, which is what makes "the QZ iteration produces no eigenvectors" checkable rather than asserted; `DTGEVC` solves the triangular pair for the vectors |
 | Ward 1981, abstract | balancing the generalized eigenvalue problem before a QZ-type solver |
 | LAPACK `DGGHRD` and `DHGEQZ` sources (purpose and inner loops), read in revision 1 | phase-two reduction is a product of Givens rotations, bottom-up per column; the real driver is the double-shift QZ method, and it builds the 3-vector shift from a handful of local entries of `H` and `T` |
 | Kågström 1993, via the `DTGEXC`/`DTGEX2` source and the LAWN87 abstract, read in revision 1 | reordering by adjacent-block swaps; the generalized Sylvester equation for swapping a block that holds a complex pair; a Givens rotation for two real 1x1 blocks |
@@ -160,8 +182,8 @@ the note and checked numerically. Suggested further reading is labelled as not c
 ## Checks and deviations
 
 - **Build** — `typst compile --root . Algebra/qz-algorithm/qz-algorithm.typ
-  Algebra/qz-algorithm/qz-algorithm.pdf` exits 0 with no warnings; 19 pages; section-to-page map
-  `3,5,7,9,11,14,18`.
+  Algebra/qz-algorithm/qz-algorithm.pdf` exits 0 with no warnings; 21 pages; section-to-page map
+  `3,5,7,9,11,14,20`.
 - **Shift vector (revision 1)** — `octave` comparison on the reduced `delta = 1/2` pair: the true
   implicit double-shift vector, the first column of `(M - s1 I)(M - s2 I)` with `M = H/T`, and the
   recomputed first column of `(H - s1 T) T^{-1} (H - s2 T) T^{-1}` agree to 0.0 degrees, while
@@ -194,7 +216,14 @@ the note and checked numerically. Suggested further reading is labelled as not c
   `||B X1 - Y1|| = 0`, induced pencil `{i, -i}`, `||B X1 - X1|| = 2.24e-16`, `||Q'Q - I|| = 4.98e-16`,
   `||Z'Z - I|| = 9.27e-16`, lower-left blocks `3.06e-16` / `2.62e-16`, trailing `2.0000`) and on the
   tiny pencil (`A-eigenvector`: `dim(A X + B X) = 2 != 1`; generalized eigenvector: `1`,
-  `||A w - lam B w|| = 5.12e-16`, `angle(span(A w), span(w)) = 24.1` degrees).
+  `||A w - lam B w|| = 5.12e-16`, `angle(span(A w), span(w)) = 24.1` degrees); and from revision 6's
+  section 9, the eigenvector route (`||A V - B V D|| = 1.10e-15`, `||W'A - D W'B|| = 1.09e-15`, the
+  `|Re|+|Im| = 1` scaling on all three vectors, right back-substitution residuals 3.90e-16 /
+  5.43e-16 / 3.81e-16 with angles to the reference at or below 8.54e-07 degrees, left forward
+  substitution 1.01e-15 / 4.23e-16 / 3.33e-16, the `2 x 2` block 3.47e-16 with block diagonal
+  ratios 1.11e-16 and -1.11e-16, the infinite eigenvalue `||B x|| = 1.11e-16` with `||A x|| = 1`,
+  the ratio-versus-pair residual table, and the Jordan-block set with singular values
+  `[1.41, 1, 3.14e-16]`).
 - **qz_sweeps.m** — prints every number in s4 and s5: the phase-one and phase-two matrices shown
   in #ref(<fig:reduction>) (left rotation `c=-0.7454, s=-0.6667` filling `B(3,2)=-0.6667`;
   right rotation `c=-0.5774, s=-0.8165`), sub-band `0.0` and below-diagonal `4.1e-17`,
@@ -208,11 +237,14 @@ the note and checked numerically. Suggested further reading is labelled as not c
   7,8 (Schur form, block, and the deflating-subspace pointer added in revision 5), 9,10 (reduction),
   11,12,13 (bulge chase, sweep table, convergence), 14,15 (recipe and code, the deflating-subspace
   definition with equation (17), and the opening of 6.1), 16,17 (the swap steps, the rotation from
-  the solution, the code and "what QZ is not"), 18,19 (sources, bibliography, including the four
-  revision-5 entries and the `Oară` accent). All figures, tables, labels, and highlighted cells were
-  read back; the spectrum axis overflow, the equation-label collision, the accuracy-guide slope, the
-  bulge alternation, and the code-comment wrap were corrected after inspection; the revision-4
-  equations and the revision-5 definition equation were rendered and checked for label collisions.
+  the solution, and the opening of 6.2 with equation (23)), 18 (Table 4, the `dggev` contract, and
+  the "two things the vectors cannot do" paragraph), 19 (the code and "what QZ is not"), 20,21
+  (sources with the `DTGEVC` sentence, bibliography with all thirteen entries). All figures, tables,
+  labels, and highlighted cells were read back; the spectrum axis overflow, the equation-label
+  collision, the accuracy-guide slope, the bulge alternation, and the code-comment wrap were
+  corrected after inspection; the revision-4, revision-5 and revision-6 equations and Table 4 were
+  rendered and checked for label collisions, and `bar(lambda)` was replaced by `overline(lambda)`
+  after a render showed it printing as `|lambda|`.
 - **Landing page** — served at `http://localhost:8010/index.html`; the new card is the first in
   `#grid`, its `href` resolves (HTTP 200), and the page's own counters give `36` notes,
   `algebra = 4`, `math = 8`, and `7` distinct fields. Card attributes (`data-category="algebra

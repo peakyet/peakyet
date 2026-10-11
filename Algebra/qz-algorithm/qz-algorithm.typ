@@ -778,6 +778,88 @@ which is where the *generalized* Sylvester equation enters. In order:
 A block moved $k$ places costs $k$ such swaps, each a fixed-size solve plus $O(n)$ work on the
 rest of the pencil @kagstrom1993reordering.
 
+== Getting an eigenvector afterwards
+
+The iteration itself produces no eigenvectors: it stops at $(S, T, Q, Z)$. Read the
+right-eigenvector equation in that basis. Multiplying $A x = lambda B x$ on the left by $Q^*$, and
+using #ref(<eq:qz>),
+
+$ S (Z^* x) = lambda T (Z^* x), quad "so with" y = Z^* x, quad x = Z y. $ <eq:eigvecbasis>
+
+The $Q$ factor cancels out of a *right* eigenvector, so $Z$ is the only factor needed: solve the
+triangular pencil $(S, T)$ for $y$, then rotate back. A *left* eigenvector, $w^* A = lambda w^* B$,
+keeps the other factor: putting $u^* = w^* Q^*$ gives $u^* S = lambda u^* T$, so $u$ comes from the
+transposed problem and $w = Q u$. That asymmetry is the whole recipe, and it is what LAPACK's
+`DTGEVC` implements inside `dggev`, which calls it after the Schur form only when the user asks for
+vectors (`JOBVL`/`JOBVR` $= $ `'V'`; `'N'` never pays for the step) @lapack_dggev @lapack_dtgevc.
+
+*A $1 times 1$ block.* The pair $(alpha_i, beta_i) = (S_(i i), T_(i i))$ is simple, so the diagonal
+entry $S_(i i) - lambda T_(i i)$ vanishes and what is left is a triangular solve. Set $y_i = 1$ and
+$y_j = 0$ for $j > i$ -- enough to fix the arbitrary scale, and it satisfies every row below $i$
+automatically -- then back-substitute rows $i-1$ down to $1$ of $S - lambda T$. On the example the
+three directions come out at $8.6 times 10^(-7)$ degrees of the reference eigenvectors or closer,
+with $norm(A x - lambda B x)$ at $5.5 times 10^(-16)$ or below. (The reference is itself computed,
+from the decoupled pencil where the answer is known, so the sub-microdegree part of that angle is
+the reference's error, not the calculation's.)
+
+*The left vector is the mirror image, with one trap.* The equation is $u^* (S - lambda T) = 0$,
+that is $(S - lambda T)^* u = 0$, which is *lower* triangular: forward-substitute with $u_i = 1$
+and $u_j = 0$ for $j < i$. Conjugating $lambda$ before transposing,
+$(S - overline(lambda) T)^* u = 0$, puts an exact zero on the pivot belonging to the conjugate
+eigenvalue, and the $0 \/ 0$ that follows returns garbage; with the correct form all three vectors
+land at $1.1 times 10^(-15)$ of the library's own left vectors or better.
+
+*When a $2 times 2$ block is involved*, the block is the unit: solve the $2 times 2$ pencil
+$(S_2 - lambda T_2) v = 0$ for the complex pair -- never its two diagonal ratios, which are
+$(1.1 times 10^(-16), -1.1 times 10^(-16))$ on the example -- and eliminate the rows above the block
+as well, since they are coupled to it. The residual comes out at $3.5 times 10^(-16)$.
+
+*An infinite eigenvalue* needs no new algebra, only the same recipe at $beta = 0$: the
+eigen-equation degenerates to $B x = 0$, so back-substitute on $T$ instead of $S - lambda T$. At
+$delta = 0$ the script returns $norm(B x) = 1.1 times 10^(-16)$, $norm(A x) = 1$, and a direction
+$0.00 degree$ from the exact null vector $U e_3$.
+
+*Measure the residual in the pair.* The eigenvector is the same vector whatever test is applied to
+it, but a ratio-based test destroys its own evidence as $beta$ falls -- the lesson of section 2
+again, now for the friendlier quantity:
+
+#figure(
+  kind: "table",
+  supplement: [Table],
+  caption: [One eigenvector, two residuals, from `scripts/verify_qz.m`. The vector is the one
+    returned for the large eigenvalue $1 \\/ delta$ of the example; the two columns differ only in
+    how the eigen-equation is written. Read down the second column and the vector appears to fall
+    apart as $delta$ falls; read the third and it sits on the roundoff floor of the pencil instead.],
+  table(
+    columns: (auto, auto, auto),
+    align: (right, right, right),
+    stroke: 0.4pt,
+    table.header([$delta$], [$norm(A x - lambda B x)$], [$norm(beta A x - alpha B x)$]),
+    [$10^(-4)$], [$1.30 times 10^(-12)$], [$1.57 times 10^(-16)$],
+    [$10^(-8)$], [$5.43 times 10^(-9)$], [$8.61 times 10^(-17)$],
+    [$10^(-12)$], [$1.09 times 10^(-4)$], [$7.89 times 10^(-17)$],
+    [$10^(-16)$], [$4.90 times 10^(-1)$], [$4.48 times 10^(-17)$],
+  ),
+) <tab:eigvecres>
+
+*What the library promises.* From the `dggev` documentation: a right eigenvector satisfies
+$A v = lambda B v$ and a left one $u^* A = lambda u^* B$; a complex conjugate pair is stored as two
+*real* columns, $v_j = V R_(:, j) + i V R_(:, j+1)$ and
+$v_(j+1) = V R_(:, j) - i V R_(:, j+1)$; and each eigenvector is scaled so its largest component has
+$abs("Re") + abs("Im") = 1$, which the script confirms on all three vectors. The scale is a
+convention and not information, so compare directions and residuals, never magnitudes. In
+Octave/MATLAB the same call is `[V, D, W] = eig(A, B)`, right vectors in `V` and left ones in `W`
+($norm(A V - B V D) = 1.1 times 10^(-15)$ and $norm(W^* A - D W^* B) = 1.1 times 10^(-15)$ on the
+example); SciPy's `scipy.linalg.eig(A, B, left=True)` puts them in one call too.
+
+*Two things the vectors cannot do.* A repeated eigenvalue has no eigenvector basis at all: on a
+Jordan block the two vectors returned for the double eigenvalue are parallel ($0.00 degree$ apart)
+and the matrix they form has singular values $(1.41, 1, 3.1 times 10^(-16))$, the last of which is
+roundoff -- one of the two carries no information. And when eigenvalues are merely *clustered*, the
+honest object is the deflating subspace of the previous section rather than $n$ individual vectors:
+the leading columns of $Q$ and $Z$ after a reordering describe the cluster without pretending to
+resolve it, which is what the swaps of this subsection produce.
+
 *In code.* The pencil of #ref(<eq:dense>) is one call from an eigenvalue list, and the same
 call works at $delta = 0$ where $B^(-1) A$ does not exist:
 
@@ -797,9 +879,9 @@ ${2, i, -i}$ with eigenpair residuals of $7.6 times 10^(-16)$; at $delta = 0$ it
 ${i, -i, -infinity}$. The second input is doing real work in both calls; that is the whole
 point.
 
-*What QZ is not.* It is not a way to get eigenvectors for free: the generalized eigenvectors
-are the columns of the $Z$ factor (and the left ones from $Q$), so a driver asked only for
-eigenvalues does not pay for them. It is not a large-sparse method; its cost is dense $O(n^3)$,
+*What QZ is not.* It is not a way to get eigenvectors for free: they cost a triangular solve and a
+rotation by $Z$ (right) or $Q$ (left) on top of the iteration, so a driver asked only for
+eigenvalues never pays for them. It is not a large-sparse method; its cost is dense $O(n^3)$,
 and a sparse generalized problem needs a Krylov or shift-invert method that never forms $S$ or
 $T$. It is not structure-preserving: for a Hamiltonian or symplectic pencil the QZ form is a
 valid but unphysical decomposition, and the structured methods that keep the pairing of the
@@ -825,7 +907,11 @@ underflow while $alpha$ and $beta$ stay in range, and the $beta = 0$ convention 
 and LAPACK interface names for the same three computations. The Givens rotations of the
 Hessenberg-triangular reduction, and the real driver's double-shift step and its local
 construction of the shift vector of #ref(<eq:implicitq>), are LAPACK's `DGGHRD` and `DHGEQZ`,
-which this note read @lapack_dgghrd @lapack_dhgeqz. The reordering of section 6 -- adjacent-block
+which this note read @lapack_dgghrd @lapack_dhgeqz. The eigenvector step of subsection 6.2 --
+back-substitution on the triangular pencil and the rotation back by $Z$ or $Q$ -- is LAPACK's
+`DTGEVC`, which `dggev` calls once the Schur form is in hand; its contract (which equations the
+vectors satisfy, how a complex pair is stored, and the scaling rule) is read from the `dggev`
+documentation @lapack_dtgevc @lapack_dggev. The reordering of section 6 -- adjacent-block
 swaps and the generalized Sylvester equation -- is Kågström's direct method
 @kagstrom1993reordering. Balancing before the QZ iteration is Ward @ward1981balancing.
 

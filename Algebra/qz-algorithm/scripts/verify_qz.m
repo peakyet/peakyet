@@ -185,3 +185,70 @@ fprintf('  generalized eigvector: dim(A X + B X) = %d ; ||A w - lam B w|| = %.2e
         rank([At*wt, Bt*wt]), norm(At*wt - lt*Bt*wt));
 fprintf('  angle(span(A w), span(w)) = %.1f deg (the two subspaces of the pair differ)\n', ...
         acos(min(1, abs((At*wt)'*wt)/(norm(At*wt)*norm(wt))))*180/pi);
+
+% ---------------------------------------------------------------------------
+% 9. Getting an eigenvector afterwards: solve the triangular pencil, then
+%    rotate by Z (right) or Q (left).  Exact directions are known in the
+%    decoupled coordinates, x_exact = U * v_exact.
+% ---------------------------------------------------------------------------
+fprintf('\n==================== 9. eigenvectors from the Schur form ====================\n');
+ang9 = @(p,q) acos(min(1, abs((p'*q)/(norm(p)*norm(q)))))*180/pi;
+[V9, D9, W9] = eig(A, B);
+fprintf('library route: ||A V - B V D|| = %.2e ; ||W''A - D W''B|| = %.2e\n', ...
+        norm(A*V9 - B*V9*D9), norm(W9'*A - D9*W9'*B));
+fprintf('  largest component of each eigenvector, |Re|+|Im|: %s  (the LAPACK scaling)\n', ...
+        mat2str(max(abs(real(V9)) + abs(imag(V9))).'));
+[Ve, De] = eig(S0, T0(0.5));            % exact directions, decoupled coordinates
+[S9, T9, Q9, Z9] = qz(A, B);
+r9 = 0; l9 = 0;
+for i = 1:3
+  lam = S9(i,i)/T9(i,i); M = S9 - lam*T9;
+  y = zeros(3,1); y(i) = 1;
+  for r = i-1:-1:1, y(r) = -M(r, r+1:i)*y(r+1:i)/M(r,r); end
+  x = Z9*y; x = x/norm(x); r9 = max(r9, norm(A*x - lam*B*x));
+  fprintf('  right 1x1 block i=%d: lam = %+.4f%+.4fi ; residual = %.2e ; angle to exact = %.2e deg\n', ...
+          i, real(lam), imag(lam), norm(A*x - lam*B*x), min(arrayfun(@(j) ang9(x, U*Ve(:,j)), 1:3)));
+  M = (S9 - lam*T9)'; u = zeros(3,1); u(i) = 1;
+  for r = i+1:3, u(r) = -M(r, 1:r-1)*u(1:r-1)/M(r,r); end
+  w = Q9'*u; w = w/norm(w); l9 = max(l9, norm(w'*A - lam*w'*B));
+  fprintf('  left  i=%d: ||w''A - lam w''B|| = %.2e ; angle to the library left vector = %.2e deg\n', ...
+          i, norm(w'*A - lam*w'*B), min(arrayfun(@(j) ang9(w, W9(:,j)), 1:3)));
+end
+fprintf('  worst residuals over the three pairs: right %.2e, left %.2e\n', r9, l9);
+
+% real quasi-triangular form: the complex pair is a 2x2 block, and the rows
+% above it are coupled to it
+[Sr9, Tr9, Qr9, Zr9] = qz(A, B, 'real');
+bd = find(abs(diag(Sr9,-1)) > 0); blk = bd(1):bd(1)+1;
+fprintf('  block diagonal ratios (not eigenvalues): %s\n', ...
+        mat2str([Sr9(blk(1),blk(1))/Tr9(blk(1),blk(1)), Sr9(blk(2),blk(2))/Tr9(blk(2),blk(2))], 3));
+[Vb9, Db9] = eig(Sr9(blk,blk), Tr9(blk,blk)); k9 = find(imag(diag(Db9)) > 0.5);
+lam = Db9(k9,k9); M = Sr9 - lam*Tr9; y = zeros(3,1); y(blk) = Vb9(:,k9);
+for r = blk(1)-1:-1:1, y(r) = -M(r, r+1:3)*y(r+1:3)/M(r,r); end
+x = Zr9*y; x = x/norm(x);
+fprintf('  2x2 block: lam = %+.4f%+.4fi ; residual = %.2e ; angle to exact = %.2e deg\n', ...
+        real(lam), imag(lam), norm(A*x - lam*B*x), min(arrayfun(@(j) ang9(x, U*Ve(:,j)), 1:3)));
+
+% an infinite eigenvalue: B x = 0, so back-substitute on T
+B0 = U*T0(0)*U'; [S0i, T0i, Q0i, Z0i] = qz(A, B0); i = find(abs(diag(T0i)) < 1e-14);
+y = zeros(3,1); y(i) = 1;
+for r = i-1:-1:1, y(r) = -T0i(r, r+1:i)*y(r+1:i)/T0i(r,r); end
+x = Z0i*y; x = x/norm(x);
+fprintf('  infinite eigenvalue: pair (%+.3f, %+.3f) ; ||B x|| = %.2e ; ||A x|| = %.4f ; angle to U e_3 = %.2e deg\n', ...
+        S0i(i,i), T0i(i,i), norm(B0*x), norm(A*x), ang9(x, U*[0;0;1]));
+
+% the same eigenvector, two residuals
+fprintf('  large eigenvalue: the ratio test versus the pair test\n');
+for d = [1e-4, 1e-8, 1e-12, 1e-16]
+  Bd = U*T0(d)*U'; [Vd, Dd] = eig(A, Bd); [~, j] = max(abs(diag(Dd)));
+  x = Vd(:,j)/norm(Vd(:,j));
+  fprintf('    delta=%.0e :  ||A x - lam B x|| = %.2e   ||beta A x - alpha B x|| = %.2e\n', ...
+          d, norm(A*x - (1/d)*Bd*x), norm(d*A*x - 1*Bd*x));
+end
+
+% a repeated eigenvalue has no eigenvector basis
+Ajd = [1 1 0; 0 1 0; 0 0 2]; Bjd = eye(3);
+[Vjd, Djd] = eig(Ajd, Bjd);
+fprintf('  Jordan block: eigenvalues %s ; angle between the two vectors of the double eigenvalue = %.2e deg\n', ...
+        mat2str(diag(Djd).'), ang9(Vjd(:,1), Vjd(:,2)));
+fprintf('    singular values of the eigenvector matrix = %s\n', mat2str(svd(Vjd).',3));
