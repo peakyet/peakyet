@@ -49,6 +49,47 @@ function [P, asym, c11] = qz_stable(H, J, n)
   c11 = cond(U11);
 end
 
+function singular_R_report(tag, A, B, Q, R, n)
+  % the three cases of a singular R.  F = ker R (the free control directions).
+  % (i)   R nonsingular: m infinite pairs, 2n finite, n stable.
+  % (ii)  ker R meets ker B only in 0: the square pencil is regular but its finite
+  %       spectrum shrinks, so the ordering finds fewer than n stable pairs.
+  % (iii) some v in ker R has Bv = 0: that direction is a common kernel vector of both
+  %       matrices, the square pencil is singular, and QZ has nothing to say.
+  [H, J] = extended_pencil(A, B, Q, R);
+  [~, S, V] = svd(R); F = V(:, diag(S) <= 0);
+  ev = eig(H, J); fin = ev(isfinite(ev));
+  P = columns(R); Mc = H(:, 2*n+1:2*n+P);
+  % the symmetry check is made on the deflated spectrum: that is where the criterion is
+  % applied, and at tiny R the undeleted spectrum is polluted by the 1/R-scale pairs.
+  [Hd0, Jd0] = deflate_pencil(H, J, 2*n, columns(R));
+  fd = eig(Hd0, Jd0); fd = fd(isfinite(fd));
+  gap = 0; for k = 1:numel(fd)
+    if abs(fd(k)) > 0
+      gap = max(gap, min(abs(-fd - fd(k))) / abs(fd(k)));
+    end
+  end
+  rand('seed', 3); nz = 0; nk = 0;
+  for k = 1:20
+    ab = rand(1, 2) .* [3, 1] .* (2 * round(rand(1, 2)) - 1);
+    if abs(det(ab(1)*H - ab(2)*J)) > 1e-10, nz = nz + 1; end
+  end
+  for k = 1:columns(F)
+    if norm(H*[zeros(2*n, 1); F(:, k)]) < 1e-12, nk = nk + 1; end
+  end
+  if nk > 0
+    fs = 'singular'; st = 'none'; gap = NaN;   % eig on a singular pencil means nothing
+  else
+    fs = sprintf('%d fin %d inf', numel(fin), sum(~isfinite(ev)));
+    st = sprintf('%d/%d', sum(real(fin) < 0), n);
+  end
+  if isnan(gap)
+    printf('%-40s %4d %6d %5d/20 %11s %10s %9s\n', tag, rank(B*F), nk, nz, fs, st, 'n/a');
+  else
+    printf('%-40s %4d %6d %5d/20 %11s %10s %9.1e\n', tag, rank(B*F), nk, nz, fs, st, gap);
+  end
+end
+
 function [H, J] = extended_pencil(A, B, Q, R)
   [m, n] = size(B);
   H = [A, zeros(m), B; -Q, -A', zeros(m, n); zeros(n, m), B', R];
@@ -234,3 +275,52 @@ printf('  full 8x8: %d finite, %d infinite; deflated 6x6: %d finite, %d infinite
   sum(isfinite(e3)), sum(~isfinite(e3)), sum(isfinite(e3d)), sum(~isfinite(e3d)), min(svd(J3d)));
 printf('  finite eigenvalues agree to %.1e relative\n', ...
   max(abs(sort(real(e3(isfinite(e3)))) - sort(real(e3d(isfinite(e3d)))))) / max(abs(real(e3(isfinite(e3))))));
+
+printf('\n=== H. a singular R: three cases, and what decides between them ===\n');
+printf('The control block carries no eigenvalue of its own -- its block row, B''x2 + Ru = 0, is\n');
+printf('free of lambda. What a singular R changes is the COUNT of finite eigenvalues, and hence\n');
+printf('how many stable pairs the ordering can find. F = ker R below; "rank(B*F)" is the number of\n');
+printf('free control directions that actually move the state, and "kernel" counts the v in F with\n');
+printf('Bv = 0 and Rv = 0, which are common kernel vectors of M and N (a singular pencil).\n');
+printf('%-40s %4s %6s %8s %11s %10s %9s\n', 'case', 'rB', 'kernel', 'reg', 'finite', 'stable/n', 'sym rel');
+A2 = A0; Q2 = eye(2);
+singular_R_report('running example, R = 1', A2, B0, Q2, 1, 2);
+singular_R_report('running example, R = 1e-14', A2, B0, Q2, 1e-14, 2);
+singular_R_report('running example, R = 1e-16', A2, B0, Q2, 1e-16, 2);
+singular_R_report('running example, R = 0 (free dir acts)', A2, B0, Q2, 0, 2);
+singular_R_report('2-state, B = I, R = 0 (both act)', A2, eye(2), Q2, zeros(2), 2);
+A4 = [0 1 0; 0 0 1; -2 -3 -1]; Q4 = eye(3);
+singular_R_report('3-state, free dir acts, R = diag(1,0)', A4, [0 0;0 0;1 1], Q4, diag([1 0]), 3);
+singular_R_report('2-state, free dir dead, R = diag(1,0)', A2, [0 0;1 0], Q2, diag([1 0]), 2);
+
+printf('\ncase (iii), the fix: the dead direction neither costs nor acts, so delete that control.\n');
+[Hc, Jc] = extended_pencil(A2, [0; 1], Q2, 1);
+[Pc, ~, ~] = qz_stable(Hc, Jc, 2);
+[Hb, ~] = extended_pencil(A2, [0 0; 1 0], Q2, diag([1 0]));
+printf('  keeping it: ||M*(0;0;e2)|| = %.1e (a common kernel vector: the 6x6 pencil is singular)\n', ...
+  norm(Hb * [0; 0; 0; 0; 0; 1]));
+printf('  deleting it: P agrees with the R = 1 answer to %.2e\n', norm(Pc - care_schur(A0, B0*B0'/1, eye(2))));
+
+printf('\ncase (ii), the count is what fails: a driver that takes the first n columns anyway\n');
+for R = [1e-6, 0]
+  [HR, JR] = extended_pencil(A2, B0, Q2, R);
+  [Pd, asd, c11d] = qz_stable(HR, JR, 2);
+  [HdR, JdR] = deflate_pencil(HR, JR, 4, 1);
+  [Sd, Td, Qd, ZR] = qz(HdR, JdR, 'real');
+  [Sd, Td, Qd, ZR] = ordqz(Sd, Td, Qd, ZR, 'lhp');
+  nsel = 0;
+  for j = 1:2
+    if abs(Td(j,j)) > 0 && real(Sd(j,j)/Td(j,j)) < 0, nsel = nsel + 1; end
+  end
+  Z1 = ZR(:, 1:2); U11 = Z1(1:2, :); U21 = Z1(3:4, :);
+  printf('  R = %-7g selected pairs %d of 2; ||P - P''|| = %.3f; B''PB = %.1e\n', ...
+    R, nsel, norm(Pd - Pd'), B0'*Pd*B0);
+  printf('            symmetry defect ||U11''U21 - U21''U11|| = %.3e against ||U11''U21|| = %.3f\n', ...
+    asd, norm(U11'*U21));
+end
+printf('  scipy tests that defect against max(spacing(1000), 0.1*||U11''U21||) and raises LinAlgError;\n');
+printf('  at R = 0 the defect is 100%% of it. Note what does NOT catch this: any leading block of a\n');
+printf('  triangular Schur form is a deflating subspace, so an invariance test passes on the wrong\n');
+printf('  block too -- the count and the symmetry are the checks, not invariance.\n');
+printf('  and the shape of the failure is always "too few", never "n plausible wrong ones":\n');
+printf('  the finite spectrum is closed under lambda -> -lambda and deg det(M - lambda N) <= rank(N) = 2n.\n');

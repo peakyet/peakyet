@@ -339,6 +339,48 @@ stops being about accuracy: $B R^(-1) B^T$ is not finite, so there is no matrix 
 while the same data still defines a regular pencil whose QZ form exists. Measured for exactly
 that data: a $5 times 5$ pencil with $2$ finite and $3$ infinite eigenvalues.
 
+A regular pencil is not the same thing as a solvable problem, and $rho = 0$ is where to see it:
+those two finite eigenvalues are $plus.minus 1$, so one is stable where the recipe needs $n = 2$,
+the free control direction moves the state, and no stabilizing $P$ exists.
+
+#figure(
+  kind: "table",
+  supplement: [Table],
+  caption: [What a singular $R$ does to the extended pencil, printed by
+    `scripts/verify_qz_riccati.m` (section H). "free direction" means a $v$ with $R v = 0$;
+    "acts" means $B v != 0$. The count of stable pairs is the number the ordering must produce,
+    and it is $n$ only in the first row. The last row is a *singular* pencil: the direction that
+    neither costs nor acts is a common kernel vector of both matrices, so the QZ form means
+    nothing there until that control is deleted.],
+  table(
+    columns: (auto, auto, auto),
+    align: (left, left, left),
+    stroke: 0.4pt,
+    table.header([what $R$ is], [what the pencil does], [measured]),
+    [nonsingular, down to $10^(-14)$],
+    [$m$ infinite pairs, $2n$ finite, $n$ stable -- the recipe as documented],
+    [running example: $4$ finite of $2n = 4$, $2$ stable of $n = 2$; $P$ to $10^(-16)$],
+    [singular, and every free direction acts on the state],
+    [regular, but the finite spectrum shrinks: fewer than $n$ stable pairs survive, so there is no graph to read],
+    [running example at $R = 0$: $2$ finite of $4$, $1$ stable of $2$; a 3-state instance at $R = "diag"(1, 0)$: $4$ of $6$, $2$ of $3$; $B = I$ at $R = 0$: $0$ finite of $6$],
+    [singular, and some free direction neither costs nor acts],
+    [that direction is a common kernel vector of $M$ and $N$: the square pencil is singular and has no QZ form to read],
+    [regular at $0$ of $20$ probes; deleting that one control restores the $R = 1$ answer to $1.3 times 10^(-15)$],
+  ),
+) <fig:singularR>
+
+Two structural facts make the count usable as a check: the finite spectrum is closed under
+$lambda -> -lambda$ (mirror pairs agree to a relative $5 times 10^(-16)$, and to $3 times 10^(-11)$
+even at $R = 10^(-14)$), and $det(M - lambda N)$ has degree at most $"rank" N = 2n$. So a stable
+finite eigenvalue always has an unstable partner, at most $n$ can be stable, and the failure is
+always *too few* -- never $n$ plausible wrong pairs. Taking the first $n$ columns anyway returns
+$P = mat(0, -1; 0, 0)$ at $R = 0$, which is not even symmetric.
+
+What does *not* catch that: $S$ and $T$ are triangular, so *any* leading block of $Z$ is a deflating
+subspace, and an invariance test passes on the wrong block. The count and the symmetry are the
+checks: the antisymmetry defect is $4.8 times 10^(-16)$ against $norm(U_(11)^T U_(21)) = 0.500$ at
+$R = 10^(-6)$, and all of that norm at $R = 0$ -- the quantity scipy tests before it returns.
+
 This is the documented reason the pencil formulation is standard. Van Dooren introduced the
 generalized eigenvalue route for precisely this data @vandooren1981generalized, and Benner and
 Sima state the point in one sentence: "the deflating subspace approach using the extended pencils
@@ -347,10 +389,10 @@ forming $R^(-1)$ are avoided" @benner2003slicot. They make the same point on the
 "the symplectic matrix can only be formed if $A$ is nonsingular ... it is preferable to work with
 the symplectic pencil", an objection that also applies to the descriptor matrix $E$.
 
-*What has changed conceptually.* Nothing about the eigenvalues: the pencil of the next section has
-the same finite eigenvalues as $H$. What changes is that $R$ is never inverted, and that a singular
-$R$ -- a singular *pencil* -- is a representable object rather than a failure. That is what the QZ
-algorithm, unlike a QR iteration on a single matrix, is built to process.
+*What has changed conceptually.* Nothing about the eigenvalues while $R$ is nonsingular: the next
+section's pencil has the same finite eigenvalues as $H$. What changes is that $R$ is never inverted,
+and that a singular $R$ is representable rather than a parse error -- which, as #ref(<fig:singularR>)
+shows, is not the same as solvable.
 
 = The extended pencil and its deflating subspace <s4>
 
@@ -438,14 +480,18 @@ blocks $B$, $0$, $R$, and take a QR decomposition
 
 $ M_c = Q mat(R_1; 0), quad "then" quad tilde(M) - lambda tilde(N) = Q_2^T (M - lambda N) mat(I_(2n); 0), $ <eq:deflate>
 
-where $Q_2$ is $Q$ with its first $m$ columns dropped. The result is a $2n times 2n$ pencil with
+where $Q_2$ is $Q$ with its first $m$ columns dropped. When the stacked control block has full
+column rank $m$ -- which every nonsingular $R$ gives -- the result is a $2n times 2n$ pencil with
 the same finite eigenvalues and none infinite. This is van Dooren's reduction; scipy's
 `solve_continuous_are` performs it with the comment "deflate the pencil to 2m x 2m ala Ref.1,
 eq.(55)" @scipy_are. The script measures the counts for the running example, where $m = 1$: $4$
 finite and $1$ infinite at $R = 10^(-6)$, becoming $4$ and $0$ after the deflation. At $R = 0$ the
 same data gives $2$ finite and $3$ infinite, of which the deflated $4 times 4$ pencil keeps $2$ --
-harmless, because a pair with $beta = 0$ never satisfies $"Re"(alpha \/ beta) < 0$ and so is never
-selected.
+harmless in themselves, since a pair with $beta = 0$ never satisfies $"Re"(alpha \/ beta) < 0$ and
+so is never selected. What is *not* harmless at $R = 0$ is the finite side: it is one stable pair
+short of the $n = 2$ the read-off needs, so there is nothing to read off at all, and the count of
+selected pairs is the check that says so (see #ref(<fig:singularR>), and the recipe at the end of
+section 5).
 
 The deflated second matrix is not the identity, and it inherits the conditioning of $R$: its
 smallest singular value is $7.07 times 10^(-1)$ at $R = 1$, $1.00 times 10^(-6)$ at $R = 10^(-6)$,
@@ -657,7 +703,11 @@ the $P$ that comes out, which the script reads from $A - G P$ independently.
   supplement: [Figure],
   caption: [How the $(2n + m) times (2n + m)$ unitary matrix becomes a graph in $R^(2n times n)$,
     on the numbers of #ref(<fig:trace>) at $R = 10^(-6)$. Left: the ordered $Z$ of the *full*
-    pencil, with its rows banded into state, costate and control and its stable columns shaded.
+    pencil -- $(2n + m) times (2n + m)$, its columns in the order the reordering produced, here two
+    stable, two unstable and one infinite, its rows banded into state, costate and control, and its
+    stable columns shaded. Its first column is almost entirely the control coordinate
+    ($|Z_(5 1)| = 0.999999$), which is exactly why truncating the rows instead of deflating leaves
+    an ill-conditioned basis.
     The deflation drops the control band: $Q_2$ is built orthogonal to the stacked control block
     $B, 0, R$, so those rows contribute nothing and go. Right: the $2n times n$ block of stable
     columns that survives -- an ordinary basis of an $n$-dimensional subspace of $R^(2n)$, not a
@@ -1145,7 +1195,10 @@ seeing the pencil:
   $epsilon = 10^(-2)$. What the pencil changes is the class of data the algorithm can accept.
 
 *The recipe, once.* Assemble the extended pencil #ref(<eq:pencil>); balance it; deflate the control
-block by QR as in #ref(<eq:deflate>); run an ordered QZ with $"Re"(alpha \/ beta) < 0$; set
+block by QR as in #ref(<eq:deflate>), dropping a dead control direction if one exists (case three of
+#ref(<fig:singularR>)); run an ordered QZ with $"Re"(alpha \/ beta) < 0$ and count the pairs it
+selected -- there must be exactly $n$ of them, or the pencil is reporting that this data has no
+stabilizing solution; set
 $P = U_(21) U_(11)^(-1)$ by substitution; check the antisymmetry defect and $"cond"(U_(11))$; if a
 solution is wanted to maximal accuracy, refine it by a Newton step, which Arnold and Laub give for
 the generalized problem @arnoldlaub1984generalized. Everything except the last solve is unitary,
@@ -1195,7 +1248,12 @@ and 5 -- the extended pencil with its $E$ and $S$ blocks, the deflation, `ordqz`
 left-half-plane sort, and the `LinAlgError` raised when the pencil's eigenvalues approach the axis
 -- is scipy's documentation and source @scipy_are, and the "standard eigenproblem if $G$ is given"
 statement is SLICOT's `SB02OD` documentation @slicot_sb02od. The structure-preserving alternative
-mentioned in section 7 is Benner, Mehrmann and Xu @benner1998numerically. The discrete-time pencil
+mentioned in section 7 is Benner, Mehrmann and Xu @benner1998numerically. The distinction section 3
+now draws -- that a regular pencil is not by itself a solvable problem, because a free control
+direction that acts on the state leaves the finite spectrum short of $n$ stable pairs -- is the
+existence side of Arnold and Laub's generalized framework @arnoldlaub1984generalized, whose
+algorithm needs the deflating subspace to have the right dimension; SLICOT's `SB02OD` documents the
+singular-`R` case as a separate branch @slicot_sb02od. The discrete-time pencil
 of section 6, its reciprocal-pair spectrum and the graph property #ref(<eq:daregraph>) are the
 discrete-time specialization of Arnold and Laub's generalized framework for Riccati equations
 @arnoldlaub1984generalized; the deflation, the inside-the-circle sort `iuc`, the back-substitution
