@@ -125,13 +125,41 @@ equations are
 
 $ H(q, p) = (q^2 + p^2) / 2, quad dot(x) = J nabla H(x) = mat(dot q; dot p) = mat(p; -q). $ <eq:osc>
 
-The pattern on the right -- velocity from momentum, force from energy -- is the Hamiltonian
-form: $dot(x) = J nabla H$ with $nabla H$ the gradient of the energy. Since $H$ is quadratic
-here, the system is linear and the flow map $Phi_t$ (the map sending the state at time $0$ to
-the state at time $t$) is the matrix exponential $Phi_t = e^(J t)$, because
-$nabla^2 H = I$:
+Read $H$ first, before any matrices. Its two terms are the familiar energies of a spring-mass
+system: $(q^2)/2$ is the potential energy stored in the spring ($k = 1$), $(p^2)/2$ is the
+kinetic energy ($m = 1$). Geometrically, $H$ is a bowl over the phase plane, and the state
+$x = mat(q; p)$ sits at height $H(x)$ on that bowl. Conservation of energy says the state
+never changes height: it slides *along* a level curve of $H$ -- for this $H$, a circle.
+
+Where does the matrix form on the right come from? From Newton's laws, written as one vector
+equation. Velocity: $dot q = p$ (just the definition of momentum). Force: the spring pulls
+with minus the slope of the potential, $dot p = -partial H \/ partial q = -q$. Stacked, the
+pair is $mat(p; -q)$ -- and notice the odd sign pattern: $dot q$ takes the gradient's *second*
+component, $dot p$ takes minus its *first*. That is a quarter-turn rotation of the gradient
+(linearly, "gradient" here because $H$ is quadratic, so $nabla H = x$ exactly). The matrix
+that rotates a vector a quarter turn is $J = mat(0, 1; -1, 0)$, and so the dynamics reads
+$dot(x) = J nabla H(x)$. The $J$ is not new physics -- it is the sign-differing bookkeeping
+that turns "energy tells the state where to go" into one equation. The format generalizes:
+every frictionless mechanical system, however complicated its energy, has this same shape,
+one antisymmetric factor $J$ times one gradient. That is the feature the whole section leans on.
+
+A quick consistency check from the energy itself. The rate of change of energy along the
+motion is $dot H = nabla H dot dot(x) = nabla H dot J nabla H$, and a dot product of a vector
+with its own quarter-turn is zero -- a vector is perpendicular to its rotation. So $dot H = 0$:
+the flow moves along level curves, as promised. But energy conservation alone is too weak a
+property to build on: it constrains only the height of the motion, not how the motion treats
+a whole *neighborhood* of states. The next question is exactly about that neighborhood.
+
+To have something concrete to test, write down the flow map $Phi_t$ -- the map sending the
+state at time $0$ to the state at time $t$. Because $H$ is quadratic here the system is
+linear, $dot(x) = J x$, and the flow map is the matrix exponential $Phi_t = e^(J t)$:
 
 $ Phi_t = e^(J t) = mat(cos t, sin t; -sin t, cos t). $ <eq:flow>
+
+A pure rotation by angle $t$ -- which is exactly what the level-circle picture predicted: a
+frictionless spring's state circles its energy level forever. For a general energy the flow
+is not a rotation (a pendulum's flow shears patches along its separatrix), which is why the
+argument below must not rely on rotation -- only on the $J nabla H$ structure.
 
 #figure(
   caption: [One small square patch of the phase plane at $t = 0$ (gray, near
@@ -179,20 +207,25 @@ precisely the pairing in $dot(x) = J nabla H$: one antisymmetric factor $J$, one
 factor $nabla^2 H$, arranged so that the form's time derivative is antisymmetric-in-motion
 versus symmetric-in-curvature and the two kill each other.
 
-Dissipation breaks the pairing. Add viscous damping $c > 0$:
+Dissipation breaks the pairing -- and it breaks the energy story at the same time. Add
+viscous damping $c > 0$:
 
 $ dot(q) = p, quad dot(p) = -q - c p, quad A_c = mat(0, 1; -1, -c). $ <eq:damped>
 
 Run the same test. The bracket #ref(<eq:bracket>) needs $A_c = J S$ for a symmetric $S$; no
-such $S$ exists here, so compute the bracket directly:
+such $S$ exists here (the $-c$ entry blocks it -- try to solve
+$mat(0, 1; -1, 0) mat(a, b; b, d) = mat(0, 1; -1, -c)$ for symmetric $mat(a, b; b, d)$: it
+forces $-b = -1$ and $-b = -c$ at once), so compute the bracket directly:
 $A_c^T J = mat(1, 0; c, 1)$ and $J A_c = mat(-1, -c; 0, -1)$, so
 
 $ A_c^T J + J A_c = mat(0, -c; c, 0) = c J, $ <eq:damped-bracket>
 
 which is zero only when $c = 0$. The leftover is not of the canceling form: the healthy
 pattern is "antisymmetric matrix times symmetric matrix," and damping's contribution resists
-being written that way. That leftover is exactly what destroys the conservation. The visible
-consequence: areas contract
+being written that way. The energy tells the same story from its side: along the damped
+motion $dot H = nabla H dot J nabla H - c p^2 = -c p^2 <= 0$, so the state spirals down the
+energy bowl instead of circling it. The two leaks are one fact seen twice -- friction. The
+visible consequence: areas contract
 geometrically, at the rate given by Liouville's formula
 $det e^(A_c t) = e^(tr A_c dot t) = e^(-c t)$ -- at $c = 0.5$ the area of
 any patch has shrunk to $e^(-0.5) = 0.6065$ after one unit of time. The damped system still
