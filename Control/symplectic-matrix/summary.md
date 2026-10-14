@@ -64,5 +64,4 @@ The `PDF page` column is the deep-link map, refreshed from
 
 - No deviation from `typst-template/note.typ` or the 'Ilm defaults.
 - The demo belongs to `<s2>` (page 5); the note names it there.
-- The note still does not develop the doubling side of the Riccati story; that lives in the
-  separate `sda-riccati` note.
+- The note still does not develop the doubling side of the Riccati story.
