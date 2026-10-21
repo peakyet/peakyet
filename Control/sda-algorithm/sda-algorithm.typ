@@ -55,81 +55,113 @@ Thus ordinary iteration computes horizons $1,2,3,dots$. SDA will compute
 $P_1,P_2,P_4,P_8,dots$ without visiting every intermediate horizon.
 
 #pagebreak()
-= The missing object: a block with two boundary variables
+= From optimal-control conditions to doubling
 
-Before introducing a block formula, we will derive it from a one-step
-optimization problem. No prior knowledge of costates is needed.
+We will derive the state–costate equations from the constrained finite-horizon
+LQR problem. The costates are unknown Lagrange multipliers, determined along
+with the states and inputs. No terminal price is prescribed, and no part of
+the terminal cost is discarded.
 
-== One decision, with a price on the terminal state
+== State the finite-horizon problem and its full Lagrangian
 
-We know $x_0$, choose $u_0$, and obtain $x_1=A x_0+B u_0$. Besides the
-stage cost, the next state may incur costs later. To understand how a later
-cost influences this decision, first attach a simple *linear terminal cost*
-$lambda_1^T x_1$, with $lambda_1 in bb(R)^n$ prescribed. Define
-$ W_1(x_0;lambda_1)=min_(u_0) [
-  1/2 x_0^T Q x_0+1/2 u_0^T R u_0
-  +lambda_1^T(A x_0+B u_0)]. $ <one-step-cost>
-The vector $lambda_1$ is a terminal *price*: changing $x_1$ by $delta x_1$
-changes this terminal cost by $lambda_1^T delta x_1$. A positive price in a
-direction encourages an input that reduces the terminal state in that
-direction. The linear cost is a device for describing the boundary response;
-we have not replaced the infinite-horizon objective by a linear objective.
+Fix $x_0$. Choose the inputs $u_0,dots,u_(N-1)$ and states $x_1,dots,x_N$
+to minimize
+$ J_N=1/2 sum_(t=0)^(N-1) (x_t^T Q x_t+u_t^T R u_t)
+  +1/2 x_N^T F x_N, quad F=F^T succ.eq 0, $ <finite-cost>
+subject to $x_(t+1)=A x_t+B u_t$ for $t=0,dots,N-1$. The last term is
+the *actual terminal cost*. Set $F=0$ for the zero-terminal-cost problem
+whose value matrix is $P_N$ in Section 1. A nonzero $F$ lets us see explicitly
+where the terminal boundary condition comes from.
 
-*Step 1: optimize the input.* Differentiate the bracket in @one-step-cost
-with respect to $u_0$, holding $x_0$ and $lambda_1$ fixed:
-$ R u_0+B^T lambda_1=0
-  quad ==> quad u_0^star=-R^(-1)B^T lambda_1. $
-Since $R succ 0$, the objective is strictly convex in $u_0$, so this stationary
-point is its unique minimizer. Substitute into the dynamics:
-$ x_1=A x_0+B u_0^star
-  =A x_0-B R^(-1)B^T lambda_1
-  =A x_0-G lambda_1. $ <one-step-state>
-This is the first boundary equation: *dynamics plus optimality*.
+Introduce a multiplier $lambda_(t+1)$ for each dynamics constraint. With the
+sign convention $A x_t+B u_t-x_(t+1)=0$, the *full* Lagrangian is
+$ cal(L)=J_N+sum_(t=0)^(N-1)
+  lambda_(t+1)^T (A x_t+B u_t-x_(t+1)). $ <lagrangian>
+Every constraint residual appears in full, including $-x_(t+1)$. On feasible
+trajectories these residuals vanish, so $cal(L)=J_N$.
 
-*Step 2: ask how the optimized cost changes with the initial state.*
-Substituting $u_0^star$ into @one-step-cost gives
-$ W_1(x_0;lambda_1)=1/2 x_0^T Q x_0
-  +lambda_1^T A x_0-1/2 lambda_1^T G lambda_1. $
-The last term comes from adding the input cost
-$+1/2 lambda_1^T G lambda_1$ and the input-dependent terminal cost
-$-lambda_1^T G lambda_1$. Define the initial marginal cost by
-$ lambda_0:=nabla_(x_0) W_1(x_0;lambda_1)
-  =Q x_0+A^T lambda_1. $ <one-step-costate>
-“Costate” is the name for this marginal-cost vector; it is not another
-physical state. Both equations are now derived, not assumed:
+*Step 1: vary the input.* Only the input cost and its own dynamics residual
+depend on $u_t$, so stationarity gives
+$ nabla_(u_t) cal(L)=R u_t+B^T lambda_(t+1)=0. $ <stationarity>
 
-#takeaway[
-  Given the initial state $x_0$ and terminal price $lambda_1$, optimality gives
-  $ x_1=A x_0-G lambda_1, quad lambda_0=Q x_0+A^T lambda_1. $
-  They describe how one optimized step relates its two boundaries.
-]
+*Step 2: vary an interior state.* For $1<=t<=N-1$, $x_t$ appears in three
+places: its stage cost, the preceding residual through $-lambda_t^T x_t$,
+and the following residual through $lambda_(t+1)^T A x_t$. Therefore
+$ nabla_(x_t) cal(L)=Q x_t-lambda_t+A^T lambda_(t+1)=0, $
+or $lambda_t=Q x_t+A^T lambda_(t+1)$. This is the *costate recursion*.
+
+*Step 3: vary the terminal state.* There is no stage cost or outgoing
+dynamics residual at $t=N$. The terms involving $x_N$ are
+$1/2 x_N^T F x_N-lambda_N^T x_N$, giving
+$ nabla_(x_N) cal(L)=F x_N-lambda_N=0
+  quad ==> quad lambda_N=F x_N. $ <terminal>
+
+*Step 4: vary each multiplier.* This recovers every dynamics constraint:
+$ nabla_(lambda_(t+1)) cal(L)=A x_t+B u_t-x_(t+1)=0. $
+Together, these equations determine the solution. After eliminating the
+states, the objective is strictly convex in the input sequence because
+$R succ 0$ and $Q,F succ.eq 0$. Thus these first-order conditions are also
+sufficient for the unique optimal input sequence.
 
 #pagebreak()
-== Recover the Riccati update from a quadratic downstream cost
+== Interpret the costate and retain both boundary conditions
 
-Suppose the actual downstream value is $V_"next"(x_1)=1/2 x_1^T P x_1$.
-Its gradient is $lambda_1=P x_1$. This price is now *unknown until we find
-the optimal terminal state*. The stationarity equations still apply: by the
-chain rule, differentiating $V_"next"(A x_0+B u_0)$ with respect to $u_0$
-gives $B^T P x_1=B^T lambda_1$.
+The state equation propagates forward, but the costate recursion propagates
+backward from @terminal. The boundary conditions are
+$ x_0="given", quad lambda_N=F x_N. $
+For $F=0$, the terminal condition is $lambda_N=0$; for $F!=0$, neither
+$x_N$ nor $lambda_N$ is generally known beforehand. They must be solved
+consistently with all the other equations.
 
-Close the boundary relation with $lambda_1=P x_1$:
-$ x_1=A x_0-G P x_1
-  quad ==> quad x_1=(I+G P)^(-1)A x_0. $
-Then @one-step-costate becomes
-$ lambda_0=[Q+A^T P(I+G P)^(-1)A]x_0. $
-The coefficient is exactly the Riccati update in Section 1. We are writing
-the same optimization in a more flexible form: before choosing the downstream
-cost, leave its gradient as a boundary variable.
+Let $V_t (x_t)$ be the optimal remaining cost from time $t$. Bellman's principle
+and stationarity imply $lambda_t=nabla V_t (x_t)$ along the optimum. In
+particular, the initial value sensitivity is
+$ lambda_0:=nabla V_0(x_0)=Q x_0+A^T lambda_1. $ <one-step-costate>
+There is no multiplier for a dynamics constraint ending at $x_0$ in
+@lagrangian: $x_0$ is fixed. Here $lambda_0$ is defined as a sensitivity,
+not obtained by imposing $nabla_(x_0) cal(L)=0$. Differentiating the optimized
+Lagrangian with respect to that initial-state parameter gives the expression
+above. The costate is therefore a gradient of optimal cost, not a second
+physical state.
+
+#takeaway[
+  A partial derivative of the Lagrangian treats states, inputs, and multipliers
+  as independent variables. It does *not* require that the dynamics remain
+  satisfied during that variation. Feasibility is imposed by the multiplier
+  equations, and all stationarity and boundary conditions must hold together.
+  If instead $x_1$ is fixed while enforcing $x_1=A x_0+B u_0$, the feasible
+  inputs are restricted; when $B=1$, $u_0=x_1-A x_0$ is already determined.
+]
+
+== Eliminate the input, not the terminal condition
+
+From @stationarity, $u_t=-R^(-1)B^T lambda_(t+1)$. Substitution into
+the dynamics gives, with $G=B R^(-1)B^T$,
+$ x_(t+1)=A x_t-G lambda_(t+1), quad
+  lambda_t=Q x_t+A^T lambda_(t+1). $ <one-step-state>
+These are the discrete-time state–costate optimality equations after input
+elimination: the discrete-time Pontryagin conditions for LQR. For a single
+step, the terminal condition is $lambda_1=F x_1$.
+Substitute it into the first equation:
+$ (I+G F)x_1=A x_0, quad x_1=(I+G F)^(-1)A x_0. $
+The second then gives
+$ lambda_0=[Q+A^T F(I+G F)^(-1)A]x_0. $
+Thus the one-step value matrix is $Q+A^T F(I+G F)^(-1)A$: the Riccati
+update with downstream value matrix $F$. Both the dynamics constraint and
+the actual terminal cost have been retained.
+
+#pagebreak()
 
 == Join two steps and eliminate their shared boundary
 
 The first step and the second step obey, respectively,
 $ x_1=A x_0-G lambda_1, quad lambda_0=Q x_0+A^T lambda_1, $
 $ x_2=A x_1-G lambda_2, quad lambda_1=Q x_1+A^T lambda_2. $
-The same $lambda_1$ appears in both: the second step's optimized cost is the
-downstream cost seen by the first step. Its derivative with respect to $x_1$
-is precisely the price the first step needs.
+These are consecutive equations from the *same* optimal-control problem,
+with terminal condition $lambda_2=F x_2$. The interior multiplier $lambda_1$
+is shared because it belongs to the constraint ending at $x_1$; it is also
+the costate at the beginning of the second step. We will eliminate the
+interior pair $(x_1,lambda_1)$, while leaving the terminal condition intact.
 
 *Step 1: eliminate the interior costate.* Substitute the second step's
 $lambda_1$ into the first step's state equation:
@@ -145,16 +177,21 @@ $ x_2=A x_1-G lambda_2
 Thus define $E_2=A W^(-1)A$ and $G_2=G+A W^(-1)G A^T$.
 
 *Step 3: substitute into the initial costate equation.* First,
-$ lambda_0=Q x_0+A^T(Q x_1+A^T lambda_2). $
+$ lambda_0=Q x_0+A^T (Q x_1+A^T lambda_2). $
 After replacing $x_1$ and collecting terms,
 $ lambda_0=(Q+A^T Q W^(-1)A)x_0
-  +A^T(I-Q W^(-1)G)A^T lambda_2. $
-Define $H_2=Q+A^T Q W^(-1)A$. The terminal-price coefficient simplifies via
+  +A^T (I-Q W^(-1)G)A^T lambda_2. $
+Define $H_2=Q+A^T Q W^(-1)A$. The terminal-costate coefficient simplifies via
 $ I-Q W^(-1)G=(I+Q G)^(-1), quad
-  A^T(I+Q G)^(-1)A^T=E_2^T. $
-The inverse identity is proved in Section 2.6. The two-step block has the
+  A^T (I+Q G)^(-1)A^T=E_2^T. $
+The inverse identity is proved in Section 2.7. The two-step block has the
 *same shape* as one step:
 $ x_2=E_2 x_0-G_2 lambda_2, quad lambda_0=H_2 x_0+E_2^T lambda_2. $
+*Close the boundary-value problem.* We have not solved the original
+optimization until we also impose $lambda_2=F x_2$. Thus
+$ x_2=(I+G_2 F)^(-1)E_2 x_0, $
+$ lambda_0=[H_2+E_2^T F(I+G_2 F)^(-1)E_2]x_0. $
+For $F=0$, this reduces to $lambda_0=H_2 x_0$, so $H_2=P_2$.
 
 #pagebreak()
 == See the two-step elimination in numbers
@@ -168,7 +205,7 @@ $ x_1=1.1 x_0-x_1-1.1 lambda_2
 Recover the terminal state:
 $ x_2=1.1 x_1-lambda_2
   =0.605 x_0-1.605 lambda_2. $
-Recover the initial price, using $lambda_1=x_1+1.1 lambda_2$:
+Recover the initial costate, using $lambda_1=x_1+1.1 lambda_2$:
 $ lambda_0=x_0+1.1 lambda_1
   =x_0+1.1(x_1+1.1 lambda_2)
   =1.605 x_0+0.605 lambda_2. $
@@ -179,6 +216,15 @@ cost, $lambda_2=0$; then $lambda_0=1.605 x_0$ and the optimized two-step
 value is $V_2(x_0)=1/2 dot 1.605 x_0^2$. This is why $H_2$ is the
 finite-horizon Riccati solution, not just an arbitrary coefficient.
 
+For a nonzero terminal weight, take $x_0=1$ and $F=1$. The terminal
+condition is $lambda_2=x_2$, not an independently chosen multiplier.
+The condensed equations give
+$ x_2=0.605-1.605 x_2
+  quad ==> quad x_2=0.605/2.605 approx 0.232246, $
+$ lambda_0=1.605+0.605 x_2 approx 1.745509. $
+This explicitly closes the two-step optimal-control problem with its
+quadratic terminal cost.
+
 == Only now introduce the general block
 
 One optimized step has a linear boundary relation. We have shown that joining
@@ -188,11 +234,13 @@ four-step blocks into an eight-step block. This motivates the notation
 $ x_N=E_N x_0-G_N lambda_N, quad
   lambda_0=H_N x_0+E_N^T lambda_N. $ <block>
 These are *boundary relations*, not an uncontrolled forward state transition:
-prescribe $x_0$ and $lambda_N$, and they return the optimized $x_N$ and
-the initial marginal cost $lambda_0$.
+they condense the state–costate equations by eliminating interior variables.
+They must still be combined with the original endpoint conditions
+$x_0="given"$ and $lambda_N=F x_N$. Leaving $lambda_N$ symbolic during
+elimination does not make it a prescribed terminal price.
 
 - $E_N$ transmits the initial state across the optimized block.
-- $G_N$ describes how a terminal price changes its terminal state.
+- $G_N$ couples the terminal costate to the terminal state.
 - $H_N$ is the initial value curvature when $lambda_N=0$.
 
 For zero terminal cost, $lambda_N=0$ and $lambda_0=H_N x_0$. But the
@@ -202,10 +250,10 @@ $(E_1,G_1,H_1)=(A,B R^(-1)B^T,Q)$, directly from
 @one-step-state and @one-step-costate.
 
 #takeaway[
-  A block accepts an initial state and a terminal marginal cost. Optimality
-  determines the terminal state and the initial marginal cost. SDA joins two
-  identical blocks and eliminates their shared boundary, keeping only three
-  matrices. No inverse of $A$ is required.
+  A block is a condensed system of optimality equations, not a replacement
+  objective. SDA eliminates interior states and costates while retaining the
+  original endpoint conditions. For zero terminal cost, $lambda_N=0$ and
+  the block coefficient $H_N$ is the finite-horizon value matrix $P_N$.
 ]
 
 #pagebreak()
@@ -230,9 +278,9 @@ Reading off the coefficients gives $E_+=E W^(-1)E$ and
 $G_+=G+E W^(-1)G E^T$.
 
 *Step 3: collect the two coefficients in the initial costate.*
-$ lambda_0=H x_0+E^T(H x_N+E^T lambda_(2N)) $
+$ lambda_0=H x_0+E^T (H x_N+E^T lambda_(2N)) $
 $ lambda_0=(H+E^T H W^(-1)E)x_0
-  +E^T(I-H W^(-1)G)E^T lambda_(2N). $
+  +E^T (I-H W^(-1)G)E^T lambda_(2N). $
 Hence $H_+=H+E^T H W^(-1)E$. To identify the remaining coefficient as
 $E_+^T$, we need two identities, not commutativity.
 
@@ -244,7 +292,7 @@ $(I+H G)^(-1)$. Next, insert this identity and use
 $H G=(I+H G)-I$:
 $ I-H W^(-1)G
   =I-H G(I+H G)^(-1)=(I+H G)^(-1). $
-Since $G,H$ are symmetric, $W^T=I+H G$, so the terminal-price coefficient
+Since $G,H$ are symmetric, $W^T=I+H G$, so the terminal-costate coefficient
 in $lambda_0$ is $E^T W^(-T)E^T=(E W^(-1)E)^T=E_+^T$.
 The new block again has form @block, with the standard SDA updates
 $ E_+=E(I+G H)^(-1)E, quad
@@ -256,6 +304,8 @@ $ H_+=H+E^T H(I+G H)^(-1)E. $ <updates>
   simultaneously. We now switch notation: the subscript $k$ indexes
   *doublings*, not horizon length. Iteration $0$ represents one step;
   iteration $k$ represents $2^k$ steps, so $H_k=P_(2^k)$.
+  The zero terminal condition is imposed only at the end of the *whole*
+  horizon, not at the internal boundary between its two halves.
 ]
 
 #pagebreak()
