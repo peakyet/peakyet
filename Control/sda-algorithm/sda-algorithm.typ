@@ -57,44 +57,205 @@ $P_1,P_2,P_4,P_8,dots$ without visiting every intermediate horizon.
 #pagebreak()
 = The missing object: a block with two boundary variables
 
-The value matrix alone describes the zero-terminal-cost case. To join blocks,
-we need a summary that also accepts a terminal costate $lambda_N$: the gradient
-of the downstream value with respect to $x_N$. An $N$-step block has relations
-$ x_N = E_N x_0-G_N lambda_N, quad
+Before introducing a block formula, we will derive it from a one-step
+optimization problem. No prior knowledge of costates is needed.
+
+== One decision, with a price on the terminal state
+
+We know $x_0$, choose $u_0$, and obtain $x_1=A x_0+B u_0$. Besides the
+stage cost, the next state may incur costs later. To understand how a later
+cost influences this decision, first attach a simple *linear terminal cost*
+$lambda_1^T x_1$, with $lambda_1 in bb(R)^n$ prescribed. Define
+$ W_1(x_0;lambda_1)=min_(u_0) [
+  1/2 x_0^T Q x_0+1/2 u_0^T R u_0
+  +lambda_1^T(A x_0+B u_0)]. $ <one-step-cost>
+The vector $lambda_1$ is a terminal *price*: changing $x_1$ by $delta x_1$
+changes this terminal cost by $lambda_1^T delta x_1$. A positive price in a
+direction encourages an input that reduces the terminal state in that
+direction. The linear cost is a device for describing the boundary response;
+we have not replaced the infinite-horizon objective by a linear objective.
+
+*Step 1: optimize the input.* Differentiate the bracket in @one-step-cost
+with respect to $u_0$, holding $x_0$ and $lambda_1$ fixed:
+$ R u_0+B^T lambda_1=0
+  quad ==> quad u_0^star=-R^(-1)B^T lambda_1. $
+Since $R succ 0$, the objective is strictly convex in $u_0$, so this stationary
+point is its unique minimizer. Substitute into the dynamics:
+$ x_1=A x_0+B u_0^star
+  =A x_0-B R^(-1)B^T lambda_1
+  =A x_0-G lambda_1. $ <one-step-state>
+This is the first boundary equation: *dynamics plus optimality*.
+
+*Step 2: ask how the optimized cost changes with the initial state.*
+Substituting $u_0^star$ into @one-step-cost gives
+$ W_1(x_0;lambda_1)=1/2 x_0^T Q x_0
+  +lambda_1^T A x_0-1/2 lambda_1^T G lambda_1. $
+The last term comes from adding the input cost
+$+1/2 lambda_1^T G lambda_1$ and the input-dependent terminal cost
+$-lambda_1^T G lambda_1$. Define the initial marginal cost by
+$ lambda_0:=nabla_(x_0) W_1(x_0;lambda_1)
+  =Q x_0+A^T lambda_1. $ <one-step-costate>
+“Costate” is the name for this marginal-cost vector; it is not another
+physical state. Both equations are now derived, not assumed:
+
+#takeaway[
+  Given the initial state $x_0$ and terminal price $lambda_1$, optimality gives
+  $ x_1=A x_0-G lambda_1, quad lambda_0=Q x_0+A^T lambda_1. $
+  They describe how one optimized step relates its two boundaries.
+]
+
+#pagebreak()
+== Recover the Riccati update from a quadratic downstream cost
+
+Suppose the actual downstream value is $V_"next"(x_1)=1/2 x_1^T P x_1$.
+Its gradient is $lambda_1=P x_1$. This price is now *unknown until we find
+the optimal terminal state*. The stationarity equations still apply: by the
+chain rule, differentiating $V_"next"(A x_0+B u_0)$ with respect to $u_0$
+gives $B^T P x_1=B^T lambda_1$.
+
+Close the boundary relation with $lambda_1=P x_1$:
+$ x_1=A x_0-G P x_1
+  quad ==> quad x_1=(I+G P)^(-1)A x_0. $
+Then @one-step-costate becomes
+$ lambda_0=[Q+A^T P(I+G P)^(-1)A]x_0. $
+The coefficient is exactly the Riccati update in Section 1. We are writing
+the same optimization in a more flexible form: before choosing the downstream
+cost, leave its gradient as a boundary variable.
+
+== Join two steps and eliminate their shared boundary
+
+The first step and the second step obey, respectively,
+$ x_1=A x_0-G lambda_1, quad lambda_0=Q x_0+A^T lambda_1, $
+$ x_2=A x_1-G lambda_2, quad lambda_1=Q x_1+A^T lambda_2. $
+The same $lambda_1$ appears in both: the second step's optimized cost is the
+downstream cost seen by the first step. Its derivative with respect to $x_1$
+is precisely the price the first step needs.
+
+*Step 1: eliminate the interior costate.* Substitute the second step's
+$lambda_1$ into the first step's state equation:
+$ x_1=A x_0-G(Q x_1+A^T lambda_2)
+  =A x_0-G Q x_1-G A^T lambda_2. $
+Set $W=I+G Q$ and collect the $x_1$ terms:
+$ W x_1=A x_0-G A^T lambda_2, quad
+  x_1=W^(-1)A x_0-W^(-1)G A^T lambda_2. $
+
+*Step 2: substitute into the terminal state equation.*
+$ x_2=A x_1-G lambda_2
+  =(A W^(-1)A)x_0-(G+A W^(-1)G A^T)lambda_2. $
+Thus define $E_2=A W^(-1)A$ and $G_2=G+A W^(-1)G A^T$.
+
+*Step 3: substitute into the initial costate equation.* First,
+$ lambda_0=Q x_0+A^T(Q x_1+A^T lambda_2). $
+After replacing $x_1$ and collecting terms,
+$ lambda_0=(Q+A^T Q W^(-1)A)x_0
+  +A^T(I-Q W^(-1)G)A^T lambda_2. $
+Define $H_2=Q+A^T Q W^(-1)A$. The terminal-price coefficient simplifies via
+$ I-Q W^(-1)G=(I+Q G)^(-1), quad
+  A^T(I+Q G)^(-1)A^T=E_2^T. $
+The inverse identity is proved in Section 2.6. The two-step block has the
+*same shape* as one step:
+$ x_2=E_2 x_0-G_2 lambda_2, quad lambda_0=H_2 x_0+E_2^T lambda_2. $
+
+#pagebreak()
+== See the two-step elimination in numbers
+
+Use the running scalar example $A=1.1$, $B=Q=R=1$, so $G=1$.
+At the shared boundary,
+$ x_1=1.1 x_0-lambda_1, quad lambda_1=x_1+1.1 lambda_2. $
+Substitute the second equation into the first:
+$ x_1=1.1 x_0-x_1-1.1 lambda_2
+  quad ==> quad x_1=0.55 x_0-0.55 lambda_2. $
+Recover the terminal state:
+$ x_2=1.1 x_1-lambda_2
+  =0.605 x_0-1.605 lambda_2. $
+Recover the initial price, using $lambda_1=x_1+1.1 lambda_2$:
+$ lambda_0=x_0+1.1 lambda_1
+  =x_0+1.1(x_1+1.1 lambda_2)
+  =1.605 x_0+0.605 lambda_2. $
+So the whole two-step problem is summarized by
+$ E_2=0.605, quad G_2=1.605, quad H_2=1.605. $
+The interior variables $x_1,lambda_1$ have disappeared. If there is no terminal
+cost, $lambda_2=0$; then $lambda_0=1.605 x_0$ and the optimized two-step
+value is $V_2(x_0)=1/2 dot 1.605 x_0^2$. This is why $H_2$ is the
+finite-horizon Riccati solution, not just an arbitrary coefficient.
+
+== Only now introduce the general block
+
+One optimized step has a linear boundary relation. We have shown that joining
+two steps and eliminating the shared boundary preserves its form. Repeating
+the same operation joins two two-step blocks into a four-step block, then two
+four-step blocks into an eight-step block. This motivates the notation
+$ x_N=E_N x_0-G_N lambda_N, quad
   lambda_0=H_N x_0+E_N^T lambda_N. $ <block>
-These are *boundary relations*, not a forward state transition: we prescribe
-$x_0$ and $lambda_N$, then recover $x_N$ and $lambda_0$.
+These are *boundary relations*, not an uncontrolled forward state transition:
+prescribe $x_0$ and $lambda_N$, and they return the optimized $x_N$ and
+the initial marginal cost $lambda_0$.
 
 - $E_N$ transmits the initial state across the optimized block.
-- $G_N$ measures how a terminal costate changes its terminal state.
-- $H_N$ is the initial value curvature when $lambda_N=0$; hence $H_N=P_N$.
+- $G_N$ describes how a terminal price changes its terminal state.
+- $H_N$ is the initial value curvature when $lambda_N=0$.
 
-For one step, stationarity and the costate equation are
-$ R u_0+B^T lambda_1=0, quad lambda_0=Q x_0+A^T lambda_1. $
-Substitute $u_0=-R^(-1)B^T lambda_1$ into the dynamics. Comparing with @block
-gives $E_1=A$, $G_1=G$, $H_1=Q$. This needs no inverse of $A$.
+For zero terminal cost, $lambda_N=0$ and $lambda_0=H_N x_0$. But the
+zero-terminal-cost optimal value is $1/2 x_0^T P_N x_0$, whose gradient is
+$P_N x_0$. Therefore $H_N=P_N$. The one-step coefficients are
+$(E_1,G_1,H_1)=(A,B R^(-1)B^T,Q)$, directly from
+@one-step-state and @one-step-costate.
 
-== Join two identical blocks
+#takeaway[
+  A block accepts an initial state and a terminal marginal cost. Optimality
+  determines the terminal state and the initial marginal cost. SDA joins two
+  identical blocks and eliminates their shared boundary, keeping only three
+  matrices. No inverse of $A$ is required.
+]
 
-Temporarily omit the horizon subscript. Two copies of @block give
+#pagebreak()
+== Derive the three doubling updates without skipping the algebra
+
+For a current $N$-step block, temporarily write its coefficients as $(E,G,H)$;
+here $G$ is the *current block coefficient*, not necessarily the original
+$B R^(-1)B^T$. Two identical copies of @block give
 $ x_N=E x_0-G lambda_N, quad lambda_0=H x_0+E^T lambda_N, $
 $ x_(2N)=E x_N-G lambda_(2N), quad
   lambda_N=H x_N+E^T lambda_(2N). $
-Eliminate the shared costate in the first relation:
+*Step 1: eliminate the shared costate, just as for two steps.*
+$ x_N=E x_0-G(H x_N+E^T lambda_(2N)). $
+With $W=I+G H$, collect terms:
 $ (I+G H)x_N=E x_0-G E^T lambda_(2N). $ <midpoint>
-Define $W=I+G H$. Then substitute
-$x_N=W^(-1)E x_0-W^(-1)G E^T lambda_(2N)$ into the two outer relations.
-For the initial costate, use
-$I-H W^(-1)G=(I+H G)^(-1)$; for the terminal state, use
-$W^(-1)G=G(I+H G)^(-1)$. The result again has form @block, with
-$ E_+ = E(I+G H)^(-1)E, $
-$ G_+ = G+E G(I+H G)^(-1)E^T, $
-$ H_+ = H+E^T H(I+G H)^(-1)E. $ <updates>
+Thus $x_N=W^(-1)E x_0-W^(-1)G E^T lambda_(2N)$.
+
+*Step 2: collect the two coefficients in the terminal state.*
+$ x_(2N)=E x_N-G lambda_(2N)
+  =(E W^(-1)E)x_0-(G+E W^(-1)G E^T)lambda_(2N). $
+Reading off the coefficients gives $E_+=E W^(-1)E$ and
+$G_+=G+E W^(-1)G E^T$.
+
+*Step 3: collect the two coefficients in the initial costate.*
+$ lambda_0=H x_0+E^T(H x_N+E^T lambda_(2N)) $
+$ lambda_0=(H+E^T H W^(-1)E)x_0
+  +E^T(I-H W^(-1)G)E^T lambda_(2N). $
+Hence $H_+=H+E^T H W^(-1)E$. To identify the remaining coefficient as
+$E_+^T$, we need two identities, not commutativity.
+
+*Step 4: justify the inverse identities.* First,
+$ (I+G H)G=G(I+H G)
+  quad ==> quad W^(-1)G=G(I+H G)^(-1). $
+This follows by multiplying on the left by $W^(-1)$ and on the right by
+$(I+H G)^(-1)$. Next, insert this identity and use
+$H G=(I+H G)-I$:
+$ I-H W^(-1)G
+  =I-H G(I+H G)^(-1)=(I+H G)^(-1). $
+Since $G,H$ are symmetric, $W^T=I+H G$, so the terminal-price coefficient
+in $lambda_0$ is $E^T W^(-T)E^T=(E W^(-1)E)^T=E_+^T$.
+The new block again has form @block, with the standard SDA updates
+$ E_+=E(I+G H)^(-1)E, quad
+  G_+=G+E G(I+H G)^(-1)E^T, $
+$ H_+=H+E^T H(I+G H)^(-1)E. $ <updates>
 
 #takeaway[
   Initialize $(E_0,G_0,H_0)=(A,B R^(-1)B^T,Q)$ and apply these updates
-  simultaneously. The iteration index $k$ now means a horizon of $2^k$:
-  $H_k=P_(2^k)$. Subscripts hereafter index *doublings*, not time steps.
+  simultaneously. We now switch notation: the subscript $k$ indexes
+  *doublings*, not horizon length. Iteration $0$ represents one step;
+  iteration $k$ represents $2^k$ steps, so $H_k=P_(2^k)$.
 ]
 
 #pagebreak()
