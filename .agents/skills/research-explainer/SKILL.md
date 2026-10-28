@@ -16,10 +16,10 @@ Be mathematically precise. Explain non-obvious steps, assumptions, and why metho
 The goal is genuine understanding, not a long explanation.
 
 Use the computer's tools when they clarify or check the idea:
-- Wolfram
-- Octave
+- Wolfram: calculate complex equation and create the figure;
+- Octave: math calculation and plot
 - Python (`uv`)
-- Typst
+- Typst: generate formal pdf
 - C++
-- google-chrome-stable for html
+- html: no need to be self-contained, equation should use Katex to render. google-chrome-stable can be used to rendered the file.
 - what ever you can find in this computer
