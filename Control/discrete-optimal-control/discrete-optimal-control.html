@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Learn discrete-time optimal control from zero: states, costs, dynamic programming, LQR, costates, constraints, and MPC, with a worked example and an interactive feedback lab.">
+<title>Discrete-Time Optimal Control — From Zero</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<style>
+  :root { --ink:#182d3b; --muted:#526775; --paper:#fcfbf7; --line:#d9e2e5; --teal:#087c78; --blue:#315da6; --orange:#b95020; --panel:#eef5f3; }
+  * { box-sizing:border-box; }
+  html { scroll-behavior:smooth; scroll-padding-top:24px; }
+  body { margin:0; color:var(--ink); background:var(--paper); font:17px/1.75 Georgia, 'Times New Roman', serif; }
+  a { color:var(--teal); text-underline-offset:3px; }
+  .layout { display:grid; grid-template-columns:230px minmax(0, 900px); gap:64px; max-width:1280px; margin:auto; padding:44px 32px 80px; }
+  nav { position:sticky; top:30px; align-self:start; max-height:calc(100vh - 60px); overflow:auto; font:13px/1.5 system-ui,sans-serif; }
+  nav .brand { display:block; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-bottom:22px; }
+  nav a { display:block; padding:7px 0; color:var(--muted); text-decoration:none; }
+  nav a:hover, nav a:focus-visible { color:var(--teal); text-decoration:underline; }
+  nav .group { margin:18px 0 6px; font-size:10px; font-weight:750; letter-spacing:.12em; color:var(--teal); }
+  main { min-width:0; }
+  header { padding:18px 0 36px; border-bottom:2px solid var(--ink); }
+  .eyebrow { font:700 11px/1.5 system-ui,sans-serif; letter-spacing:.16em; text-transform:uppercase; color:var(--teal); }
+  h1 { font-size:clamp(38px,5vw,62px); line-height:1.08; letter-spacing:-.035em; margin:20px 0 24px; font-weight:500; }
+  .lead { font-size:22px; line-height:1.55; max-width:720px; }
+  .meta { font:12px/1.7 system-ui,sans-serif; color:var(--muted); margin-top:24px; }
+  h2 { font-size:30px; line-height:1.25; letter-spacing:-.02em; margin:12px 0 22px; font-weight:500; }
+  h3 { font:700 17px/1.5 system-ui,sans-serif; margin:28px 0 10px; }
+  section { padding-top:54px; }
+  p { margin:14px 0; }
+  li { margin:7px 0; }
+  .number { font:700 11px/1.5 system-ui,sans-serif; letter-spacing:.12em; color:var(--teal); display:block; margin-bottom:12px; }
+  .box { background:var(--panel); border-left:3px solid var(--teal); padding:16px 23px; margin:24px 0; }
+  .box p:first-child { margin-top:0; } .box p:last-child { margin-bottom:0; }
+  .warning { background:#fff2e8; border-color:var(--orange); }
+  .eq { background:white; border:1px solid var(--line); padding:18px 22px; margin:20px 0; overflow-x:auto; text-align:center; font-size:20px; line-height:1.9; }
+  .eq small { display:block; font:12px/1.6 system-ui,sans-serif; color:var(--muted); margin-top:8px; }
+  /* Keep KaTeX's hidden MathML inside horizontally scrolling equations and tables. */
+  .katex { position:relative; }
+  .eq .katex-display { margin:.45em 0; }
+  .eq .katex-display > .katex { display:block; width:max-content; min-width:100%; padding:4px 0; }
+  .table-wrap { overflow-x:auto; margin:20px 0; }
+  table { border-collapse:collapse; width:100%; font:14px/1.6 system-ui,sans-serif; }
+  th,td { text-align:left; padding:11px 13px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); background:var(--panel); font-weight:650; }
+  .caption { color:var(--muted); font:13px/1.6 system-ui,sans-serif; }
+  details { border:1px solid var(--line); background:white; padding:14px 20px; margin:15px 0; }
+  summary { cursor:pointer; font:650 14px/1.6 system-ui,sans-serif; color:var(--teal); }
+  details p { font-size:16px; }
+  .lab { background:#fff; border:1px solid var(--line); padding:26px; border-radius:8px; margin-top:24px; }
+  .controls { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px 24px; margin:22px 0; }
+  label { display:block; font:13px/1.5 system-ui,sans-serif; color:var(--muted); }
+  label output { float:right; color:var(--ink); font-weight:700; }
+  input[type=range] { width:100%; accent-color:var(--teal); margin:12px 0 0; }
+  button { border:1px solid var(--teal); background:var(--teal); color:white; padding:9px 16px; border-radius:4px; font:600 13px system-ui,sans-serif; cursor:pointer; }
+  button:hover { background:#065e5b; } :focus-visible { outline:3px solid #c47a27; outline-offset:4px; }
+  .metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:20px 0; }
+  .metric { background:var(--panel); padding:14px; font:12px/1.5 system-ui,sans-serif; }
+  .metric strong { display:block; font:26px/1.4 Georgia,serif; color:var(--ink); }
+  .legend { display:flex; flex-wrap:wrap; gap:8px 20px; font:12px/1.6 system-ui,sans-serif; margin:14px 0; }
+  .key::before { content:''; display:inline-block; width:18px; border-top:3px solid; margin-right:7px; vertical-align:middle; }
+  .feedback { color:var(--teal); } .open { color:var(--orange); } .nominal { color:var(--blue); }
+  .plot { display:block; width:100%; height:auto; background:#fcfdfc; border:1px solid var(--line); }
+  .lab-note { min-height:3em; }
+  pre { background:#172d3a; color:#edf4f3; font:13px/1.75 ui-monospace,monospace; padding:22px; overflow:auto; border-radius:4px; }
+  .steps { padding-left:24px; }
+  footer { border-top:2px solid var(--ink); padding-top:24px; margin-top:56px; color:var(--muted); font:13px/1.7 system-ui,sans-serif; }
+  @media(max-width:1000px) { .layout { grid-template-columns:180px minmax(0,1fr); gap:32px; padding:28px 24px 60px; } }
+  @media(max-width:740px) { .layout { display:block; padding:24px 20px 48px; } nav { position:static; max-height:none; border-bottom:1px solid var(--line); padding-bottom:18px; margin-bottom:18px; } nav .brand,nav .group { display:none; } nav a { display:inline-block; padding:4px 10px 4px 0; font-size:12px; } h1 { font-size:41px; } .lead { font-size:20px; } .controls { grid-template-columns:repeat(2,minmax(0,1fr)); } .lab { padding:17px; } .metrics { grid-template-columns:1fr; } .metric strong { display:inline; margin-right:10px; font-size:23px; } .eq { padding:14px 12px; font-size:18px; } .table-wrap table { min-width:560px; } }
+  @media print { nav,.controls,button { display:none; } .layout { display:block; padding:0; } body { background:white; font-size:11pt; } section { padding-top:24px; } h2,h3 { break-after:avoid; } .box,.eq,figure { break-inside:avoid; } details > * { display:block; } .lab { border:0; padding:0; } a { color:inherit; } }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav aria-label="Lesson contents">
+  <a class="brand" href="../../index.html">Peakyet / Control</a>
+  <div class="group">PART I · BUILD THE IDEA</div>
+  <a href="#start">00 &nbsp; How to use this lesson</a>
+  <a href="#model">01 &nbsp; State, action, dynamics</a>
+  <a href="#objective">02 &nbsp; What does “optimal” mean?</a>
+  <a href="#by-hand">03 &nbsp; Solve two steps by hand</a>
+  <a href="#feedback">04 &nbsp; A plan is not a policy</a>
+  <div class="group">PART II · FIND THE STRUCTURE</div>
+  <a href="#bellman">05 &nbsp; Think backward: Bellman</a>
+  <a href="#lqr">06 &nbsp; Derive scalar LQR</a>
+  <a href="#lab">07 &nbsp; Experiment with feedback</a>
+  <div class="group">PART III · GO FURTHER</div>
+  <a href="#vectors">08 &nbsp; Vectors and Riccati</a>
+  <a href="#costates">09 &nbsp; Costates and gradients</a>
+  <a href="#constraints">10 &nbsp; Constraints and MPC</a>
+  <a href="#infinite">11 &nbsp; The infinite horizon</a>
+  <a href="#practice">12 &nbsp; Check your understanding</a>
+  <a href="#next">13 &nbsp; Your next steps</a>
+</nav>
+<main>
+<header>
+  <div class="eyebrow">A first course · intuition → calculation → feedback</div>
+  <h1>Discrete-time<br>optimal control.</h1>
+  <p class="lead">How do you choose what to do <em>now</em>, when that choice changes what you can do <em>later</em>?</p>
+  <p>We will answer that question with one small system, a pencil-and-paper calculation, and a lab you can change yourself. No previous control theory is assumed.</p>
+  <div class="meta">Prerequisites: basic algebra; derivatives introduced where needed; matrices only in Part III.<br>Reading path: 45–60 minutes for Parts I–II; another 30–45 minutes for the extensions.<br>LaTeX typesetting by KaTeX · an internet connection loads the math renderer and fonts.<br>On small screens, scroll wide equations and tables sideways.</div>
+</header>
+
+<section id="start">
+  <span class="number">00 / BEFORE THE SYMBOLS</span>
+  <h2>Start with a thermostat, not a theorem.</h2>
+  <p>A thermostat can turn the heater on when a room is cold. That is <strong>feedback control</strong>: measure the present situation and react. But suppose electricity will become expensive in an hour. Should you heat the room a little extra now? You need to predict the future, compare alternatives, and account for comfort <em>and</em> energy.</p>
+  <p><strong>Optimal control is optimization over the evolution of a system.</strong> Your decisions are connected through time. An action that looks cheap now can leave an expensive problem later.</p>
+  <div class="box"><p><strong>The lesson in one sentence:</strong> predict what an action does, charge for the action and its consequences, then choose the best tradeoff—and use fresh measurements when reality differs from the prediction.</p></div>
+  <p>Here “discrete” means <strong>discrete time</strong>: decisions happen at steps 0, 1, 2, … . States and actions can still be real numbers. Choosing a real-valued motor voltage each 10 ms is discrete-time control; choosing only “on” or “off” introduces a separate, discrete-action restriction.</p>
+  <h3>Three passes, not one marathon</h3>
+  <ol>
+    <li><strong>Understand:</strong> read Sections 1–4 and reproduce the two-step example.</li>
+    <li><strong>Generalize:</strong> read Sections 5–7, then change one slider at a time.</li>
+    <li><strong>Connect:</strong> use Sections 8–11 when you are ready for matrices, numerical optimization, and stability.</li>
+  </ol>
+  <p>At each “pause,” try answering before opening the explanation. Recognition is easier than understanding; predicting an answer is a better test.</p>
+</section>
+
+<section id="model">
+  <span class="number">01 / DESCRIBE WHAT CAN HAPPEN</span>
+  <h2>State + action → next state.</h2>
+  <p>Imagine a point on a line. Its target is the origin. At every step, you choose a displacement. If the current position is \(x_k\) and your chosen displacement is \(u_k\), then</p>
+  <div class="eq">\[x_{k+1} = x_k + u_k\]<small>Current position + commanded movement = next position.</small></div>
+  <p>Start at \(x_0 = 2\). Choosing \(u_0 = -0.5\) moves you to \(x_1 = 1.5\). Choosing \(u_1 = -1\) next moves you to \(x_2 = 0.5\). A negative action moves left; it is not a “negative cost.”</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Name</th><th>Symbol</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>Time index</td><td>\(k\)</td><td>Which decision step we are at.</td></tr>
+      <tr><td>State</td><td>\(x_k\)</td><td>Information needed now to predict the next state, given an action.</td></tr>
+      <tr><td>Control / action / input</td><td>\(u_k\)</td><td>What we choose at step \(k\).</td></tr>
+      <tr><td>Dynamics</td><td>\(x_{k+1} = f_k(x_k, u_k)\)</td><td>The model linking one step to the next.</td></tr>
+      <tr><td>Horizon</td><td>\(N\)</td><td>Number of decisions: \(u_0, \ldots, u_{N-1}\); the last state is \(x_N\).</td></tr>
+    </tbody>
+  </table></div>
+  <p>The point model is deliberately simple. A car usually needs position <em>and velocity</em> as its state: the same position with a different velocity leads to a different future. A state is a predictive summary, not necessarily just “where you are.”</p>
+  <h3>Where does a discrete-time model come from?</h3>
+  <p>If a velocity command \(v_k\) is held constant for a sampling interval \(\Delta t\), then \(x_{k+1} = x_k + \Delta t\,v_k\) exactly for an ideal velocity-controlled point. Our action is the increment \(u_k = \Delta t\,v_k\). For a force-controlled robot, the dynamics are different. Do not borrow a controller without checking its model and units.</p>
+  <details><summary>Pause: if a moving car’s state contains only position, what is missing?</summary><p>Velocity. Two cars at the same position, one parked and one moving fast, do not have the same next position under the same acceleration. Position alone is not a sufficient state for that model.</p></details>
+</section>
+
+<section id="objective">
+  <span class="number">02 / SAY WHAT “BETTER” MEANS</span>
+  <h2>Optimal with respect to what?</h2>
+  <p>Going to the origin immediately seems obvious: choose \(u_0 = -x_0\). But a big action might use energy, stress a motor, or feel uncomfortable. We need a score that expresses the tradeoff.</p>
+  <div class="eq">\[J = \sum_{k=0}^{N-1} \left(qx_k^2 + ru_k^2\right) + sx_N^2\]<small>\(q \ge 0\): position penalty · \(r > 0\): action penalty · \(s \ge 0\): final-position penalty.</small></div>
+  <ul>
+    <li><strong>Stage cost:</strong> \(qx_k^2 + ru_k^2\) charges for each decision step.</li>
+    <li><strong>Terminal cost:</strong> \(sx_N^2\) charges for where you end up, after the final action.</li>
+    <li><strong>Total cost:</strong> add every charge. Smaller is better. The square penalizes left and right errors equally and makes large deviations expensive.</li>
+  </ul>
+  <p>For a nonzero target, define an error \(e_k = x_k - x_{\mathrm{target}}\). For our integrator with a constant target, \(e_{k+1} = e_k + u_k\), so the same derivation applies to the error.</p>
+  <div class="box warning"><p><strong>A penalty is not a promise.</strong> A large terminal penalty encourages ending near zero. It does not enforce \(x_N = 0\). A hard terminal requirement must be written as a constraint, and it might be impossible to satisfy.</p></div>
+  <h3>The general finite-horizon problem</h3>
+  <div class="eq">\[\begin{aligned}
+    \underset{u_0,\ldots,u_{N-1}}{\operatorname{minimize}}\quad &amp; J = \sum_{k=0}^{N-1}\ell_k(x_k,u_k)+\varphi(x_N) \\
+    \text{subject to}\quad &amp; x_{k+1}=f_k(x_k,u_k),\qquad x_0\text{ given}.
+  \end{aligned}\]<small>Optional constraints: \(x_k\in\mathcal X_k\), \(u_k\in\mathcal U_k\), \(x_N\in\mathcal X_N\).</small></div>
+  <p>We choose the actions; the dynamics determine the states. You may also optimize over states as explicit variables, but then the dynamics must hold as equality constraints.</p>
+  <p>Weights encode preferences, not universal truths. Since position and input can have different units, their weights must make the terms comparable. Multiplying <em>all</em> cost terms by the same positive constant leaves the minimizing actions unchanged.</p>
+</section>
+
+<section id="by-hand">
+  <span class="number">03 / YOUR FIRST COMPLETE SOLUTION</span>
+  <h2>Two decisions. No black box.</h2>
+  <p>Use \(x_0 = 2\), \(N = 2\), and \(q = r = s = 1\). Our score is</p>
+  <div class="eq">\[J = x_0^2 + u_0^2 + x_1^2 + u_1^2 + x_2^2.\]</div>
+  <p>Start with the <strong>last</strong> action. If you arrive at an arbitrary state \(x_1\), its remaining action-dependent cost is \(u_1^2 + (x_1 + u_1)^2\). Complete the square:</p>
+  <div class="eq">\[\begin{aligned}
+    &amp; u_1^2 + (x_1 + u_1)^2 \\
+    &amp;\quad = 2\left(u_1 + \frac{x_1}{2}\right)^2 + \frac{x_1^2}{2}.
+  \end{aligned}\]</div>
+  <p>A square cannot be negative. Its smallest value is zero, achieved at \(u_1^* = -x_1/2\). Including the state cost \(x_1^2\), the <strong>best possible remaining cost</strong> is \(\frac{3}{2}x_1^2\).</p>
+  <p>Now go back one step. Because \(x_1 = 2 + u_0\), choose \(u_0\) to minimize</p>
+  <div class="eq">\[\begin{aligned}
+    &amp; 4 + u_0^2 + \frac{3}{2}(2 + u_0)^2 \\
+    &amp;\quad = \frac{5}{2}\left(u_0 + \frac{6}{5}\right)^2 + \frac{32}{5}.
+  \end{aligned}\]</div>
+  <p>Therefore <strong>\(u_0^* = -6/5 = -1.2\)</strong>. This gives \(x_1 = 0.8\), then \(u_1^* = -0.4\) and \(x_2 = 0.4\). The point does <em>not</em> finish at zero: making the final correction costs more than it saves under these weights.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Strategy</th><th>Actions \((u_0,u_1)\)</th><th>States \((x_0,x_1,x_2)\)</th><th>Total cost</th></tr></thead>
+    <tbody><tr><td>Do nothing</td><td>(0, 0)</td><td>(2, 2, 2)</td><td>4 + 0 + 4 + 0 + 4 = <strong>12</strong></td></tr>
+    <tr><td>Go to zero immediately</td><td>(−2, 0)</td><td>(2, 0, 0)</td><td>4 + 4 = <strong>8</strong></td></tr>
+    <tr><td>Optimal tradeoff</td><td>(−1.2, −0.4)</td><td>(2, 0.8, 0.4)</td><td>4 + 1.44 + 0.64 + 0.16 + 0.16 = <strong>6.4</strong></td></tr></tbody>
+  </table></div>
+  <div class="lab" id="tradeoff-demo">
+    <div class="eyebrow">Interactive / see the cost bowl</div>
+    <h3>Choose the first action yourself.</h3>
+    <p>Keep two decisions, \(x_0=2\), and \(q=s=1\). Choose \(u_0\) below; afterward, the second action is chosen optimally. The three curves show <strong>today’s cost</strong>, <strong>the best remaining cost</strong>, and <strong>their sum</strong>.</p>
+    <div class="eq">\[\begin{aligned}
+      C(u_0) &amp;= \underbrace{4+ru_0^2}_{\text{pay now}} + \underbrace{P_1(2+u_0)^2}_{\text{best future cost}}, \\
+      P_1 &amp;= 1+\frac{r}{r+1}.
+    \end{aligned}\]</div>
+    <div class="controls">
+      <label for="trial-action">Your first action \(u_0\) <output id="trial-action-value" for="trial-action">0</output><input id="trial-action" type="range" min="-2.5" max="0.5" step="0.01" value="0"></label>
+      <label for="trial-effort">Effort weight \(r\) <output id="trial-effort-value" for="trial-effort">1</output><input id="trial-effort" type="range" min="0.25" max="8" step="0.25" value="1"></label>
+    </div>
+    <div class="metrics" aria-live="polite" aria-atomic="true">
+      <div class="metric"><strong id="trial-now">—</strong>Pay now</div>
+      <div class="metric"><strong id="trial-future">—</strong>Best remaining cost</div>
+      <div class="metric"><strong id="trial-total">—</strong>Total for your choice</div>
+    </div>
+    <div class="legend"><span class="key nominal">Pay now (dashed)</span><span class="key open">Future (dotted)</span><span class="key feedback">Total (solid)</span></div>
+    <svg class="plot" id="cost-bowl" viewBox="0 0 760 310" role="img" aria-labelledby="bowl-title bowl-desc"><title id="bowl-title">Immediate and future costs versus first action</title><desc id="bowl-desc">A teal dot marks the minimum total cost; a dark ring marks your chosen action. The values and optimal action are also reported below.</desc><g id="bowl-content"></g></svg>
+    <p class="caption" id="trial-note" aria-live="polite"></p>
+    <p><strong>Try this:</strong> with \(r=1\), compare \(u_0=0\), \(u_0=-2\), and \(u_0=-1.2\). Doing nothing minimizes today’s bill; jumping to zero minimizes the future bill. The best <em>total</em> sits between them. Then raise \(r\) and watch its minimum move toward zero.</p>
+    <p class="caption">This experiment is separate from the longer-horizon feedback lab in Section 7. Its future cost assumes the second action is optimal, not zero: at \(u_0=0\), its total is 10, whereas doing nothing at <em>both</em> steps costs 12.</p>
+  </div>
+  <div class="box"><p><strong>What you just discovered:</strong> replace “all the future decisions” by their best attainable cost as a function of the state. That is the central trick of dynamic programming.</p></div>
+  <details><summary>Pause: why is the initial cost 4 included if it cannot change our decision?</summary><p>It belongs to the specified total score. Since the initial state is fixed, that term is constant with respect to every action. Removing it changes the reported cost from 6.4 to 2.4, but not the optimal actions.</p></details>
+</section>
+
+<section id="feedback">
+  <span class="number">04 / REACT TO THE STATE YOU ACTUALLY HAVE</span>
+  <h2>A sequence is a plan. A policy is a rule.</h2>
+  <p>Our nominal plan was (−1.2, −0.4). But our derivation found something more useful: \(u_1^* = -x_1/2\) for <em>any</em> state at the last step. Repeating the first-step derivation with a symbolic initial state gives</p>
+  <div class="eq">\[\pi_0(x) = -0.6x,\qquad \pi_1(x) = -0.5x\]<small>A policy \(\pi\) maps the current state to an action. The rule can depend on time.</small></div>
+  <p>Suppose a push adds +1 after the first movement. Instead of arriving at 0.8, you arrive at 1.8.</p>
+  <ul>
+    <li><strong>Open loop:</strong> execute the old second action −0.4. You end at 1.4.</li>
+    <li><strong>Feedback:</strong> measure 1.8, then choose −0.5 × 1.8 = −0.9. You end at 0.9.</li>
+  </ul>
+  <p>The feedback action minimizes the remaining cost <em>from the state actually reached</em>, assuming no further push. It cannot undo the cost already incurred. It does not need to know the first push in advance.</p>
+  <div class="box warning"><p><strong>Feedback is not clairvoyance.</strong> A deterministic optimal policy is optimal for its modeled future. It is not automatically optimal against arbitrary unknown disturbances. Stochastic and robust control explicitly model uncertainty in different ways.</p></div>
+</section>
+
+<section id="bellman">
+  <span class="number">05 / THE GENERAL PRINCIPLE</span>
+  <h2>Think backward. Then act forward.</h2>
+  <p>Define the <strong>value function</strong> \(V_k(x)\): the smallest remaining cost if you start at state \(x\) at time \(k\) and behave optimally from then on. This is a function over possible states, not just a number along one trajectory.</p>
+  <p>At time \(N\), no actions remain. You only pay the terminal charge. One step earlier, try an action, pay its immediate cost, and add the best possible cost from the state it produces:</p>
+  <div class="eq">\[\begin{aligned}
+    V_N(x) &amp;= \varphi(x), \\
+    V_k(x) &amp;= \min_u\left\{\ell_k(x,u)+V_{k+1}\bigl(f_k(x,u)\bigr)\right\}.
+  \end{aligned}\]<small>Bellman’s recursion. Minimize over feasible actions; infeasible continuations can be assigned value \(+\infty\).</small></div>
+  <p>The minimum is a <strong>cost</strong>. The minimizing action, written “arg min,” is the <strong>policy</strong> \(\pi_k(x)\). These are different objects.</p>
+  <h3>Why is this valid?</h3>
+  <p>Fix your first action. It determines the next state. Any continuation worse than the best continuation from that next state can be replaced by a better one. Therefore an optimal plan must use an optimal continuation. Now compare all first actions. This proves the recursion under the assumed state model and additive cost, when the minima exist.</p>
+  <p>For our two-step example: \(V_2(x) = x^2\), \(V_1(x) = 1.5x^2\), and \(V_0(x) = 1.6x^2\). Evaluating at 2 gives 1.6 × 4 = 6.4.</p>
+  <h3>Why not always use a big grid?</h3>
+  <p>If a scalar state is represented by 100 grid points, storing a value function is easy. If there are 10 state coordinates with 100 points each, there are \(100^{10}\) grid states <em>per time step</em>. This is the <strong>curse of dimensionality</strong>. Bellman gives the structure of the solution; it does not guarantee a cheap numerical representation.</p>
+  <details><summary>Pause: why is “minimize just today’s stage cost” usually wrong?</summary><p>For our model, \(x_k\) is already fixed when choosing \(u_k\). Minimizing only \(qx_k^2 + ru_k^2\) chooses zero input forever. The future-value term is what makes moving worthwhile.</p></details>
+</section>
+
+<section id="lqr">
+  <span class="number">06 / WHEN THE VALUE FUNCTION HAS A SIMPLE SHAPE</span>
+  <h2>Linear + quadratic = a tractable recursion.</h2>
+  <p>Generalize the dynamics slightly to \(x_{k+1} = ax_k + bu_k\). The number \(a\) describes natural drift, and \(b\) describes input effectiveness. Assume unconstrained real-valued inputs and the quadratic cost from Section 2.</p>
+  <p>The terminal value is \(sx^2\). Suppose the next value function has the form \(V_{k+1}(x) = P_{k+1}x^2\). Write \(P\) for \(P_{k+1}\) temporarily. Bellman asks us to minimize</p>
+  <div class="eq">\[\begin{aligned}
+    &amp; qx^2 + ru^2 + P(ax + bu)^2 \\
+    &amp;\quad = (q + a^2P)x^2 + 2abP xu + (r + b^2P)u^2.
+  \end{aligned}\]</div>
+  <p>The coefficient of \(u^2\) is strictly positive because \(r > 0\) and \(P \ge 0\). So this is a bowl with one global minimum. A derivative is the slope of the cost as you vary the action; at the bottom of this smooth bowl, the slope is zero. Here the derivative with respect to \(u\) is \(2abP x + 2(r + b^2P)u\). Set it to zero:</p>
+  <div class="eq">\[u_k^* = -K_k x_k,\qquad K_k = \frac{abP_{k+1}}{r + b^2P_{k+1}}.\]</div>
+  <p>Substituting this minimizing action back into the cost gives another quadratic value function, with coefficient</p>
+  <div class="eq">\[P_k = q + a^2P_{k+1} - \frac{(abP_{k+1})^2}{r + b^2P_{k+1}},\qquad P_N = s.\]</div>
+  <p>This is the <strong>finite-horizon Riccati recursion</strong>. We did not merely guess the quadratic shape: the terminal value has that shape, and the recursion preserves it. Backward induction therefore proves the shape and the solution at every step.</p>
+  <div class="box"><p><strong>LQR = linear quadratic regulator.</strong> “Linear” describes the dynamics, “quadratic” describes the cost, and “regulator” means driving deviations toward an equilibrium. The feedback is linear because minimizing a quadratic with linear dynamics produces a linear action rule.</p></div>
+  <h3>A complete numerical recipe</h3>
+  <pre><code># Inputs: real a, b; q ≥ 0, r &gt; 0, s ≥ 0; horizon N
+P[N] = s
+for k = N-1 down to 0:
+    d = r + b*b*P[k+1]
+    K[k] = b*P[k+1]*a / d
+    P[k] = q + a*a*P[k+1] - (a*b*P[k+1])**2 / d
+
+# Now run forward. Use the measured state at each step.
+for k = 0 to N-1:
+    u = -K[k] * measured_state
+    apply(u)
+    # The plant evolves; measure again at the next step.</code></pre>
+  <p>For our original integrator, \(a = b = 1\), the same update simplifies to \(P_k = q + rP_{k+1}/(r + P_{k+1})\). With two steps and unit weights, this gives \(P_2 = 1\), \(P_1 = 1.5\), \(P_0 = 1.6\), and gains 0.6, 0.5, exactly as before.</p>
+  <details><summary>Pause: what if the terminal weight is zero?</summary><p>The final gain is zero: there is no cost for the state reached after the last action, so a final nonzero action only adds effort cost. Earlier gains can still be nonzero because earlier actions affect states charged by later stage costs. If \(q = s = 0\), all gains are zero.</p></details>
+</section>
+
+<section id="lab">
+  <span class="number">07 / MAKE A PREDICTION, THEN MOVE A SLIDER</span>
+  <h2>A small laboratory for future consequences.</h2>
+  <p>The lab solves unconstrained finite-horizon LQR for \(x_{k+1} = ax_k + u_k\), starting at \(x_0 = 2\) with terminal weight \(s = 1\). A single unexpected push \(w\) is added on the transition from step 1 to step 2. It is <strong>not known to the planner</strong>.</p>
+  <div class="lab">
+    <div class="eyebrow">Interactive / scalar LQR</div>
+    <div class="controls">
+      <label for="horizon">Horizon \(N\) <output id="horizon-value" for="horizon">8</output><input id="horizon" type="range" min="3" max="20" step="1" value="8"></label>
+      <label for="q">Position weight \(q\) <output id="q-value" for="q">1</output><input id="q" type="range" min="0" max="5" step="0.1" value="1"></label>
+      <label for="r">Effort weight \(r\) <output id="r-value" for="r">1</output><input id="r" type="range" min="0.1" max="10" step="0.1" value="1"></label>
+      <label for="a">Natural drift \(a\) <output id="a-value" for="a">1</output><input id="a" type="range" min="0.7" max="1.3" step="0.05" value="1"></label>
+      <label for="push">Unexpected push \(w\) <output id="push-value" for="push">0</output><input id="push" type="range" min="-3" max="3" step="0.25" value="0"></label>
+    </div>
+    <button type="button" id="reset">Reset experiment</button>
+    <div class="metrics" aria-live="polite" aria-atomic="true">
+      <div class="metric"><strong id="optimal-cost">—</strong>Nominal optimal cost</div>
+      <div class="metric"><strong id="zero-cost">—</strong>Nominal zero-input cost</div>
+      <div class="metric"><strong id="feedback-cost">—</strong>Realized feedback cost</div>
+    </div>
+    <div class="legend"><span class="key nominal">Nominal optimal plan (dashed)</span><span class="key open">Old plan + push (dotted)</span><span class="key feedback">Feedback + push (solid)</span></div>
+    <svg class="plot" id="trajectory" viewBox="0 0 760 310" role="img" aria-labelledby="plot-title plot-desc"><title id="plot-title">Position versus decision step</title><desc id="plot-desc">Change the sliders to compare planned and realized trajectories. Exact values appear in the table below.</desc><g id="plot-content"></g></svg>
+    <p class="caption lab-note" id="lab-note" aria-live="polite"></p>
+    <details><summary>Show exact rollout, actions, and backward coefficients</summary>
+      <p class="caption">Rounded display only. Computations use unrounded values. Feedback and open-loop actions coincide until the disturbed state is measured at step 2. The terminal row has no action.</p>
+      <div class="table-wrap"><table><thead><tr><th>Step \(k\)</th><th>\(P_k\)</th><th>\(K_k\)</th><th>Nominal \(x\)</th><th>Open-loop \(x\)</th><th>Feedback \(x\)</th><th>Feedback \(u\)</th></tr></thead><tbody id="rollout"></tbody></table></div>
+    </details>
+    <noscript><p>Enable JavaScript to render the LaTeX formulas and use the interactive plots.</p></noscript>
+  </div>
+  <h3>Four experiments that teach different things</h3>
+  <ol>
+    <li><strong>Raise \(r\) from 1 to 8.</strong> Predict the first action before you look. It becomes less aggressive because action is expensive. The total cost need not decrease: you changed the scoring rule. Do not compare costs under different weights as though they used the same ruler.</li>
+    <li><strong>Reset, then set the push to +2.</strong> Open loop continues with the old plan. Feedback re-evaluates actions using the displaced state. With no push, the trajectories coincide; their overlap is expected.</li>
+    <li><strong>Set \(a\) to 1.3.</strong> Errors grow naturally without input. Notice how the gain responds. The nominal zero-input cost shows what doing nothing would cost, though that trajectory is not plotted.</li>
+    <li><strong>Reset, then set \(q = 0\).</strong> Only effort and the final error matter. The controller can spread its correction over time. The gain sequence is not constant; the deadline matters.</li>
+  </ol>
+  <p class="caption">The lab has no actuator limits, sensor errors, or model mismatch beyond the single push. Its feedback costs are realized scores, not a claim of optimality for a general disturbance process. For this single push, once step 2 is measured and no more pushes occur, the remaining feedback policy is the optimal continuation.</p>
+</section>
+
+<section id="vectors">
+  <span class="number">08 / OPTIONAL MATRIX EXTENSION</span>
+  <h2>The same idea, several state coordinates.</h2>
+  <p>Now let \(\mathbf{x}_k\) be an \(n\)-dimensional column vector and \(\mathbf{u}_k\) an \(m\)-dimensional input. A linear model has matrices \(A\) of size \(n\times n\) and \(B\) of size \(n\times m\):</p>
+  <div class="eq">\[\begin{aligned}
+    \mathbf{x}_{k+1} &amp;= A\mathbf{x}_k+B\mathbf{u}_k, \\
+    J &amp;= \sum_{k=0}^{N-1}\left(\mathbf{x}_k^{\mathsf T}Q\mathbf{x}_k+\mathbf{u}_k^{\mathsf T}R\mathbf{u}_k\right)+\mathbf{x}_N^{\mathsf T}S\mathbf{x}_N.
+  \end{aligned}\]</div>
+  <p>Superscript \(\mathsf T\) means transpose. The matrix expression \(\mathbf{x}^{\mathsf T}Q\mathbf{x}\) is a scalar weighted error. Require symmetric \(Q\), \(S\) positive semidefinite (nonnegative for every state) and \(R\) positive definite (strictly positive for every nonzero input).</p>
+  <p>The value function is \(V_k(\mathbf{x}) = \mathbf{x}^{\mathsf T}P_k\mathbf{x}\). The scalar derivation becomes:</p>
+  <div class="eq">\[\begin{aligned}
+    P_N &amp;= S, \\
+    K_k &amp;= \left(R+B^{\mathsf T}P_{k+1}B\right)^{-1}B^{\mathsf T}P_{k+1}A, \\
+    P_k &amp;= Q+A^{\mathsf T}P_{k+1}A-A^{\mathsf T}P_{k+1}BK_k, \\
+    \mathbf{u}_k^* &amp;= -K_k\mathbf{x}_k.
+  \end{aligned}\]</div>
+  <p>\(P_k\) is \(n\times n\); \(K_k\) is \(m\times n\). The inverse is mathematical notation: in numerical code, <strong>solve the linear system</strong> for \(K_k\) instead of explicitly forming an inverse. Use a reliable Riccati implementation for serious work.</p>
+  <h3>A robot example: position and velocity</h3>
+  <p>A unit-mass point with acceleration input held constant for \(\Delta t\) obeys the exact sampled model</p>
+  <div class="eq">\[\begin{aligned}
+    p_{k+1} &amp;= p_k + \Delta t\,v_k + \frac{1}{2}(\Delta t)^2 u_k, \\
+    v_{k+1} &amp;= v_k + \Delta t\,u_k.
+  \end{aligned}\]</div>
+  <p>With \(\mathbf{x} = [p,v]^{\mathsf T}\), these two equations specify \(A\) and \(B\). Feedback becomes \(u = -k_p p-k_v v\): react both to where you are and how fast you are moving. That is why a useful controller starts braking <em>before</em> it reaches the target.</p>
+  <div class="box warning"><p><strong>Check sampling assumptions.</strong> Forward Euler would omit \(\frac{1}{2}(\Delta t)^2u_k\) from the position update. That is an approximation, not the same model. Likewise, discretizing continuous dynamics does not automatically give the exact discrete cost: integrating a continuous quadratic running cost can produce state–input cross terms.</p></div>
+</section>
+
+<section id="costates">
+  <span class="number">09 / ANOTHER VIEW OF THE SAME OPTIMUM</span>
+  <h2>Costates measure the price of state.</h2>
+  <p>Dynamic programming considers all possible states. Another route computes necessary conditions <em>along a candidate trajectory</em>. Assume differentiable dynamics and costs, unconstrained inputs, and a fixed initial state. For column gradients, introduce a costate \(\boldsymbol{\lambda}_{k+1}\) for each dynamics constraint:</p>
+  <div class="eq">\[\begin{aligned}
+    \mathcal L = \varphi(\mathbf{x}_N) + \sum_{k=0}^{N-1}\Bigl[&amp;\ell_k(\mathbf{x}_k,\mathbf{u}_k) \\
+    &amp;+\boldsymbol{\lambda}_{k+1}^{\mathsf T}\bigl(f_k(\mathbf{x}_k,\mathbf{u}_k)-\mathbf{x}_{k+1}\bigr)\Bigr].
+  \end{aligned}\]</div>
+  <p>Setting derivatives with respect to the free states and inputs to zero yields:</p>
+  <div class="eq">\[\begin{aligned}
+    \boldsymbol{\lambda}_N &amp;= \nabla\varphi(\mathbf{x}_N), \\
+    \boldsymbol{\lambda}_k &amp;= \nabla_x\ell_k+(D_x f_k)^{\mathsf T}\boldsymbol{\lambda}_{k+1}, &amp; k&amp;=N-1,\ldots,1, \\
+    \mathbf 0 &amp;= \nabla_u\ell_k+(D_u f_k)^{\mathsf T}\boldsymbol{\lambda}_{k+1}, &amp; k&amp;=0,\ldots,N-1.
+  \end{aligned}\]<small>All derivatives are evaluated on the candidate trajectory. The same backward formula can define \(\boldsymbol{\lambda}_0\), but \(\mathbf{x}_0\) is fixed, so it has no stationarity condition.</small></div>
+  <p>The Jacobian \(D_x f\) describes how changing the current state changes the next state. Multiplying by the future costate propagates a future cost sensitivity backward. Define the Hamiltonian</p>
+  <div class="eq">\[H_k(\mathbf{x},\mathbf{u},\boldsymbol{\lambda}_{k+1}) = \ell_k(\mathbf{x},\mathbf{u}) + \boldsymbol{\lambda}_{k+1}^{\mathsf T}f_k(\mathbf{x},\mathbf{u}).\]</div>
+  <p>These equations become \(\boldsymbol{\lambda}_k = \nabla_x H_k\) and \(\nabla_u H_k = \mathbf 0\).</p>
+  <h3>Check it on the two-step calculation</h3>
+  <p>Our states are (2, 0.8, 0.4). Since \(\varphi(x) = x^2\), \(\lambda_2 = 2\times0.4 = 0.8\). Then \(\lambda_1 = 2\times0.8 + 0.8 = 2.4\). The input conditions give \(2u_1 + \lambda_2 = -0.8 + 0.8 = 0\) and \(2u_0 + \lambda_1 = -2.4 + 2.4 = 0\).</p>
+  <p>When the value function is differentiable, the optimal costate is its gradient along the optimal trajectory. In LQR, \(\boldsymbol{\lambda}_k = 2P_k\mathbf{x}_k\). The factor 2 comes from our choice of cost without a \(\frac12\) prefactor.</p>
+  <div class="box warning"><p><strong>Necessary does not mean sufficient.</strong> For a general nonlinear, nonconvex problem, zero gradients may describe a local minimum, maximum, or saddle. For the unconstrained LQR here, the reduced objective is a strictly convex quadratic in the input sequence, so its stationary point is the unique global minimizer.</p></div>
+  <h3>A practical connection: backpropagation through time</h3>
+  <p>For any proposed input sequence, simulate the states forward, set the terminal costate, and propagate it backward. Then \(\mathbf{g}_k = \nabla_u\ell_k+(D_u f_k)^{\mathsf T}\boldsymbol{\lambda}_{k+1}\) is the gradient of the total cost with respect to that action. An optimizer can use these gradients to improve the sequence. This is reverse-mode differentiation through the dynamics.</p>
+</section>
+
+<section id="constraints">
+  <span class="number">10 / WHEN REAL HARDWARE HAS LIMITS</span>
+  <h2>Constraints change the solution. MPC changes when you solve.</h2>
+  <p>Suppose our actuator allows only \(|u_k|\le0.5\). The first action −1.2 in the two-step example is illegal. The dynamics and constraints must be optimized together.</p>
+  <p>For that particular two-step, unit-weight problem, the constrained optimum is (−0.5, −0.5), giving states (2, 1.5, 1) and cost 4 + 0.25 + 2.25 + 0.25 + 1 = <strong>7.75</strong>. To see why, the final optimal action is the unconstrained \(-x_1/2\) limited to the interval [−0.5, 0.5]; for every feasible first action, \(x_1\ge1.5\), so the last action is −0.5. The remaining cost decreases as the first action moves toward −0.5.</p>
+  <div class="box warning"><p><strong>Do not generalize that coincidence.</strong> Clipping an unconstrained LQR command gives a feasible input but is not generally the constrained optimum: earlier decisions should anticipate future saturation and state limits. For a one-step scalar quadratic problem, projection onto an interval is exact; that special fact does not solve arbitrary multistep constrained problems.</p></div>
+  <h3>Direct optimization: stack all the actions</h3>
+  <p>For the integrator, \(x_k = x_0+\sum_{j=0}^{k-1}u_j\). Substitute these expressions into the objective. With \(\mathbf U=[u_0,\ldots,u_{N-1}]^{\mathsf T}\), the result is</p>
+  <div class="eq">\[\begin{aligned}
+    \underset{\mathbf U}{\operatorname{minimize}}\quad &amp; \frac12\mathbf U^{\mathsf T}H\mathbf U+\mathbf h^{\mathsf T}\mathbf U+c \\
+    \text{subject to}\quad &amp; G\mathbf U\le\mathbf g.
+  \end{aligned}\]</div>
+  <p>This is a <strong>quadratic program (QP)</strong> when dynamics are linear, costs quadratic, and constraints linear. \(H\) here is a Hessian matrix, not the Hamiltonian from Section 9. With positive input weights, it is positive definite after eliminating the states. A feasible problem has a unique minimizer. General nonlinear models lead instead to nonlinear programs, which can have local minima.</p>
+  <h3>Model predictive control: solve, apply one action, repeat</h3>
+  <ol class="steps">
+    <li>Measure or estimate the current state.</li>
+    <li>Solve a finite-horizon optimal-control problem starting there.</li>
+    <li>Apply <strong>only the first action</strong>.</li>
+    <li>At the next sample, measure again, shift the horizon, and solve again.</li>
+  </ol>
+  <p>This is <strong>MPC</strong>, also called receding-horizon control. Replanning makes an optimization algorithm act as a feedback controller. Constraints are a major reason to use it. With model mismatch, even a feasible predicted trajectory may miss real constraints; robust design, margins, and state estimation can matter.</p>
+  <p>In the finite-horizon LQR lab, the deadline is fixed and the remaining horizon shrinks; we compute the full time-dependent policy once. Standard fixed-length MPC instead moves its deadline forward each step. For unconstrained, time-invariant linear-quadratic MPC with the same horizon and terminal weight at every solve, each step uses the same first gain. Those are different timing conventions.</p>
+  <details><summary>Pause: can the bounded two-step integrator reach exactly zero from \(x_0 = 2\)?</summary><p>No. Two inputs of magnitude at most 0.5 can reduce position by at most 1. The smallest reachable final position is 1. Adding the constraint \(x_2 = 0\) makes this problem infeasible; an optimizer cannot override physics.</p></details>
+</section>
+
+<section id="infinite">
+  <span class="number">11 / REMOVE THE DEADLINE, CAREFULLY</span>
+  <h2>Why a constant feedback gain sometimes appears.</h2>
+  <p>For an infinite horizon, we minimize \(\sum_{k=0}^{\infty}(\mathbf{x}_k^{\mathsf T}Q\mathbf{x}_k+\mathbf{u}_k^{\mathsf T}R\mathbf{u}_k)\). With time-invariant dynamics and appropriate assumptions, the Riccati recursion approaches a constant matrix \(P\). The same update with \(P_k = P_{k+1} = P\) becomes the <strong>discrete algebraic Riccati equation (DARE)</strong>.</p>
+  <p>For the scalar integrator with \(q = r = 1\):</p>
+  <div class="eq">\[\begin{aligned}
+    P &amp;= 1+P-\frac{P^2}{1+P} \\
+    \Longrightarrow\quad P^2-P-1 &amp;= 0 \\
+    \Longrightarrow\quad P &amp;= \frac{1+\sqrt5}{2}\approx1.618, \\
+    K &amp;= \frac{P}{1+P}\approx0.618.
+  \end{aligned}\]</div>
+  <p>The negative root is not a nonnegative value coefficient. With the positive root, the closed loop is \(x_{k+1}=(1-K)x_k\approx0.382x_k\). Its magnitude shrinks geometrically toward zero. This is asymptotic stability for this scalar system.</p>
+  <p>A standard sufficient set of assumptions for the general result is \(R\) positive definite, \(Q\) positive semidefinite, \((A,B)\) <strong>stabilizable</strong>, and \((A,Q^{1/2})\) <strong>detectable</strong>. Roughly: any mode that can fail to decay must be controllable by the inputs, and any mode invisible to the state penalty must already decay. Under these assumptions the stabilizing nonnegative Riccati solution gives a stable closed loop.</p>
+  <div class="box warning"><p><strong>Finite-horizon optimality is not a stability certificate.</strong> A short horizon, missing terminal penalty, or ignored unstable state can produce poor or unstable repeated behavior. MPC stability and recursive feasibility need additional design and analysis; they do not follow just from solving each optimization accurately.</p></div>
+</section>
+
+<section id="practice">
+  <span class="number">12 / RETRIEVAL PRACTICE</span>
+  <h2>Can you rebuild the argument?</h2>
+  <p>Try these without scrolling upward. A correct explanation in your own words matters more than memorizing a formula.</p>
+  <details><summary>1. One step: \(x_0 = 3\), \(q = 1\), \(r = 2\), \(s = 4\). Find the optimal input and final state.</summary><p>Minimize \(9+2u^2+4(3+u)^2\). Its derivative is \(4u+8(3+u)=12u+24\). Thus \(u^*=-2\) and \(x_1=1\). The total cost is 9 + 8 + 4 = 21. The current-state penalty does not affect the one-step action because the current state is fixed.</p></details>
+  <details><summary>2. Two steps again: \(x_0 = -1\), \(q = r = s = 1\). What changes?</summary><p>The same gains 0.6 and 0.5 apply. Actions are +0.6 and +0.2, giving states −1, −0.4, −0.2. The optimal cost is 1.6. Reversing the initial sign reverses the trajectory and inputs; the quadratic cost stays the same for the same magnitude.</p></details>
+  <details><summary>3. Suppose \(b = 0\). Can a large controller gain rescue the system?</summary><p>No. Actions do not affect the state at all: \(x_{k+1}=ax_k\). The optimal input is zero because effort only adds cost. If \(|a|\ge1\) and the state is penalized with \(q > 0\), the infinite-horizon cost diverges for a nonzero initial state. Controllability is a property of the plant, not something gain tuning can invent.</p></details>
+  <details><summary>4. What is the difference between \(V_k(x)\), \(\pi_k(x)\), and an open-loop plan?</summary><p>\(V_k(x)\) tells you the smallest remaining cost. \(\pi_k(x)\) tells you which action achieves it from that state. An open-loop plan is one sequence of actions for one initial condition and one predicted evolution; it does not specify how to react to different observed states.</p></details>
+  <details><summary>5. If every cost weight is multiplied by 7, what happens to \(K\) and \(P\)?</summary><p>The objective is multiplied by 7, so its minimizing policy and gains stay the same. The value coefficients \(P_k\) and optimal total cost are multiplied by 7. This is a useful implementation check.</p></details>
+  <details><summary>6. Why does the Riccati recursion run backward but the plant run forward?</summary><p>You must know the price of the next state before deciding how much input to spend getting there. Start with the known terminal price, propagate prices backward, then use the resulting gains to choose actions as the real system evolves forward.</p></details>
+  <details><summary>7. For a one-step problem, let \(s\) tend to infinity. Does the input go to zero?</summary><p>For the integrator, \(u^*=-sx/(r+s)\), so it approaches \(-x\): the optimizer prioritizes eliminating the terminal error. At any finite positive \(s\) with \(r > 0\) and \(x\ne0\), a nonzero final error remains. A hard input bound may prevent reaching zero even in the limit.</p></details>
+</section>
+
+<section id="next">
+  <span class="number">13 / THE MAP TO KEEP</span>
+  <h2>One problem. Several ways to exploit its structure.</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Question</th><th>Tool</th><th>What to remember</th></tr></thead>
+    <tbody>
+      <tr><td>How should future consequences enter today’s action?</td><td>Bellman recursion</td><td>Immediate cost + optimal remaining cost.</td></tr>
+      <tr><td>What if dynamics are linear and costs quadratic?</td><td>LQR / Riccati</td><td>Quadratic values, linear feedback, backward coefficient recursion.</td></tr>
+      <tr><td>How do I differentiate a simulated trajectory’s cost?</td><td>Costates / adjoints</td><td>States forward, sensitivities backward.</td></tr>
+      <tr><td>What if inputs or states are constrained?</td><td>QP or nonlinear optimization</td><td>Optimize with the constraints, not around them afterward.</td></tr>
+      <tr><td>How do I use a trajectory optimizer as feedback?</td><td>MPC</td><td>Measure, solve, apply one action, repeat.</td></tr>
+    </tbody>
+  </table></div>
+  <h3>A useful next hour</h3>
+  <ol>
+    <li>Reproduce the two-step solution on paper, including its cost 6.4.</li>
+    <li>Write the scalar recursion in a language you know. Check that summing the rollout costs matches \(P_0x_0^2\).</li>
+    <li>Use the position–velocity model. Plot both coordinates and the input. Ask why an input may oppose the current motion.</li>
+    <li>Only then add an input limit and solve a constrained problem with a standard optimizer.</li>
+  </ol>
+  <p>If measurements do not reveal the full state, the next topic is <strong>state estimation</strong>. If you need explicit models of randomness, learn <strong>stochastic optimal control</strong>. If bounded disturbances and guaranteed constraint satisfaction matter, learn <strong>robust MPC</strong>.</p>
+  <h3>Further reading</h3>
+  <p>For textbook depth: D. P. Bertsekas, <cite>Dynamic Programming and Optimal Control</cite> (value functions); B. D. O. Anderson and J. B. Moore, <cite>Optimal Control: Linear Quadratic Methods</cite> (LQR); J. B. Rawlings, D. Q. Mayne, and M. M. Diehl, <cite>Model Predictive Control: Theory, Computation, and Design</cite> (MPC). These are follow-up references, not prerequisites.</p>
+  <p>In this knowledge base: <a href="../pontryagin-maximum-principle/pontryagin-maximum-principle.html">Pontryagin’s principle</a> develops the continuous-time viewpoint; <a href="../sda-algorithm/sda-algorithm.pdf">the structure-preserving doubling algorithm</a> goes deeper into solving Riccati equations; <a href="../tube-mpc/tube-mpc.pdf">tube MPC</a> is a later route toward bounded-disturbance constraint handling.</p>
+  <div class="box"><p><strong>If you remember only one thing:</strong> the next state has a price. Optimal control chooses today’s input by balancing what it costs now against the value of the future it creates.</p></div>
+</section>
+<footer><a href="../../index.html">← All notes</a> · Discrete-time optimal control, from zero.<br>Scope: deterministic, fully observed, finite-horizon problems first; unconstrained LQR for exact formulas. Extensions are labeled where their assumptions change.</footer>
+</main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script>
+'use strict';
+const ids = ['horizon', 'q', 'r', 'a', 'push'];
+const defaults = [8, 1, 1, 1, 0];
+const field = id => document.getElementById(id);
+const fmt = value => Math.abs(value) < 0.00005 ? '0.0000' : value.toFixed(4);
+
+function updateTradeoff() {
+  const u = Number(field('trial-action').value), r = Number(field('trial-effort').value);
+  const P1 = 1 + r / (r + 1);
+  const now = v => 4 + r * v * v;
+  const future = v => P1 * (2 + v) ** 2;
+  const total = v => now(v) + future(v);
+  const best = -2 * P1 / (r + P1);
+  field('trial-action-value').value = u.toFixed(2);
+  field('trial-effort-value').value = r.toFixed(2);
+  field('trial-now').textContent = now(u).toFixed(3);
+  field('trial-future').textContent = future(u).toFixed(3);
+  field('trial-total').textContent = total(u).toFixed(3);
+  field('trial-note').textContent = `Dark ring: your action ${u.toFixed(2)}. Teal dot: best first action ${best.toFixed(3)}, with cost ${total(best).toFixed(3)}. Your extra cost: ${(total(u) - total(best)).toFixed(3)}. Next position: ${(2 + u).toFixed(2)}.`;
+
+  const width = Math.max(300, Math.min(760, Math.round(field('cost-bowl').getBoundingClientRect().width)));
+  const height = 310, left = 48, right = 24, top = 32, bottom = 46;
+  field('cost-bowl').setAttribute('viewBox', `0 0 ${width} ${height}`);
+  const low = -2.5, high = 0.5, maxCost = Math.max(total(low), total(high)) * 1.1;
+  const X = v => left + (width - left - right) * (v - low) / (high - low);
+  const Y = v => top + (height - top - bottom) * (1 - v / maxCost);
+  let svg = '';
+  for (let j = 0; j <= 4; j++) {
+    const value = maxCost * j / 4, y = Y(value);
+    svg += `<line x1="${left}" y1="${y}" x2="${width-right}" y2="${y}" stroke="#e0e6e8"/><text x="${left-9}" y="${y+4}" text-anchor="end">${value.toFixed(1)}</text>`;
+  }
+  for (const value of [-2, -1, 0]) svg += `<text x="${X(value)}" y="${height-23}" text-anchor="middle">${value}</text>`;
+  for (const [cost, color, dash] of [[now, '#315da6', '9 6'], [future, '#b95020', '2 7'], [total, '#087c78', '']]) {
+    const points = Array.from({length:101}, (_,j) => { const v = low + (high-low)*j/100; return `${X(v)},${Y(cost(v))}`; }).join(' ');
+    svg += `<polyline points="${points}" fill="none" stroke="${color}" stroke-width="2.5" stroke-dasharray="${dash}"/>`;
+  }
+  svg += `<line x1="${X(u)}" y1="${Y(0)}" x2="${X(u)}" y2="${Y(total(u))}" stroke="#182d3b" stroke-dasharray="4 4"/><circle cx="${X(best)}" cy="${Y(total(best))}" r="5" fill="#087c78"/><circle cx="${X(u)}" cy="${Y(total(u))}" r="7" fill="none" stroke="#182d3b" stroke-width="2.5"/>`;
+  svg += `<text x="${left}" y="17">cost</text><text x="${width-right}" y="${height-5}" text-anchor="end">first action u₀</text>`;
+  field('bowl-content').innerHTML = `<g font-family="system-ui, sans-serif" font-size="11" fill="#526775">${svg}</g>`;
+}
+
+function solveLQR(N, q, r, a) {
+  const P = Array(N + 1).fill(0), K = Array(N).fill(0);
+  P[N] = 1;
+  for (let k = N - 1; k >= 0; k--) {
+    K[k] = a * P[k + 1] / (r + P[k + 1]);
+    P[k] = q + a * a * r * P[k + 1] / (r + P[k + 1]);
+  }
+  return { P, K };
+}
+
+function simulate(N, q, r, a, K, push, plannedInputs) {
+  const x = [2], u = [];
+  let cost = 0;
+  for (let k = 0; k < N; k++) {
+    u[k] = plannedInputs ? plannedInputs[k] : -K[k] * x[k];
+    cost += q * x[k] ** 2 + r * u[k] ** 2;
+    x.push(a * x[k] + u[k] + (k === 1 ? push : 0));
+  }
+  cost += x[N] ** 2;
+  return { x, u, cost };
+}
+
+function drawPlot(N, nominal, open, feedback, push) {
+  const width = Math.max(300, Math.min(760, Math.round(field('trajectory').getBoundingClientRect().width)));
+  const height = width < 500 ? 270 : 310, left = 48, right = 24, top = 30, bottom = 46;
+  field('trajectory').setAttribute('viewBox', `0 0 ${width} ${height}`);
+  const values = [0, ...nominal.x, ...open.x, ...feedback.x];
+  let low = Math.min(...values), high = Math.max(...values);
+  const pad = Math.max(0.25, (high - low) * 0.12);
+  low -= pad; high += pad;
+  const X = k => left + (width - left - right) * k / N;
+  const Y = v => top + (height - top - bottom) * (high - v) / (high - low);
+  let svg = '';
+  for (let j = 0; j <= 4; j++) {
+    const value = low + (high - low) * j / 4, y = Y(value);
+    svg += `<line x1="${left}" y1="${y}" x2="${width-right}" y2="${y}" stroke="#e0e6e8"/><text x="${left-10}" y="${y+4}" text-anchor="end">${value.toFixed(1)}</text>`;
+  }
+  svg += `<line x1="${left}" y1="${Y(0)}" x2="${width-right}" y2="${Y(0)}" stroke="#a1b4bb"/>`;
+  const stride = Math.max(1, Math.ceil(N / (width < 500 ? 6 : 10)));
+  for (let k = 0; k <= N; k++) {
+    if (k % stride === 0 || k === N) svg += `<text x="${X(k)}" y="${height-23}" text-anchor="middle">${k}</text>`;
+  }
+  if (push !== 0) svg += `<line x1="${X(2)}" y1="${top}" x2="${X(2)}" y2="${height-bottom}" stroke="#b95020" stroke-dasharray="3 5"/><text x="${Math.min(width-110, X(2)+7)}" y="${top+10}" fill="#b95020">push observed</text>`;
+  const line = (series, color, dash, strokeWidth) => `<polyline points="${series.x.map((v,k) => `${X(k)},${Y(v)}`).join(' ')}" fill="none" stroke="${color}" stroke-width="${strokeWidth}" ${dash ? `stroke-dasharray="${dash}"` : ''}/>`;
+  svg += line(nominal, '#315da6', '9 6', 4);
+  svg += line(open, '#b95020', '2 7', 3);
+  svg += line(feedback, '#087c78', '', 2);
+  svg += feedback.x.map((v,k) => `<circle cx="${X(k)}" cy="${Y(v)}" r="3.5" fill="#087c78"/>`).join('');
+  svg += `<text x="${left}" y="14">position x</text><text x="${width-right}" y="${height-5}" text-anchor="end">decision step k</text>`;
+  field('plot-content').innerHTML = `<g font-family="system-ui, sans-serif" font-size="11" fill="#526775">${svg}</g>`;
+}
+
+function update() {
+  const [N, q, r, a, push] = ids.map(id => Number(field(id).value));
+  ids.forEach(id => { field(id + '-value').value = Number(field(id).value).toString(); });
+  const { P, K } = solveLQR(N, q, r, a);
+  const nominal = simulate(N, q, r, a, K, 0);
+  const open = simulate(N, q, r, a, K, push, nominal.u);
+  const feedback = simulate(N, q, r, a, K, push);
+  const zero = simulate(N, q, r, a, Array(N).fill(0), 0);
+  field('optimal-cost').textContent = nominal.cost.toFixed(3);
+  field('zero-cost').textContent = zero.cost.toFixed(3);
+  field('feedback-cost').textContent = feedback.cost.toFixed(3);
+  field('lab-note').textContent = push === 0
+    ? `No push: all three trajectories coincide. First feedback action = ${fmt(feedback.u[0])}. Optimal cost from the value function: ${nominal.cost.toFixed(3)}.`
+    : `Push ${push > 0 ? '+' : ''}${push} enters at step 2. Realized open-loop cost: ${open.cost.toFixed(3)}; feedback cost: ${feedback.cost.toFixed(3)}. Both use the same first two actions; feedback reacts from step 2 onward.`;
+  field('rollout').innerHTML = P.map((p,k) => `<tr><td>${k}</td><td>${fmt(p)}</td><td>${k < N ? fmt(K[k]) : '—'}</td><td>${fmt(nominal.x[k])}</td><td>${fmt(open.x[k])}</td><td>${fmt(feedback.x[k])}</td><td>${k < N ? fmt(feedback.u[k]) : '—'}</td></tr>`).join('');
+  drawPlot(N, nominal, open, feedback, push);
+}
+window.addEventListener('resize', update);
+window.addEventListener('resize', updateTradeoff);
+['trial-action', 'trial-effort'].forEach(id => field(id).addEventListener('input', updateTradeoff));
+ids.forEach(id => field(id).addEventListener('input', update));
+field('reset').addEventListener('click', () => {
+  ids.forEach((id, i) => { field(id).value = defaults[i]; });
+  update();
+});
+update();
+updateTradeoff();
+if (window.renderMathInElement) renderMathInElement(document.body, { throwOnError:true });
+</script>
+</body>
+</html>
